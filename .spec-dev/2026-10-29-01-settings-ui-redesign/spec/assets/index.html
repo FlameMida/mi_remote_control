@@ -266,6 +266,94 @@ html.glass-rt .ovl,html.glass-rt .pop,html.glass-rt .hud,html.glass-rt .hintbar,
 html.glass-rt .badge{background:#000}
 html.glass-rt .fakewin{background:var(--side)}
 .slot .act .tag,.slot .act .reset{flex:none}.slot .act .picker{min-width:0;flex:0 1 auto;overflow:hidden;max-width:100%}.slot .act .picker .v{min-width:0}
+
+/* ---- 对齐原版补充样式 ---- */
+.rcap{font-size:10.5px;color:var(--text3);text-align:center;margin-top:4px}
+.picker .v.none{color:var(--text3)}
+.rdo{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--line2);flex:none;box-sizing:border-box}
+.rdo.on{border:4.5px solid var(--accent)}
+.olabel{color:#e8890c;font-size:12px;margin:0 0 8px;display:flex;gap:6px;align-items:center}
+.vg{display:flex;align-items:center;gap:12px;padding:4px 0}.vg>span:first-child{width:70px;color:var(--text)}.vgx{width:16px;color:var(--accent)}
+.dbill{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:10px 0;max-width:300px;background:var(--card)}
+.dbrow{display:flex;align-items:center;gap:6px;font-size:11.5px;padding:3px 0}.dbsel{border:1px solid var(--accent);border-radius:5px;padding:1px 6px;color:var(--accent)}
+.vbars{display:flex;gap:3px;align-items:flex-end;height:26px;margin:10px 0}.vbars i{width:5px;border-radius:2px;background:var(--accent);display:block}
+.sheet.plain{border-radius:0 0 12px 12px;display:block;overflow:hidden;box-sizing:border-box}
+.shx{display:flex;align-items:center;margin-bottom:12px}.shx h2{margin:0;font-size:14px}
+.xc{color:var(--text3);font-size:17px;cursor:pointer;display:inline-flex}
+.xbtn{color:var(--text2);font-size:14px;padding:4px;margin-left:8px}
+.dvh{display:flex;align-items:center;gap:12px;margin-bottom:12px}.dvh .appic.big{width:38px;height:38px;font-size:16px}
+.dvt{font-size:19px;font-weight:700}.dvt.q{font-size:24px}
+.dvtbl{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
+.dtv td{border-bottom:1px solid var(--line);font-size:11.5px}.dtv tr:last-child td{border-bottom:0}
+.dtv .kn2{display:inline-block;vertical-align:top;font-size:11.5px}.dtv .kn2 small{display:block;font-size:10px;color:var(--text2)}.dtv .kn2 small.o{color:var(--accent)}
+.dtv .kc2{min-width:27px;height:24px;padding:0 3px}
+.srcl{font-size:10px;color:var(--text2);margin-top:2px}.srcl.o{color:var(--accent);font-weight:500}
+.okmsg{color:var(--ok);font-size:12px;margin-bottom:8px}
+.pscroll{height:420px;overflow:hidden}
+.pcard{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--card)}
+.pch{display:flex;align-items:center;gap:8px}
+.pvt{width:100%;border-collapse:collapse;margin-top:8px;font-size:11px}.pvt td{padding:3px 4px;border-top:1px solid var(--line)}.pvt tr.cf td{background:rgba(255,204,0,.18)}
+.nlist{height:300px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--card)}
+.nli{display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:12.5px}.nli.hl{background:var(--accent);color:#fff}.nli.hl .faint{color:#fff}
+.kl{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;text-align:center;font-size:12.5px}
+.klb{width:44px;height:44px;border-radius:10px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px}
+.kln{font-size:16px;font-weight:600}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--line2);border-top-color:var(--text2);display:inline-block;box-sizing:border-box}.spin.sm{width:12px;height:12px;vertical-align:-2px}
+.rech{text-align:center;color:var(--accent);font-size:17px;font-weight:500;padding:10px 0}
+.recv{text-align:center;font-size:24px;font-weight:600;padding:6px 0}
+.ywarn{color:#c9a100;font-size:11px;text-align:center;margin-bottom:8px}
+.btn.lg{padding:7px 16px;font-size:13.5px}
+.sumo{color:#e8890c;font-size:12.5px;margin-bottom:10px;display:flex;gap:6px;align-items:center}.sumg{color:var(--ok);font-size:12.5px;margin-bottom:10px;display:flex;gap:6px;align-items:center}
+.hlist{border:1px solid var(--line);border-radius:10px;background:var(--card);overflow:hidden}
+.hli{display:flex;align-items:center;gap:10px;padding:8px 14px;font-size:12.5px;border-top:1px solid var(--line)}.hli:first-child{border-top:0}
+.hci{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700;flex:none}.hci.ok{background:var(--ok)}.hci.bad{background:var(--err)}.hci.warn{background:#f5c400;color:#000}
+.pri2{width:22px;text-align:center;color:var(--text2);flex:none}
+.okl{color:var(--ok);font-size:11.5px;display:inline-flex;gap:4px;align-items:center}.warnl{color:#e8890c;font-size:11.5px}
+.obdots{display:flex;align-items:center;gap:8px}.obd{width:8px;height:8px;border-radius:4px;background:var(--line2)}.obd.on{width:20px;background:var(--accent)}.obl{width:32px;height:1px;background:var(--line)}
+.obh{margin:0 0 6px;font-size:16px}
+.nmenu{position:absolute;z-index:9;background:rgba(246,246,246,.86);backdrop-filter:blur(30px) saturate(1.8);border-radius:7px;padding:5px;box-shadow:0 10px 30px rgba(0,0,0,.22),0 0 0 .5px rgba(0,0,0,.22);font-size:13px;min-width:180px}
+html[data-theme=dark] .nmenu{background:rgba(40,40,42,.86);box-shadow:0 10px 30px rgba(0,0,0,.5),0 0 0 .5px rgba(255,255,255,.18)}
+.nmi{display:flex;padding:3px 10px;border-radius:4px;white-space:nowrap}.nmi.hl{background:var(--accent);color:#fff}.nmi.hl .nke{color:#fff}
+.nke{color:var(--text2);margin-left:24px}.nms{height:1px;background:var(--line2);margin:5px 10px}
+html.glass-on .nmenu{border-radius:12px;background:var(--gl-bg);backdrop-filter:var(--gl-blur);border:1px solid var(--gl-edge)}
+.sitem .sgl{display:inline-flex;font-size:15px}
+.mpop{position:absolute;top:34px;right:150px;width:300px;box-sizing:border-box;padding:12px;background:var(--win);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.25),0 0 0 .5px rgba(0,0,0,.18);font-size:12.5px;z-index:8}
+.mpa{position:absolute;top:-7px;right:205px;width:14px;height:14px;background:inherit;transform:rotate(45deg);border-radius:2px 0 0 0;box-shadow:-.5px -.5px 0 rgba(0,0,0,.12)}
+html.glass-on .mpop{background:var(--gl-bg);backdrop-filter:var(--gl-blur);border:1px solid var(--gl-edge);border-radius:18px}
+html.glass-on .mpa{display:none}
+.msc{display:flex;align-items:center;gap:8px}
+.mic{width:32px;height:32px;border-radius:8px;background:linear-gradient(#474747,#1f1f1f);color:#fff;display:grid;place-items:center;font-size:16px;flex:none}
+.bring2{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:600;background:conic-gradient(var(--accent) var(--p),var(--line) 0);position:relative;flex:none}
+.bring2::before{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--win)}html.glass-on .bring2::before{background:var(--card)}.bring2 span{position:relative}
+.hdot{width:8px;height:8px;border-radius:50%;flex:none}.hdot.green{background:var(--ok)}.hdot.red{background:var(--err)}.hdot.grey{background:var(--line2)}
+.msep{height:1px;background:var(--line);margin:8px 0}
+.mrow{display:flex;align-items:center;gap:8px}
+.toggle.sm{width:26px;height:15px}.toggle.sm::after{width:11px;height:11px}.toggle.sm.on::after{left:13px}
+.seg.full{display:flex}.seg.full span{flex:1;text-align:center;padding:3px 4px}
+.sm3{display:grid;grid-template-columns:repeat(3,180px);gap:12px}
+.smsep{height:1px;background:var(--line);margin:12px 0}
+.smt{height:96px;border-radius:12px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:12.5px;border:2.5px solid transparent;position:relative;opacity:.85}
+.smt .g{font-size:26px}.smt small{font-size:10.5px;color:var(--text2)}
+.smt.sel{border-color:var(--accent);opacity:1}.smt.red{color:var(--err)}.smt.red.sel{border-color:var(--err)}
+.tut .dvtbl{height:540px}.tut .dtv td{padding:4px 8px}
+.cring{position:absolute;inset:-6px;border-radius:16px;border:3px solid transparent;border-top-color:var(--err);border-right-color:var(--err)}
+
+/* ---- 排版：短标签不断行，标题块吃剩余宽度，换行对齐文字列 ---- */
+.ph>div:first-child,.dvh>div:not(.appic),.msc>.grow,.dev>div:last-child{flex:1 1 auto;min-width:0}
+.ph .saved,.ph .btn,.ph .scenechip{flex:0 0 auto}
+.saved,.btn,.tag,.badge,.kbadge,.chips>*,.scenechip,.seg span,.nav,.sitem,.nmi,.nke,.okl,.warnl,.srcl,.picker .v,.kc,.kc2,.kcap,.lbl,.issue .go,.hintbar span,.hintbar b,.pri2,.dbsel,.rdo,.toggle,.xc,.xbtn,.bring,.bring2,.hdot,.sumo,.sumg,.ywarn,.okmsg{white-space:nowrap;flex-shrink:0}
+.sub,.lnote,.muted,.rcap,.ph .sub,.sheet .sub,p{text-wrap:pretty;overflow-wrap:break-word}
+h1,h2,.dvt,.obh,.kln{text-wrap:balance}
+.nu{white-space:nowrap}
+.ph2{display:block}.phr{display:flex;align-items:center;gap:10px}.phr .saved{align-self:center;margin-top:3px}.ph2 .sub{margin-top:3px}
+.ph .sub{text-wrap:pretty}
+.issue{white-space:nowrap;gap:5px;padding:7px 8px}.win.narrow .issue{font-size:11px}.win.narrow .issue>svg:first-child{display:none}
+.dev .s .nu.dn{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.banner>.grow{text-wrap:pretty;min-width:0;flex:1 1 auto}.banner .btn{flex:0 0 auto}
+.dev .s{flex-wrap:wrap;row-gap:1px;column-gap:4px}
+.dev .s .nu{display:inline-flex;align-items:center;gap:3px}
+.dev .spin{width:9px;height:9px;border-width:1.5px}
+.msl{display:flex;flex-wrap:wrap;column-gap:4px;row-gap:1px;font-size:11px;color:var(--text2)}
 </style>
 </head>
 <body>
@@ -276,6 +364,7 @@ html.glass-rt .fakewin{background:var(--side)}
  <label>状态 <select id="pState"><option value="ok">正常</option><option value="disc">未连接</option><option value="perm">缺权限</option><option value="degraded">按键通道故障</option><option value="layer">第二功能模式已开启</option><option value="empty">空数据</option><option value="loading">加载 / 等待中</option><option value="paused">已暂停遥控</option></select></label>
  <label>示意图标注 <select id="pLbl"><option value="base">短按</option><option value="1">快捷控制模式</option><option value="2">App 控制模式</option><option value="3">App 导航模式</option></select></label>
  <label>第二功能 <select id="pAdv"><option value="0">折叠</option><option value="1">展开</option></select></label>
+ <label>手势绑定 <select id="pGest"><option value="0">无（默认）</option><option value="1">模拟已绑定</option></select></label>
  <label>侧栏 <select id="pSide"><option value="open">展开</option><option value="hidden">收起</option></select></label>
  <label>液态玻璃 <select id="pGlass"><option value="on">开（macOS 26）</option><option value="off">关（macOS 14–15 回退）</option><option value="rt">降低透明度</option></select></label>
  <label>主题 <select id="pTheme"><option value="light">浅色</option><option value="dark">深色</option></select></label>
@@ -286,13 +375,13 @@ html.glass-rt .fakewin{background:var(--side)}
 <script>
 const REMOTE_SVG="<svg class=\"rsvg\" width=\"180\" height=\"480\" viewBox=\"0 0 180 480\">\n              <!-- 机身：金属银 -->\n              <rect x=\"6\" y=\"6\" width=\"168\" height=\"448\" rx=\"40\" class=\"rshell\" stroke-width=\"1\"/>\n\n              <!-- 电源 -->\n              <g class=\"remote-key\" data-key=\"power\">\n                <circle class=\"hit\" cx=\"57\" cy=\"46\" r=\"19\"/>\n                <circle class=\"keyface\" cx=\"57\" cy=\"46\" r=\"17\"/>\n                <path d=\"M57 39v6M51.5 42.5a6 6 0 1 0 11 0\" stroke=\"#fff\" stroke-width=\"1.5\" fill=\"none\" stroke-linecap=\"round\"/>\n              </g>\n              <!-- 语音 -->\n              <g class=\"remote-key\" data-key=\"voice\">\n                <circle class=\"hit\" cx=\"123\" cy=\"46\" r=\"19\"/>\n                <circle class=\"keyface\" cx=\"123\" cy=\"46\" r=\"17\"/>\n                <rect x=\"120\" y=\"40\" width=\"6\" height=\"9\" rx=\"3\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1.4\"/>\n                <path d=\"M116 46a7 7 0 0 0 14 0M123 53v3\" stroke=\"#fff\" stroke-width=\"1.3\" fill=\"none\" stroke-linecap=\"round\"/>\n              </g>\n\n              <!-- 方向环大圆盘（共用底盘，不可单独点击） -->\n              <circle cx=\"90\" cy=\"168\" r=\"71\" fill=\"#1c1c1e\"/>\n\n              <!-- 上 -->\n              <g class=\"remote-key\" data-key=\"up\">\n                <path class=\"hit\" d=\"M66.7,144.7 L39.8,117.8 A71,71 0 0 1 140.2,117.8 L113.3,144.7 A33,33 0 0 0 66.7,144.7 Z\"/>\n                <path class=\"arc\" d=\"M39.8,117.8 A71,71 0 0 1 140.2,117.8\"/>\n                <circle class=\"dot\" cx=\"90\" cy=\"116\" r=\"3\"/>\n              </g>\n              <!-- 右 -->\n              <g class=\"remote-key\" data-key=\"right\">\n                <path class=\"hit\" d=\"M113.3,144.7 L140.2,117.8 A71,71 0 0 1 140.2,218.2 L113.3,191.3 A33,33 0 0 0 113.3,144.7 Z\"/>\n                <path class=\"arc\" d=\"M140.2,117.8 A71,71 0 0 1 140.2,218.2\"/>\n                <circle class=\"dot\" cx=\"142\" cy=\"168\" r=\"3\"/>\n              </g>\n              <!-- 下 -->\n              <g class=\"remote-key\" data-key=\"down\">\n                <path class=\"hit\" d=\"M113.3,191.3 L140.2,218.2 A71,71 0 0 1 39.8,218.2 L66.7,191.3 A33,33 0 0 0 113.3,191.3 Z\"/>\n                <path class=\"arc\" d=\"M140.2,218.2 A71,71 0 0 1 39.8,218.2\"/>\n                <circle class=\"dot\" cx=\"90\" cy=\"220\" r=\"3\"/>\n              </g>\n              <!-- 左 -->\n              <g class=\"remote-key\" data-key=\"left\">\n                <path class=\"hit\" d=\"M66.7,191.3 L39.8,218.2 A71,71 0 0 1 39.8,117.8 L66.7,144.7 A33,33 0 0 0 66.7,191.3 Z\"/>\n                <path class=\"arc\" d=\"M39.8,218.2 A71,71 0 0 1 39.8,117.8\"/>\n                <circle class=\"dot\" cx=\"38\" cy=\"168\" r=\"3\"/>\n              </g>\n\n              <!-- OK 中心（更深色内圆，无文字） -->\n              <g class=\"remote-key\" data-key=\"ok\">\n                <circle class=\"hit\" cx=\"90\" cy=\"168\" r=\"33\"/>\n                <circle class=\"keyface\" cx=\"90\" cy=\"168\" r=\"33\" fill=\"#000000\" stroke=\"#3a3a3c\"/>\n              </g>\n\n              <!-- 返回 -->\n              <g class=\"remote-key\" data-key=\"back\">\n                <circle class=\"hit\" cx=\"57\" cy=\"271\" r=\"21\"/>\n                <circle class=\"keyface\" cx=\"57\" cy=\"271\" r=\"19\"/>\n                <path d=\"M64 271h-11m0 0l4-4m-4 4l4 4\" stroke=\"#fff\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n              </g>\n              <!-- 主页 -->\n              <g class=\"remote-key\" data-key=\"home\">\n                <circle class=\"hit\" cx=\"57\" cy=\"317\" r=\"21\"/>\n                <circle class=\"keyface\" cx=\"57\" cy=\"317\" r=\"19\"/>\n                <path d=\"M50 320l7-7 7 7v6h-14z\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1.4\" stroke-linejoin=\"round\"/>\n              </g>\n              <!-- 菜单 -->\n              <g class=\"remote-key\" data-key=\"menu\">\n                <circle class=\"hit\" cx=\"57\" cy=\"363\" r=\"21\"/>\n                <circle class=\"keyface\" cx=\"57\" cy=\"363\" r=\"19\"/>\n                <path d=\"M50 358h14M50 363h14M50 368h14\" stroke=\"#fff\" stroke-width=\"1.4\" stroke-linecap=\"round\"/>\n              </g>\n\n              <!-- 音量长胶囊：上半 + / 下半 − -->\n              <g class=\"remote-key\" data-key=\"volUp\">\n                <path class=\"hit\" d=\"M101,294 L101,274 A22,22 0 0 1 123,252 A22,22 0 0 1 145,274 L145,294 Z\"/>\n                <path class=\"keyface\" d=\"M101,294 L101,274 A22,22 0 0 1 123,252 A22,22 0 0 1 145,274 L145,294 Z\"/>\n                <path d=\"M123 266v14M116 273h14\" stroke=\"#fff\" stroke-width=\"1.6\" stroke-linecap=\"round\"/>\n              </g>\n              <g class=\"remote-key\" data-key=\"volDown\">\n                <path class=\"hit\" d=\"M101,294 L101,314 A22,22 0 0 0 123,336 A22,22 0 0 0 145,314 L145,294 Z\"/>\n                <path class=\"keyface\" d=\"M101,294 L101,314 A22,22 0 0 0 123,336 A22,22 0 0 0 145,314 L145,294 Z\"/>\n                <path d=\"M116 315h14\" stroke=\"#fff\" stroke-width=\"1.6\" stroke-linecap=\"round\"/>\n              </g>\n              <line x1=\"103\" y1=\"294\" x2=\"143\" y2=\"294\" stroke=\"#000\" stroke-opacity=\".35\" stroke-width=\"1\"/>\n\n              <!-- TV -->\n              <g class=\"remote-key\" data-key=\"tv\">\n                <circle class=\"hit\" cx=\"123\" cy=\"363\" r=\"21\"/>\n                <circle class=\"keyface\" cx=\"123\" cy=\"363\" r=\"19\"/>\n                <rect x=\"114\" y=\"357\" width=\"18\" height=\"12\" rx=\"2\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1.2\"/>\n                <text x=\"123\" y=\"366\" text-anchor=\"middle\" font-size=\"7\" font-weight=\"600\" fill=\"#fff\" font-family=\"-apple-system,sans-serif\">TV</text>\n              </g>\n\n              <!-- 底部丝印：xiaomi 字样 + NFC 标记 -->\n              <text x=\"90\" y=\"430\" text-anchor=\"middle\" font-size=\"9\" letter-spacing=\"0.5\" fill=\"#96999c\" font-family=\"-apple-system,sans-serif\">xiaomi</text>\n              <rect x=\"136\" y=\"421\" width=\"13\" height=\"13\" rx=\"3\" fill=\"none\" stroke=\"#96999c\" stroke-width=\"1\"/>\n              <text x=\"142.5\" y=\"430.5\" text-anchor=\"middle\" font-size=\"7\" fill=\"#96999c\" font-family=\"-apple-system,sans-serif\">N</text>\n\n              __STATUS__\n</svg>";
 const Q=new URLSearchParams(location.search);
-const S={screen:Q.get("screen")||"mapping",scene:Q.get("scene")||"global",key:Q.get("key")||"ok",state:Q.get("state")||"ok",lbl:Q.get("lbl")||"base",adv:Q.get("adv")||"0",side:Q.get("side")||"open",glass:Q.get("glass")||"on",theme:Q.get("theme")||"light",width:Q.get("width")||"wide"};
+const S={screen:Q.get("screen")||"mapping",scene:Q.get("scene")||"global",key:Q.get("key")||"ok",state:Q.get("state")||"ok",lbl:Q.get("lbl")||"base",adv:Q.get("adv")||"0",side:Q.get("side")||"open",glass:Q.get("glass")||"on",theme:Q.get("theme")||"light",width:Q.get("width")||"wide",gest:Q.get("gest")||"0"};
 if(Q.get("shot"))document.documentElement.classList.add("shot");
 const SCREENS=[
  ["设置窗口",[["mapping","按键映射"],["profiles","场景配置"],["voice","语音"],["general","通用"]]],
- ["Sheet / 对话框",[["sheet-detail","场景映射详情（MappingDetailView）"],["sheet-presets","预设库"],["sheet-addapp","从运行中的 App 添加"],["sheet-keylearn","识别按键"],["sheet-recorder","录制快捷键"],["sheet-health","一键体检与修复"],["sheet-reauth","更新后重新授权"],["dialog-delete","删除场景确认"]]],
+ ["Sheet / 对话框",[["sheet-detail","场景映射详情（MappingDetailView）"],["sheet-presets","预设库"],["sheet-addapp","从运行中的 App 添加"],["sheet-keylearn","识别按键"],["sheet-recorder","录制快捷键"],["sheet-health","一键体检与修复"],["sheet-reauth","更新后重新授权"],["dialog-delete","删除该 App 专用方案（右键菜单）"]]],
  ["首次引导",[["onb-1","引导 1 · 授权"],["onb-2","引导 2 · BlackHole"],["onb-3","引导 3 · 配对遥控器"]]],
- ["菜单栏",[["menubar","菜单栏状态面板"]]],
+ ["菜单栏",[["menubar","菜单栏状态面板（左键 NSPopover）"],["menubar-menu","菜单栏兜底菜单（右键 NSMenu）"]]],
  ["浮层",[["ov-window","窗口选择器 window_picker"],["ov-system","系统功能菜单 system_menu"],["ov-wheel","App 轮盘 app_wheel"],["ov-tutorial","映射速查 tutorial"],["ov-hud","App 控制模式 HUD + 角标"]]]];
 const ICP={
 sliders:'<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
@@ -324,50 +413,71 @@ moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
 padlock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
 restart:'<path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/>',
 power:'<path d="M12 3v9"/><path d="M6.3 6.3a8 8 0 1 0 11.4 0"/>',
+remote:'<rect x="8" y="2.5" width="8" height="19" rx="4"/><circle cx="12" cy="8" r="1.6"/><path d="M12 13v.01M12 16.5v.01"/>',
+xcircle:'<circle cx="12" cy="12" r="9" fill="currentColor" stroke="none" opacity=".45"/><path d="M9 9l6 6M15 9l-6 6" stroke="#fff"/>',
+xmark:'<path d="M6 6l12 12M18 6L6 18"/>',
+sqsq:'<rect x="3" y="7" width="13" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-3"/>',
+dock:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15h18M7 17.5h10"/>',
+aleft:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M15 12H8m3-3-3 3 3 3"/>',
+aright:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12h7m-3-3 3 3-3 3"/>',
+cursor:'<rect x="3" y="3" width="14" height="14" rx="2" stroke-dasharray="3 2.5"/><path d="M12 12l9 3.5-4 1.5-1.5 4z"/>',
+esc:'<path d="M20 12a8 8 0 1 1-8-8"/><path d="M14 4h6v6M20 4l-8 8"/>',
+waves:'<circle cx="12" cy="12" r="1.8" fill="currentColor"/><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"/>',
+macwin:'<rect x="6" y="3" width="15" height="12" rx="2"/><path d="M6 6.5h15"/><path d="M3 9v10a2 2 0 0 0 2 2h11"/>',
+gridnine:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>',
 dot:'<circle cx="12" cy="12" r="4.5" fill="currentColor" stroke="none"/>'};
 const icon=n=>ICP[n]?`<svg class="ico" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICP[n]}</svg>`:"";
 const ICX=h=>h.replace(/§([a-z]+)§/g,(m,n)=>icon(n));
-const KEYS=[
- {id:"power",n:"电源键",g:"§power§",x:217,y:46,r:17,side:"l",ly:46},
- {id:"voice",n:"语音键",g:"§mic§",x:283,y:46,r:17,side:"r",ly:46},
- {id:"up",n:"方向键·上",g:"↑",x:250,y:116,r:6,side:"l",ly:112},
- {id:"ok",n:"OK 确认键",g:"OK",x:250,y:168,r:33,side:"r",ly:112},
- {id:"left",n:"方向键·左",g:"←",x:198,y:168,r:6,side:"l",ly:168},
- {id:"right",n:"方向键·右",g:"→",x:302,y:168,r:6,side:"r",ly:168},
- {id:"down",n:"方向键·下",g:"↓",x:250,y:220,r:6,side:"r",ly:222},
- {id:"back",n:"返回键",g:"返回",x:217,y:271,r:19,side:"l",ly:271},
- {id:"home",n:"主页键",g:"主页",x:217,y:317,r:19,side:"l",ly:317},
- {id:"menu",n:"菜单键",g:"菜单",x:217,y:363,r:19,side:"l",ly:363},
- {id:"volUp",n:"音量 +",g:"Vol+",x:283,y:273,r:22,side:"r",ly:264},
- {id:"volDown",n:"音量 −",g:"Vol−",x:283,y:315,r:22,side:"r",ly:318},
- {id:"tv",n:"TV 自定义键",g:"TV",x:283,y:363,r:19,side:"r",ly:372}];
-const MODE_NAME={1:"快捷控制模式",2:"App 控制模式",3:"App 导航模式"}; // = AppModel.modeDisplayName（原有术语，保持不变）
+const KEYS=[ // n / u = KeyDisplay.name / usage（AppModel.swift:65-78）；徽标中的电源、语音改为线条图标（原徽标含 emoji，原型不使用）
+ {id:"power",n:"电源键",u:"HID usage 0x66",g:"§power§",x:217,y:46,r:17,side:"l",ly:46},
+ {id:"voice",n:"语音键",u:"键盘页 F5 (0x3E)",g:"§mic§",x:283,y:46,r:17,side:"r",ly:46},
+ {id:"up",n:"方向键 · 上",u:"HID usage 0x52",g:"↑",x:250,y:116,r:6,side:"l",ly:112},
+ {id:"ok",n:"确认键（方向环中心）",u:"HID usage 0x28",g:"OK",x:250,y:168,r:33,side:"r",ly:112},
+ {id:"left",n:"方向键 · 左",u:"HID usage 0x50",g:"←",x:198,y:168,r:6,side:"l",ly:168},
+ {id:"right",n:"方向键 · 右",u:"HID usage 0x4F",g:"→",x:302,y:168,r:6,side:"r",ly:168},
+ {id:"down",n:"方向键 · 下",u:"HID usage 0x51",g:"↓",x:250,y:220,r:6,side:"r",ly:222},
+ {id:"back",n:"返回键",u:"HID usage 0xF1",g:"返回",x:217,y:271,r:19,side:"l",ly:271},
+ {id:"home",n:"主页键",u:"HID usage 0x4A",g:"主页",x:217,y:317,r:19,side:"l",ly:317},
+ {id:"menu",n:"菜单键",u:"HID usage 0x65",g:"菜单",x:217,y:363,r:19,side:"l",ly:363},
+ {id:"volUp",n:"音量 ＋",u:"HID usage 0x80",g:"Vol+",x:283,y:273,r:22,side:"r",ly:264},
+ {id:"volDown",n:"音量 －",u:"HID usage 0x81",g:"Vol−",x:283,y:315,r:22,side:"r",ly:318},
+ {id:"tv",n:"TV 自定义键",u:"HID usage 0x35",g:"TV",x:283,y:363,r:19,side:"r",ly:372}];
+const MODE_NAME={1:"快捷控制模式",2:"App 控制模式",3:"App 导航模式"}; // = AppModel.modeDisplayName
+// 全局默认 = defaultConfig()（AppServices.swift:238-286）再按 Presets.all 仅填空位（Presets.swift:56-132）；文字 = ActionSummary.describe
+const KS=s=>"发送按键 · "+s;
 const G={
- up:{tap:"发送按键 · ↑",2:"发送按键 · ↑",3:"宏（3 步）"},
- down:{tap:"发送按键 · ↓",2:"发送按键 · ↓",3:"宏（3 步）"},
- left:{tap:"发送按键 · ←",1:"左侧桌面空间",2:"上一个标签页",3:"宏（3 步）"},
- right:{tap:"发送按键 · →",1:"右侧桌面空间",2:"下一个标签页",3:"宏（3 步）"},
- ok:{tap:"发送按键 · Return ↩",hold:"按住进入快捷控制模式",dbl:"Spotlight",2:"发送按键 · Return ↩",3:"聚焦输入框"},
- back:{tap:"发送按键 · Delete ⌫",1:"上一个应用",2:"发送按键 · Esc",3:"左侧桌面空间"},
- home:{tap:"显示桌面",hold:"按键教程浮层",1:"显示桌面",2:"发送按键 · ⌃C",3:"右侧桌面空间"},
- menu:{tap:"窗口选择器浮层",hold:"系统功能菜单浮层",1:"下一个应用",2:"发送按键 · ⇧Tab",3:"开关 App 导航模式"},
- tv:{tap:"开关 App 控制模式",hold:"发送按键 · ⌘T",1:"当前应用所有窗口",3:"当前应用所有窗口"},
- volUp:{tap:"音量 +",2:"下一个标签页"},volDown:{tap:"音量 −",2:"上一个标签页"},
- power:{tap:"App 轮盘浮层"},voice:{tap:"按住说话（语音输入）"}};
-const GEST={"OK + ↑":"打开 富途牛牛","OK + ← / →":"上 / 下一个标签页"};
+ up:{tap:KS("↑"),1:"音量 ＋",2:KS("↑"),3:"宏（3 步）"},
+ down:{tap:KS("↓"),1:"音量 －",2:KS("↓"),3:"宏（3 步）"},
+ left:{tap:KS("←"),1:"左侧桌面空间",2:"上一个标签页",3:"宏（3 步）"},
+ right:{tap:KS("→"),1:"右侧桌面空间",2:"下一个标签页",3:"宏（3 步）"},
+ ok:{tap:KS("Return ⏎"),2:KS("Return ⏎"),3:"聚焦输入框"},
+ back:{tap:KS("Delete ⌫"),1:"上一个应用",2:KS("Esc ⎋"),3:"左侧桌面空间"},
+ menu:{tap:"窗口选择器浮层",hold:"系统功能菜单浮层",1:"下一个应用",2:KS("⇧Tab ⇥"),3:"开关App 导航模式"},
+ home:{tap:"调度中心",hold:"按键教程浮层",1:"调度中心",2:KS("⌃C"),3:"右侧桌面空间"},
+ tv:{tap:"开关App 控制模式",hold:"App 轮盘（最近使用）",1:"当前应用所有窗口",3:"当前应用所有窗口"},
+ power:{tap:"显示器睡眠",hold:"鼠标模式开关",2:"聚焦输入框",3:"显示桌面"},
+ volUp:{tap:"音量 ＋",2:"下一个标签页"},volDown:{tap:"音量 －",2:"上一个标签页"},
+ voice:{tap:"语音输入"}};
+// 手势：默认配置与全部预设都没有 OK+方向手势（AppServices.swift:244-246「零同按组合」、Presets.swift:55）。
+// gest=1 仅模拟「用户在 config.json 里给全局默认的 OK 写了 gesture」，用来预览 MappingPage.swift:177-195 的显示条件。
+const GEST_SIM={up:"调度中心",left:"上一个标签页",right:"下一个标签页"};
+const GDIR=[["up","上","↑"],["down","下","↓"],["left","左","←"],["right","右","→"]];
+const ownGest=id=>(id==="global"&&S.gest==="1")?GEST_SIM:null; // = AppModel.binding(for:) 只读当前 Profile（AppModel.swift:328-330）
+const mergedGest=id=>ownGest(id)||((S.gest==="1")?GEST_SIM:null); // = MappingDetailResolver 合并（详情 / 速查表“更多”列）
+// 按 App 覆盖：Presets.workPresets / mediaPresets / meetingPresets 中的 6 个（defaultConfig 共 14 个 per-app Profile，原型只列其中 6 个）
 const SCENES=[
- {id:"global",name:"全局默认",ic:"§globe§",c:"#5b6b82",o:{}},
- {id:"ghostty",name:"Ghostty",ic:"G",c:"#2b2f77",live:true,o:{ok:{tap:"Return 确认",2:"批准"},back:{2:"拒绝"},home:{tap:"⌃C 中断"},power:{tap:"聚焦输入"},menu:{2:"切换 agent"},tv:{2:"退出 App 控制模式"},up:{2:"上一选项"},down:{2:"下一选项"},volUp:{tap:"清屏 ⌘K"}}},
- {id:"claude",name:"Claude",ic:"C",c:"#c96442",o:{ok:{tap:"发送"},home:{tap:"停止生成"},menu:{2:"新对话"},tv:{hold:"语音模式"}}},
- {id:"chrome",name:"Google Chrome",ic:"C",c:"#1a73e8",o:{left:{1:"后退"},right:{1:"前进"},volUp:{tap:"下一个标签页"},volDown:{tap:"上一个标签页"},home:{tap:"新标签页 ⌘T"}}},
- {id:"wechat",name:"微信",ic:"微",c:"#1aad19",o:{ok:{tap:"发送"},home:{tap:"Esc 关闭"}}},
- {id:"iina",name:"IINA",ic:"I",c:"#6d4aff",o:{ok:{tap:"播放 / 暂停"},left:{1:"快退 5 秒"},right:{1:"快进 5 秒"},volUp:{tap:"音量 +（IINA）"},volDown:{tap:"音量 −（IINA）"},menu:{tap:"字幕"}}},
- {id:"feishu",name:"飞书",ic:"飞",c:"#3370ff",o:{ok:{tap:"发送"}}}];
+ {id:"global",name:"全局默认（Global）",short:"全局默认",ic:"§globe§",c:"#5b6b82",o:{}},
+ {id:"ghostty",name:"Ghostty",ic:"G",c:"#2b2f77",live:true,o:{left:{tap:"上一个标签页",1:KS("⌘LEFT_BRACKET")},right:{tap:"下一个标签页",1:KS("⌘RIGHT_BRACKET")},up:{tap:KS("↑"),1:KS("⌥⌘↑")},down:{tap:KS("↓"),1:KS("⌥⌘↓")},ok:{tap:KS("Return ⏎"),hold:KS("⌃C"),1:KS("⇧⌘Return ⏎")},back:{tap:KS("Esc ⎋"),hold:KS("⌃U")},home:{2:"聚焦输入框"}}},
+ {id:"claude",name:"Claude",ic:"C",c:"#c96442",o:{left:{tap:"上一个标签页"},right:{tap:"下一个标签页"},up:{tap:KS("↑")},down:{tap:KS("↓")},ok:{tap:KS("Return ⏎")},back:{tap:KS("Esc ⎋")},home:{2:"聚焦输入框"}}},
+ {id:"chrome",name:"Google Chrome",ic:"C",c:"#1a73e8",o:{left:{tap:"上一个标签页"},right:{tap:"下一个标签页"},up:{tap:KS("PAGE_UP")},down:{tap:KS("PAGE_DOWN")},ok:{tap:KS("Return ⏎")},back:{tap:KS("⌘LEFT_BRACKET")},home:{2:KS("⌘L")},menu:{2:KS("⌘K")}}},
+ {id:"wechat",name:"微信",ic:"微",c:"#1aad19",o:{up:{tap:KS("↑")},down:{tap:KS("↓"),2:KS("⌘G")},left:{tap:KS("PAGE_UP")},right:{tap:KS("PAGE_DOWN")},ok:{tap:KS("Return ⏎")},back:{tap:KS("Esc ⎋")},home:{2:KS("⌘F")},menu:{2:"宏（5 步）"}}},
+ {id:"iina",name:"IINA",ic:"I",c:"#6d4aff",o:{ok:{tap:KS("Space")},left:{tap:KS("←")},right:{tap:KS("→")},up:{tap:KS("F")},menu:{2:KS("⌃⇧S")}}},
+ {id:"feishu",name:"飞书",ic:"飞",c:"#3370ff",o:{ok:{tap:KS("⌘Return ⏎")},menu:{2:KS("⌥⇧D")},home:{2:KS("⌘K")}}}];
 const sc=()=>SCENES.find(s=>s.id===S.scene)||SCENES[0];
-const ovCount=s=>Object.values(s.o).reduce((n,x)=>n+Object.keys(x).length,0);
+const keyCount=s=>Object.keys(s.o).length; // ProfilePage.swift:93 按“键”计数
 const LAYER_TAIL="这里的短按设置只在第二功能模式下（且该模式没有单独设置时）生效。";
 const BASE_NOTE={up:"基础状态下此短按保持原生光标键（↑），由引擎直接处理；"+LAYER_TAIL,down:"基础状态下此短按保持原生光标键（↓），由引擎直接处理；"+LAYER_TAIL,left:"基础状态下此短按保持原生光标键（←），由引擎直接处理；"+LAYER_TAIL,right:"基础状态下此短按保持原生光标键（→），由引擎直接处理；"+LAYER_TAIL,back:"基础状态下此短按始终是删除（Delete）；"+LAYER_TAIL};
-function baseNote(k,slot){ // 依据 MappingEngine.fireTap（基础状态）与 GeneralPage.swift:102 的说明
+function baseNote(k,slot){ // 新增的纯文字说明（依据 MappingEngine.fireTap 与 GeneralPage.swift:102）
  if(slot!=="tap") return "";
  if(BASE_NOTE[k]) return BASE_NOTE[k];
  if(k==="ok"){const s=sc();
@@ -375,14 +485,13 @@ function baseNote(k,slot){ // 依据 MappingEngine.fireTap（基础状态）与 
   return (s.o.ok&&s.o.ok.tap)?"本场景明确设置了 OK 短按，基础状态下会替代默认的回车（Return）。":"基础状态下 OK 短按默认是回车（Return）；在本场景明确设置短按即可替代。";}
  return "";
 }
-function resolve(k,slot){
- const s=sc(); const ov=(s.o[k]||{})[slot]; const g=(G[k]||{})[slot];
+function resolve(k,slot,sid){
+ const s=sid?SCENES.find(x=>x.id===sid):sc(); const ov=(s.o[k]||{})[slot]; const g=(G[k]||{})[slot];
  if(s.id!=="global"&&ov) return {v:ov,src:"ovr"};
  if(g) return {v:g,src:s.id==="global"?"ovr":"inh"};
- if(/^[123]$/.test(String(slot))) return {v:"回落到短按",src:"none"};
- return {v:"无",src:"none"};
+ return {v:"无",src:"none"}; // ActionPicker 未设置显示「无」（ActionSummary.describe(nil)）
 }
-function remoteSvg(o={}){ // 唯一遥控器画法：复用 v3-macos.html / RemoteDiagram.swift 的 REMOTE_SVG
+function remoteSvg(o={}){ // 唯一遥控器画法：REMOTE_SVG
  const conn=S.state!=="disc"; const sel=o.sel||[S.key]; const sz=o.scale||1;
  let v=REMOTE_SVG.replace("__STATUS__",o.nostatus?"":`<circle cx="90" cy="466" r="3" fill="${conn?'var(--accent)':'#8e8e93'}"/><text x="98" y="469" font-size="9" fill="#86868b" font-family="-apple-system,sans-serif">${conn?'已连接':'未连接'}</text>`);
  if(sz!==1) v=v.replace('width="180" height="480"',`width="${180*sz}" height="${480*sz}"`);
@@ -391,30 +500,31 @@ function remoteSvg(o={}){ // 唯一遥控器画法：复用 v3-macos.html / Remo
 }
 const ICON={mapping:"§sliders§",profiles:"§stack§",voice:"§mic§",general:"§gear§"};
 const SIDEBTN=`<span class="sbtn" id="sideBtn" title="隐藏/显示边栏（⌃⌘S）"><svg width="17" height="13" viewBox="0 0 17 13" fill="none" stroke="currentColor" stroke-width="1.3"><rect x=".7" y=".7" width="15.6" height="11.6" rx="2.5"/><path d="M6 .7v11.6"/><path d="M2.4 3.5h2M2.4 5.5h2M2.4 7.5h2" stroke-linecap="round"/></svg></span>`;
-function sideHtml(cur){
+function sideHtml(cur){ // 头部文案 = RootView.swift:39-67；问题行为新增（Q3）
  const st=S.state; const conn=st!=="disc";
  const issue= st==="perm"?`<div class="issue" data-go="sheet-health">§warn§ 缺少输入监控权限<span class="go">修复</span></div>`
   : st==="degraded"?`<div class="issue err" data-go="sheet-health">§stop§ 按键通道异常<span class="go">体检</span></div>`
   : st==="disc"?`<div class="issue" data-go="onb-3">§nolink§ 遥控器未连接<span class="go">配对</span></div>`:"";
- return `<div class="side"><div class="dev"><div class="devic"><i></i></div><div><div class="k">遥控器控制台</div><div class="n">MI RC 2 Pro</div>
-  <div class="s"><span class="dot ${conn?(st==='degraded'?'err':''):'off'}"></span>${conn?(st==='paused'?'已暂停遥控':'已连接 · 电量 82%'):'电量待连接'}</div></div></div>${issue}
+ return `<div class="side"><div class="dev"><div class="devic"><i></i></div><div><div class="n">遥控器控制台</div>
+  <div class="s"><span class="nu dn" title="MI RC 2 Pro">MI RC 2 Pro</span>${conn?(st==='loading'?'<span class="nu"><span class="spin"></span>正在读取电量…</span>':'<span class="nu">§battery§ 82%</span>'):'<span class="nu faint">§battery§ 电量待连接</span>'}</div></div></div>${issue}
   ${[["mapping","按键映射"],["profiles","场景配置"],["voice","语音"],["general","通用"]].map(([id,n])=>`<div class="nav ${cur===id?'on':''}" data-go="${id}"><span class="ic">${ICON[id]}</span>${n}</div>`).join("")}</div>`;
 }
+function isNarrow(){return S.width==="narrow"||(window.innerWidth<1140)}
 function winHtml(page,inner,extra=""){
  const hidden=S.side==="hidden";
- return `<div class="win ${S.width==='narrow'?'narrow':''} ${hidden?'sidehidden':''}"><div class="titlebar"><span class="tl r"></span><span class="tl y"></span><span class="tl g"></span>${SIDEBTN}<span class="t">${hidden?{mapping:"按键映射",profiles:"场景配置",voice:"语音",general:"通用"}[page]:"MiRemote 设置"}</span>${hidden?'<span class="kbd-hint">边栏已隐藏 · ⌃⌘S 显示</span>':''}</div>
+ return `<div class="win ${isNarrow()?'narrow':''} ${hidden?'sidehidden':''}"><div class="titlebar"><span class="tl r"></span><span class="tl y"></span><span class="tl g"></span>${SIDEBTN}<span class="t">${hidden?{mapping:"按键映射",profiles:"场景配置",voice:"语音",general:"通用"}[page]:"MiRemote 设置"}</span>${hidden?'<span class="kbd-hint">边栏已隐藏 · ⌃⌘S 显示</span>':''}</div>
  <div class="wbody">${sideHtml(page)}<div class="main">${inner}</div></div>${extra}</div>`;
 }
-function stateBanner(){
+function stateBanner(){ // 新增（Q3）
  const st=S.state;
  if(st==="disc") return `<div class="banner warn">§nolink§<span class="grow"><b>遥控器未连接</b> · 可以继续编辑映射，连上后即时生效。长按「主页 + 返回」进入配对。</span><button class="btn sm" data-go="onb-3">配对引导</button></div>`;
  if(st==="perm") return `<div class="banner warn">§shield§<span class="grow"><b>缺少输入监控权限</b> · 遥控器按键暂时无法被接管。</span><button class="btn sm pri" data-go="sheet-health">一键体检与修复</button></div>`;
  if(st==="degraded") return `<div class="banner err">§stop§<span class="grow"><b>按键通道异常</b> · 事件注入通道失效，映射暂不生效。</span><button class="btn sm pri" data-go="sheet-health">打开体检</button></div>`;
- if(st==="paused") return `<div class="banner info">§pause§<span class="grow">遥控已暂停：按键与手势暂不生效，真实键盘不受影响。</span><button class="btn sm">恢复</button></div>`;
+ if(st==="paused") return `<div class="banner info">§pause§<span class="grow">遥控已暂停：按键与手势暂不生效，真实键盘不受影响。</span></div>`;
  return "";
 }
 function mappingPage(){
- const s=sc(); const oc=ovCount(s);
+ const s=sc();
  const lblSlot=S.lbl==="base"?"tap":S.lbl;
  const lines=[],labels=[];
  KEYS.forEach(k=>{const r=resolve(k.id,lblSlot);const lx=k.side==="l"?158:342;
@@ -422,6 +532,7 @@ function mappingPage(){
   labels.push(`<div class="lbl ${k.side} ${r.src} ${k.id===S.key?'sel':''}" data-key="${k.id}" style="top:${k.ly}px"><div class="kn">${k.n}</div><div class="ac">${r.v}</div></div>`)});
  const remoteP=`<div class="rpanel"><div class="rtop"><span>示意图显示</span><span class="seg">${[["base","短按"],["1","快捷控制"],["2","App 控制"],["3","App 导航"]].map(([v,n])=>`<span data-lbl="${v}" class="${S.lbl===v?'on':''}">${n}</span>`).join("")}</span></div>
   <div class="rstage"><svg class="lines" width="500" height="490" style="position:absolute;left:0;top:0">${lines.join("")}</svg><div class="rbody"><div class="rsvgwrap">${remoteSvg()}</div>${labels.join("")}</div></div>
+  <div class="rcap">深色圆键为遥控器实体按键位置示意，选中的按键以强调色描边高亮</div>
   <div class="legend"><span><i style="background:var(--accent)"></i>${s.id==='global'?'已设置':'App 覆盖'}</span><span class="l2"><i style="background:var(--text3)"></i>继承全局（虚线）</span></div></div>`;
  const k=KEYS.find(x=>x.id===S.key);
  const slot=(nm,hint,sl,w)=>{const r=resolve(S.key,sl);
@@ -429,171 +540,235 @@ function mappingPage(){
   const right=r.src==='ovr'&&s.id!=='global'?'<span class="reset" title="恢复继承（删除本 App 的覆盖）">↺ 恢复</span>':'';
   const note=baseNote(S.key,sl);
   return `<div class="slot"><div class="nm" ${w?`style="width:${w}px"`:''}>${nm}${hint?`<small>${hint}</small>`:''}${tag?`<div style="margin-top:3px">${tag}</div>`:''}</div><div class="act"><span class="picker"><span class="v ${r.src==='inh'?'dim':''} ${r.src==='none'?'none':''}">${r.v}</span><span class="chev">⌄</span></span>${right}</div></div>${note?`<div class="lnote">${note}</div>`:''}`};
- const advCount=[1,2,3].filter(l=>resolve(S.key,l).src!=="none").length;
- const insp=`<div class="insp"><div class="khead"><div class="kbadge">${k.g}</div><div><div class="n">${k.n}</div><div class="u">${s.id==='global'?'全局默认':s.name+' 场景'} · 点击示意图或标注切换按键</div></div></div>
-  <div class="gt">触发方式<span class="grow"></span><span class="faint">长按 350 ms · 双击 250 ms</span></div>
-  <div class="group">${slot("短按","松开即触发","tap")}${slot("长按","按住 350 ms","hold")}${slot("双击","连按两次","dbl")}</div>
-  ${S.key==='ok'?`<div class="gt">手势（按住 OK + 方向键）<span class="grow"></span><span class="reset">编辑</span></div><div class="group">${Object.entries(GEST).map(([a,b])=>`<div class="slot"><div class="nm" style="width:90px">${a}<div style="margin-top:3px"><span class="tag">继承全局</span></div></div><div class="act"><span class="picker"><span class="v dim">${b}</span><span class="chev">⌄</span></span></div></div>`).join("")}</div>`:''}
-  <div class="disc ${S.adv==='1'?'open':''}" id="advToggle"><span class="tri">§chev§</span>第二功能模式（高级）<span class="faint" style="font-size:11.5px">· 已设置 ${advCount} / 3</span></div>
+ const gs=S.key==="ok"?ownGest(s.id):null; // MappingPage.swift:177-195：key == .ok && binding.gesture?.isEmpty == false
+ const gestGroup=gs?`<div class="gt">手势（按住 OK + 方向键）</div><div class="group">${GDIR.map(([d,cn])=>{const v=gs[d];return `<div class="slot"><div class="nm" style="width:104px">OK + ${cn}</div><div class="act"><span class="picker"><span class="v ${v?'':'none'}">${v||'无'}</span><span class="chev">⌄</span></span></div></div>`}).join("")}</div>`:'';
+ const insp=`<div class="insp"><div class="khead"><div class="kbadge">${k.g}</div><div><div class="n">${k.n}</div><div class="u">${k.u}</div></div></div>
+  <div class="gt">触发方式</div>
+  <div class="group">${slot("短按","松开时立即触发","tap",104)}${slot("长按","超过 350 ms 触发","hold",104)}${slot("双击","250ms 窗口内连按两次；配了双击后此键短按需等窗口确认","dbl",150)}</div>
+  ${gestGroup}
+  <div class="disc ${S.adv==='1'?'open':''}" id="advToggle"><span class="tri">§chev§</span>第二功能模式（高级）</div>
   ${S.adv==='1'?`<div class="muted" style="font-size:11.5px;margin:0 4px 6px">功能模式类似遥控器的 Fn：按住 OK 使用快捷控制（切 App、桌面空间等）；单击 TV 进出 App 控制模式（批准、拒绝、切换 agent，屏幕角落有键位提示）。</div>
    <div class="gt" style="margin-top:4px">模式开启时，这个键执行</div><div class="group">${[1,2,3].map(l=>slot(MODE_NAME[l],"",l,104)).join("")}</div>`:''}
   <div class="foot">绑定组合键可点击「录制快捷键」。如果不确定当前状态，可再按一下 TV 键退出 App 控制模式。</div></div>`;
- return `<div class="ph"><div><h1>按键映射</h1><div class="sub">${s.id==='global'?'点击左侧遥控器上的按键，编辑它的触发动作。改动即时保存并生效。':`正在编辑场景「${s.name}」的覆盖绑定。`}</div></div><span class="grow"></span><span class="saved">§check§ 已保存</span><button class="btn" data-go="sheet-keylearn">§target§ 识别按键</button></div>
+ return `<div class="ph ph2"><div class="phr"><h1>按键映射</h1><span class="saved">§check§ 已保存</span><span class="grow"></span><button class="btn" data-go="sheet-keylearn" title="按一下遥控器上的键，识别它是哪个键">§target§ 识别按键</button></div><div class="sub">${s.id==='global'?'点击左侧遥控器上的按键，编辑它的触发动作。改动即时保存并生效。':`正在编辑场景「${s.name}」的覆盖绑定。`}</div></div>
   ${stateBanner()}
-  <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><span class="scenechip" data-go="profiles" title="场景在「场景配置」页选择；本页只显示当前场景"><span class="appic" style="background:${s.c};width:20px;height:20px;font-size:11px">${s.ic}</span><b>${s.name}</b><span class="muted">${s.id==='global'?'所有 App 的基础映射':`覆盖 ${oc} 项 · 其余继承全局`}</span>${s.live?'<span class="tag live">§dot§ 前台</span>':''}<span class="lk">在场景配置中切换 ›</span></span></div>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><span class="scenechip" data-go="profiles" title="场景在「场景配置」页选择；本页只显示当前场景"><span class="appic" style="background:${s.c};width:20px;height:20px;font-size:11px">${s.ic}</span><b>${s.name}</b><span class="muted">${s.id==='global'?'适用于所有未单独配置的 App':`已覆盖 ${keyCount(s)} 个键 · 其余继承全局`}</span>${s.live?'<span class="tag live">§dot§ 前台</span>':''}<span class="lk">在场景配置中切换 ›</span></span></div>
   ${S.state==='layer'?`<div class="layerbar">⇄ 已开启：App 控制模式（同一按键现在使用第二功能）</div>`:''}
   <div class="mwrap">${remoteP}${insp}</div>`;
 }
 const APPROWS=SCENES.filter(x=>x.id!=="global");
-function profilesPage(hl){
+function profilesPage(hl,applied){ // ProfilePage.swift:18-127
  const empty=S.state==="empty";
- const rows=empty?`<div class="empty"><div class="big">§stack§</div><b>还没有按 App 的覆盖</b><div style="margin:4px 0 12px">所有 App 都使用「全局默认」。为常用 App 添加专用按键方案，切到前台时自动生效。</div><button class="btn pri" data-go="sheet-addapp">＋ 从运行中的 App 添加</button> <button class="btn" data-go="sheet-presets">浏览预设库</button></div>`
-  : APPROWS.map(a=>{const n=ovCount(a);const keys=Object.keys(a.o).slice(0,3).map(k=>KEYS.find(x=>x.id===k).n).join("、");
-   return `<div class="prow ${hl===a.id?'hl':''}" data-go="sheet-detail" data-scene="${a.id}"><span class="appic" style="background:${a.c}">${a.ic}</span><div class="ttl"><b>${a.name}</b><small>继承全局 · 已覆盖 ${n} 项（${keys}${Object.keys(a.o).length>3?'…':''}）</small></div>
-   <div class="chips">${a.live?'<span class="tag live">§dot§ 前台</span>':''}${S.scene===a.id?'<span class="tag edit">正在编辑</span>':''}</div><span class="btn sm ghost" data-go="mapping" data-scene="${a.id}">编辑映射</span><span class="chev">›</span></div>`}).join("");
- return `<div class="ph"><div><h1>场景配置</h1><div class="sub">全局默认是所有 App 的起点；按 App 覆盖只改需要不同的键，切到该 App 时自动生效。</div></div></div>
+ const rows=empty?`<div class="row"><div class="ttl muted">暂无 App 专用按键方案。点下方按钮添加，或从预设库一键套用。</div></div>`
+  : APPROWS.map(a=>{const n=keyCount(a);const hov=hl===a.id;
+   return `<div class="prow ${hov?'hl':''}" data-go="sheet-detail" data-scene="${a.id}"><span class="appic" style="background:${a.c}">${a.ic}</span><div class="ttl"><b>${a.name}</b><small>${n?`已覆盖 ${n} 个键 · 其余继承全局`:'全部继承全局'}</small></div>
+   <div class="chips">${a.live?'<span class="tag live">§dot§ 前台</span>':''}${S.scene===a.id?'<span class="tag edit">正在编辑</span>':''}</div><span class="btn sm ghost" data-go="mapping" data-scene="${a.id}">编辑映射</span>${hov?'<span class="faint" title="删除该 App 专用方案">§trash§</span>':''}<span class="chev">›</span></div>`}).join("");
+ return `<div class="ph"><div><h1>场景配置</h1><div class="sub">按前台 App 自动切换按键映射。未单独配置的键继承全局默认。</div></div></div>
  ${stateBanner()}
- ${S.state==='ok'&&S.screen==='profiles'?`<div class="banner info">↩︎<span class="grow">已为「Ghostty」套用预设「AI 终端」（仅填空位，新增 4 项）。</span><button class="btn sm">撤销本次套用</button></div>`:''}
- <div class="group"><div class="prow" data-go="sheet-detail" data-scene="global"><span class="appic" style="background:#5b6b82">§globe§</span><div class="ttl"><b>全局默认</b><small>所有 App 的基础映射 · 13 个键 · 3 个第二功能模式</small></div><div class="chips">${S.scene==='global'?'<span class="tag edit">正在编辑</span>':''}</div><span class="btn sm ghost" data-go="mapping" data-scene="global">编辑映射</span><span class="chev">›</span></div></div>
- <div class="gt">按 App 覆盖 <span class="faint">${empty?0:APPROWS.length} 个</span><span class="grow"></span></div>
+ <div class="gt">全局</div>
+ <div class="group"><div class="prow" data-go="sheet-detail" data-scene="global"><span class="appic" style="background:#5b6b82">§globe§</span><div class="ttl"><b>全局默认（Global）</b><small>适用于所有未单独配置的 App</small></div><div class="chips">${S.scene==='global'?'<span class="tag edit">正在编辑</span>':''}</div><span class="btn sm ghost" data-go="mapping" data-scene="global">编辑映射</span><span class="chev">›</span></div></div>
+ <div class="gt">按 App 覆盖</div>
  <div class="group">${rows}</div>
- <div class="toolbar2" style="margin-top:12px"><button class="btn pri" data-go="sheet-addapp">＋ 从运行中的 App 添加</button><button class="btn" data-go="sheet-presets">预设库…</button><span class="grow"></span><button class="btn">导入 JSON…</button><button class="btn">导出 JSON</button></div>
- <div class="foot">点击一行查看完整映射；悬停或右键可删除。导入 JSON 会替换全部配置，并把正在编辑的场景重置为全局默认。</div>`;
+ <div class="toolbar2" style="margin-top:12px"><button class="btn" data-go="sheet-addapp">＋ 从运行中的 App 添加</button><button class="btn" data-go="sheet-presets">导入预设</button><span class="grow"></span><button class="btn">导入 JSON 文件</button><button class="btn">导出 JSON</button>${applied?'<button class="btn">撤销本次套用</button>':''}</div>`;
 }
-function voicePage(){
- const bhMissing=S.state==="perm"||S.state==="degraded";
- const chk=[["遥控器麦克风已连接",S.state!=="disc"],["BlackHole 2ch 已安装",!bhMissing],["豆包输入法麦克风 = BlackHole 2ch",!bhMissing],["音频路由正常",S.state==="ok"||S.state==="layer"||S.state==="empty"]];
- const allOk=chk.every(c=>c[1]);
- return `<div class="ph"><div><h1>语音</h1><div class="sub">按住遥控器语音键说话，松开后由豆包输入法转成文字。</div></div></div>
- ${S.state==='disc'||S.state==='paused'?stateBanner():''}${bhMissing?`<div class="banner warn">§speaker§<span class="grow"><b>BlackHole 未安装，遥控器麦克风模式不可用</b></span><button class="btn sm pri" data-go="onb-2">安装引导</button></div>`:''}
- <div class="gt">输入方式</div>
- <div style="display:flex;gap:10px">${[["遥控器麦克风","对着遥控器说话 · 需要 BlackHole",1],["Mac 麦克风","使用 Mac 内建或外接麦克风",0],["关闭","语音键不做任何事",0]].map(([a,b,on])=>`<div class="mcard ${on?'on':''}"><div class="h">${a}</div><small>${b}</small></div>`).join("")}</div>
- <div class="gt">链路自检<span class="grow"></span>${S.state==='loading'?'<span class="tag">检测中…</span>':allOk?'<span class="tag ok">全部通过</span>':'<span class="tag warn">需处理</span>'}<button class="btn sm">重新检测</button></div>
- <div class="group">${chk.map(([n,ok])=>`<div class="row"><span class="si ${S.state==='loading'?'run':ok?'ok':'warn'}">${S.state==='loading'?'…':ok?'§check§':'!'}</span><div class="ttl">${n}</div>${ok||S.state==='loading'?'':'<button class="btn sm">修复</button>'}</div>`).join("")}</div>
- <div class="gt">实时电平</div>
- <div class="group"><div class="row"><div class="ttl">遥控器麦克风<small>按住语音键说话可看到电平</small></div><div class="meter" style="width:220px"><i style="width:${S.state==='ok'?62:0}%"></i></div></div></div>
+function voicePage(){ // VoicePage.swift:40-175
+ const bh=!(S.state==="perm"||S.state==="degraded"); const conn=S.state!=="disc"; const ld=S.state==="loading";
+ const chk=[["BlackHole 已安装",bh?"ok":"bad","没装：在下方「BlackHole 虚拟声卡」点“去下载”，装完回到首启向导第 2 步重启音频服务。"],
+  ["遥控器已连接",conn?"ok":"bad","没连上：检查电量并靠近 Mac；仍不行就长按 主页+返回 3 秒重新配对。"],
+  ["按语音键有音频帧",S.state==="ok"?"ok":"pending","现在按住遥控器语音键说一句话——下方电平表跳动即通过；不跳请确认输入模式选了「遥控器麦克风」。"],
+  ["当前输入法是豆包",ld?"pending":"ok","点菜单栏输入法图标切到豆包输入法；没装豆包则先安装并在系统设置里启用它。"]];
+ const radio=(on,t,sub)=>`<div class="row"><span class="rdo ${on?'on':''}"></span><div class="ttl">${t}<small>${sub}</small></div></div>`;
+ const pk=(l,v)=>`<div class="vg"><span>${l}</span><span class="picker" style="width:250px;max-width:250px;justify-content:space-between">${v}<span class="chev">⌄</span></span><span class="vgx">${l==='适用 App'?'＋':''}</span></div>`;
+ return `<div class="ph"><div><h1>语音</h1><div class="sub">选择音频来源，并为不同 App 自动发送各自的语音输入快捷键。</div></div></div>
+ ${S.state==='disc'||S.state==='paused'?stateBanner():''}${bh?'':'<div class="olabel">§warn§ BlackHole 未安装，遥控器麦克风模式不可用</div>'}
+ <div class="gt">输入模式</div>
+ <div class="group">${radio(1,"遥控器麦克风（主打）","按住语音键说话，音频经蓝牙传回并解码为 16kHz PCM")}${radio(0,"Mac 内置麦克风","按键仅触发豆包语音输入，用 Mac 麦克风收音")}${radio(0,"关闭","语音键可另行映射为普通按键")}</div>
  <div class="gt">按 App 的语音快捷键</div>
- <div class="group"><div class="row"><div class="ttl">默认（豆包输入法）</div><span class="picker">⌥ Space<span class="chev">⌄</span></span></div><div class="row"><span class="appic" style="background:#c96442">C</span><div class="ttl">Claude</div><span class="picker">⌥ Space（继承）<span class="chev">⌄</span></span></div></div>
- <div class="disc"><span class="tri">§chev§</span>豆包输入法麦克风设置步骤 <span class="faint" style="font-size:11.5px">${allOk?'· 已完成':''}</span></div>`;
+ <div class="group" style="padding:12px">${pk("适用 App","全局默认（Global）")}${pk("触发按键","右 Option ⌥（推荐）")}${pk("触发方式","按住说话")}${pk("语音工具","豆包输入法（自动切换）")}
+  <div class="muted" style="font-size:11px;margin-top:8px">这里设置的是遥控器开始传音时，MiRemote 向当前 App 发送的快捷键。请先在对应语音工具里设成同一个键。</div></div>
+ <div class="gt">链路自检</div>
+ <div class="group">${chk.map(([n,st,fix])=>`<div class="hc"><span class="si ${st==='ok'?'ok':st==='bad'?'err':'run'}">${st==='ok'?'§check§':st==='bad'?'×':'…'}</span><div class="ttl">${n}${st==='ok'?'':`<small>${fix}</small>`}</div>${st==='ok'?'':`<span style="font-size:11px;color:${st==='bad'?'var(--warn)':'var(--text2)'}">${st==='bad'?'未通过':n==='按语音键有音频帧'?'待检测（按住语音键说话）':'未通过'}</span>`}</div>`).join("")}</div>
+ <div class="gt">豆包麦克风设置（遥控器麦克风模式必做一次）</div>
+ <div class="group" style="padding:12px;font-size:11.5px;line-height:1.8">1. 打开「豆包」App → 点右下角头像进入设置。<br>2. 找到「语音 / 麦克风」设置项。<br>3. 把麦克风（音频输入设备）从默认改为 <b>BlackHole 2ch</b>。<br>4. 回到这里按住遥控器语音键说话——上方自检第 3 项变绿即成功。
+  <div class="dbill"><div class="faint"><b>豆包 · 设置</b></div><div class="dbrow">§mic§ 麦克风<span class="grow"></span><span class="dbsel">BlackHole 2ch ⌄</span></div><div class="dbrow faint">扬声器<span class="grow"></span>系统默认</div></div>
+  <div class="muted" style="font-size:11px">只需要设置一次；说话时 MiRemote 会临时把系统输入切到 BlackHole，松开语音键约 1 秒后自动还原。</div></div>
+ <div class="gt">BlackHole 虚拟声卡</div>
+ <div class="group"><div class="row"><span class="si ${bh?'ok':'err'}">${bh?'§check§':'×'}</span><div class="ttl">${bh?'已安装 · 运行正常':'未安装'}<small>BlackHole 2ch · /Library/Audio/Plug-Ins/HAL/</small></div><button class="btn sm">${bh?'重新安装':'去下载'}</button></div></div>
+ <div class="gt">实时电平表</div>
+ <div class="group" style="padding:12px"><div class="muted" style="font-size:11.5px">按住语音键说话，可实时看到波形跳动</div><div class="vbars">${Array.from({length:32},(_,i)=>`<i style="height:${S.state==='ok'?4+Math.round(18*Math.abs(Math.sin(i*0.7))):3}px"></i>`).join("")}</div>
+  <div class="row" style="padding:8px 0 0;border-top:1px solid var(--line)"><div class="ttl" style="flex:none;width:70px">输入增益</div><div class="slider"><i style="width:50%"></i><b style="left:50%"></b></div><span class="faint" style="width:52px;text-align:right">+0 dB</span></div>
+  <div class="muted" style="font-size:11px">增益改动在下次语音会话生效</div></div>`;
 }
-function generalPage(){
+function generalPage(){ // GeneralPage.swift:14-151
  const tg=(t,s,on)=>`<div class="row"><div class="ttl">${t}${s?`<small>${s}</small>`:''}</div><span class="toggle ${on?'on':''}"></span></div>`;
- const sl=(t,v,p,d)=>`<div class="row"><div class="ttl" style="flex:none;width:130px">${t}<small>默认 ${d}</small></div><div class="slider"><i style="width:${p}%"></i><b style="left:${p}%"></b></div><span style="width:62px;text-align:right">${v}</span><span class="reset">恢复</span></div>`;
- return `<div class="ph"><div><h1>通用</h1><div class="sub">启动、显示与按键手感。</div></div></div>${S.state==='perm'||S.state==='degraded'?stateBanner():''}
- <div class="gt">启动</div><div class="group">${tg("登录时启动 MiRemote","",1)}${tg("启动时打开设置窗口","",0)}</div>
- <div class="gt">显示与反馈</div><div class="group">${tg("在菜单栏显示图标","关闭后可通过再次打开 App 进入设置",1)}${tg("在屏幕角落显示模式角标","进入第二功能模式时显示「App 控制 · Ghostty」等",1)}${tg("切换到有专用场景的 App 时提示「XX 布局」","",1)}${tg("按键时示意图实时高亮","",1)}</div>
- <div class="gt">按键手感</div><div class="group">${sl("长按判定","350 ms",35,"350 ms")}${sl("双击间隔","250 ms",25,"250 ms")}</div>
- <div class="gt">关于与诊断</div><div class="group"><div class="row"><div class="ttl">版本<small>MiRemote · macOS 14+（macOS 26 使用液态玻璃外观）</small></div><button class="btn sm">检查更新</button></div><div class="row"><div class="ttl">配置文件<small>config.json</small></div><button class="btn sm">在访达中显示</button></div><div class="row"><div class="ttl">诊断</div><button class="btn sm" data-go="sheet-health">一键体检与修复</button><button class="btn sm" data-go="onb-1">重新运行首次引导</button></div></div>
- <div class="gt">危险操作</div><div class="group"><div class="row"><div class="ttl">退出 MiRemote</div><button class="btn sm danger">退出</button></div><div class="row"><div class="ttl">卸载 MiRemote<small>移除登录项与配置</small></div><button class="btn sm danger">卸载…</button></div></div>`;
+ const sl=(t,v,p)=>`<div class="row"><div class="ttl" style="flex:none;width:80px">${t}</div><div class="slider"><i style="width:${p}%"></i><b style="left:${p}%"></b></div><span class="faint" style="width:56px;text-align:right">${v}</span></div>`;
+ const bt=(t,s,b)=>`<div class="row"><div class="ttl">${t}${s?`<small>${s}</small>`:''}</div>${b}</div>`;
+ return `<div class="ph"><div><h1>通用</h1><div class="sub">调整触发阈值、开机行为与提示反馈。</div></div></div>${S.state==='perm'||S.state==='degraded'?stateBanner():''}
+ <div class="gt">启动与显示</div><div class="group">${tg("登录时启动","",1)}${tg("显示菜单栏图标","开启后每次启动都会恢复图标；无需单独系统授权",1)}${tg("菜单栏精简模式","仅显示图标，不显示模式角标文字",0)}${tg("功能模式切换提示音","进入或退出第二功能时播放提示",0)}${tg("按键提示条","模式或浮层激活时，屏幕底部实时显示每个键的当前作用",1)}${tg("独占按键（Seize）","失败时自动降级为监听 + 事件抑制",1)}${tg("退出确认","退出前提示「已恢复真实键盘」",1)}${tg("长按删除：清空输入","默认关闭；开启后长按删除会先全选再删除，短按始终是普通删除",0)}</div>
+ <div class="gt">高级</div><div class="group"><div class="disc open" style="margin:10px 12px 4px">§chev§ 触发阈值</div><div style="padding:0 12px 10px">${sl("长按阈值","350 ms",31)}${sl("双击窗口","250 ms",50)}<div class="muted" style="font-size:11px;margin-top:6px">默认 250 ms：只对配了双击动作的键生效（这类键短按需等窗口确认），未配双击的键短按始终零延迟；设为 0 完全关闭双击。</div><div class="muted" style="font-size:11px;margin-top:4px">基础状态为文字输入：方向、确认、删除固定保持原生语义；App 快捷动作仅在第二功能、导航模式或明确组合手势中生效。</div></div></div>
+ <div class="gt">关于</div><div class="group">${bt("版本","",'<span class="faint">1.0.0 (M5)</span>')}${bt("重新运行首次启动引导","",'<button class="btn sm" data-go="onb-1">打开</button>')}${bt("一键体检与修复","",'<button class="btn sm" data-go="sheet-health">打开</button>')}${bt("退出 MiRemote","恢复按键中转后完全退出。点窗口关闭按钮只是转入后台",'<button class="btn sm">退出</button>')}<div class="disc" style="margin:10px 12px">§chev§ 彻底卸载指引</div></div>`;
 }
 const PAGES={mapping:mappingPage,profiles:profilesPage,voice:voicePage,general:generalPage};
-function mapTable(scene,compact){
- const save=S.scene; S.scene=scene; const s=sc();
- const cell=(k,sl)=>{const r=resolve(k,sl);return r.src==="none"?'<span class="x">—</span>':`<span class="${r.src==='ovr'&&s.id!=='global'?'o':''}">${r.v}</span>`};
- const h=`<table class="tbl"><tr><th>按键</th><th>短按</th><th>长按</th><th>双击</th>${compact?'':`<th>${MODE_NAME[1]}</th><th>${MODE_NAME[2]}</th><th>${MODE_NAME[3]}</th>`}</tr>${KEYS.map(k=>`<tr><td class="k"><span class="kc2">${k.g}</span>${k.n}</td><td>${cell(k.id,"tap")}</td><td>${cell(k.id,"hold")}</td><td>${cell(k.id,"dbl")}</td>${compact?'':[1,2,3].map(l=>`<td>${cell(k.id,l)}</td>`).join("")}</tr>`).join("")}</table>`;
- S.scene=save; return h;
+const DORDER=["up","down","left","right","ok","back","home","menu","tv","volUp","volDown","voice","power"]; // MappingDetailView.swift:40-43
+const K=id=>KEYS.find(k=>k.id===id);
+function moreLines(sid,k){ // MappingDetailView.swift:173-189
+ const s=SCENES.find(x=>x.id===sid); const P=[];
+ [1,2,3].forEach(l=>{const r=resolve(k,l,sid); if(r.src!=="none") P.push(`${MODE_NAME[l]}：${r.v}`)});
+ if(k==="ok"){const g=mergedGest(sid); if(g) GDIR.forEach(([d,,ar])=>{if(g[d])P.push(`按住 OK+${ar}：${g[d]}`)})}
+ return P;
 }
-function sheet(w,title,sub,body,foot){return `<div class="sdim"></div><div class="sheet" style="width:${w}px"><div class="sh"><h2>${title}</h2>${sub?`<div class="sub">${sub}</div>`:''}</div><div class="sb">${body}</div><div class="sf">${foot}</div></div>`}
-function sheetDetail(){const s=sc();
- return sheet(860,`${s.name}${s.id==='global'?'':' · 按 App 覆盖'}`,s.id==='global'?'所有 App 的基础映射。蓝色 = 本场景设置。基础状态下方向键、返回键短按保持原生功能，OK 短按为回车（仅 App 场景的明确设置可替代）。':`覆盖 ${ovCount(s)} 项，其余继承全局默认。蓝色 = 本 App 覆盖。`,mapTable(s.id),`<span class="left">只读预览 · 修改请点「编辑映射」</span>${s.id==='global'?'':'<button class="btn danger" data-go="dialog-delete">删除场景…</button>'}<button class="btn">关闭</button><button class="btn pri" data-go="mapping">编辑映射</button>`)}
-function sheetPresets(){
- const P=[["AI 终端","Ghostty / iTerm / Warp","批准、拒绝、中断、切换 agent",1],["视频播放","IINA / QuickTime / 浏览器视频","播放暂停、快进快退、音量",0],["浏览器","Chrome / Safari / Arc","标签页、前进后退",0],["演示文稿","Keynote / PowerPoint","翻页、开始放映",0]];
- return sheet(760,"预设库","挑一个预设套用到某个 App；套用后可在场景配置中撤销。",
- `<div style="display:flex;gap:14px"><div style="width:250px;flex:none">${P.map(([n,a,d,on])=>`<div class="prow ${on?'hl':''}" style="border-radius:8px"><div class="ttl"><b>${n}</b><small>${a}<br>${d}</small></div></div>`).join("")}</div>
- <div style="flex:1"><div class="gt" style="margin-top:0">建议应用到</div><div class="group"><div class="row"><span class="appic" style="background:#2b2f77">G</span><div class="ttl">Ghostty<small>正在运行 · 已有 9 项覆盖</small></div><span class="seg"><span class="on">Ghostty</span><span>iTerm</span></span></div></div>
- <div class="gt">套用方式</div><div class="group"><div class="row"><span class="si ok">§check§</span><div class="ttl">仅填空位（推荐，保护已有绑定）</div></div><div class="row"><span class="si run"> </span><div class="ttl">全部覆盖（预设优先）</div></div></div>
- <div class="gt">将发生的变化</div><div class="group"><div class="row"><span class="tag ok">新增 4</span><span class="tag warn">冲突 2（保留现有）</span></div>
- <div class="row"><div class="ttl" style="font-size:12px">OK · App 控制模式：<span class="faint">批准</span> → 保持　·　主页 · 短按：<span class="faint">⌃C 中断</span> → 保持<br>菜单 · 长按：<b>＋ 切换 agent</b>　·　音量− · App 控制模式：<b>＋ 拒绝</b></div></div></div></div></div>`,
- `<span class="left">套用后可在「场景配置」顶部撤销本次套用</span><button class="btn">取消</button><button class="btn pri">套用到 Ghostty</button>`)}
-function sheetAddApp(){
- const R=[["Ghostty","#2b2f77","G","已添加"],["Visual Studio Code","#0065a9","V",""],["Safari","#1e88e5","S",""],["Notion","#111","N",""],["Spotify","#1db954","S",""],["QuickTime Player","#555","Q",""]];
- return sheet(520,"选择要添加专用按键方案的 App","列出正在运行的 App；添加后会自动成为「正在编辑」的场景，但不会跳转页面。",
- S.state==="empty"?`<div class="empty"><div class="big">§windows§</div><b>没有检测到可添加的 App</b><div>请先打开要控制的 App，再回到这里。</div></div>`
- :`<div class="group">${R.map(([n,c,i,t],x)=>`<div class="prow ${x===1?'hl':''}"><span class="appic" style="background:${c}">${i}</span><div class="ttl"><b>${n}</b></div>${t?`<span class="tag">${t}</span>`:''}</div>`).join("")}</div>`,
- `<button class="btn">取消</button><button class="btn pri" ${S.state==='empty'?'disabled':''}>添加</button>`)}
-function sheetKeyLearn(){const done=S.state!=="loading";
- return sheet(460,"识别按键",done?"已识别。":"请按一下遥控器上的任意键…",
- `<div style="display:flex;gap:18px;align-items:center"><div style="position:relative;width:112px;height:298px"><div style="position:absolute;left:0;top:0">${remoteSvg({sel:done?["menu"]:[],scale:.62,pulse:!done,nostatus:true})}</div></div>
- <div style="flex:1">${done?`<div class="kcap" style="font-size:14px">菜单</div><div style="margin:10px 0 4px"><b>菜单键</b></div><div class="muted" style="font-size:12px">HID 0x0C · 0x0040</div><div class="banner info" style="margin-top:12px">将跳到「按键映射」并选中这个键。</div>`
- :`<div class="muted">${S.state==='disc'?'遥控器未连接，无法识别。请先配对。':'正在等待按键…'}</div><div class="meter" style="margin-top:12px"><i style="width:35%"></i></div>`}</div></div>`,
- `<button class="btn">取消</button><button class="btn pri" ${done?'':'disabled'} data-go="mapping">选中这个键</button>`)}
-function sheetRecorder(){const rec=S.state==="loading";
- return sheet(440,"录制快捷键","给「菜单键 · 长按」绑定组合键。",
- `<div style="text-align:center;padding:18px 0">${rec?'<div class="muted">请按下组合键…（Esc 取消）</div><div style="margin-top:12px"><span class="kcap">⌘</span><span class="kcap">…</span></div>':'<span class="kcap">⌘</span><span class="kcap">⇧</span><span class="kcap">T</span><div class="muted" style="margin-top:12px">⌘⇧T</div>'}</div>
- ${rec?'':'<div class="banner warn">§warn§<span class="grow">⌘⇧T 已用于「Google Chrome · 音量 +」，保存后两处都会生效。</span></div>'}`,
- `<button class="btn ghost">重新录制</button><span class="grow"></span><button class="btn">取消</button><button class="btn pri" ${rec?'disabled':''}>完成</button>`)}
-function sheetHealth(){
+function detailView(sid,quick){ // MappingDetailView（详情 sheet 与按键教程浮层共用；ProfilePage.swift:74-81 / OverlayCenter.swift:225-228）
+ const s=SCENES.find(x=>x.id===sid); const app=s.id!=="global";
+ const name=quick&&!app?"访达":(app?s.name:"全局默认");
+ const cell=(k,sl,w)=>{const r=resolve(k,sl,sid);const ov=app&&(s.o[k]||{})[sl];return `<td style="width:${w}px"><div class="${r.src==='none'?'x':''}">${r.v}</div>${app?`<div class="srcl ${ov?'o':''}">${ov?'App 覆盖':'继承全局'}</div>`:''}</td>`};
+ const rows=DORDER.map(k=>{const kk=K(k);const ov=s.o[k];const ml=moreLines(sid,k);const mo=app&&ov&&[1,2,3].some(l=>ov[l]);
+  return `<tr><td style="width:116px"><span class="kc2">${kk.g}</span><span class="kn2">${kk.n}${app?`<small class="${ov?'o':''}">${ov?'含 App 覆盖':'全部继承'}</small>`:''}</span></td>${cell(k,"tap",170)}${cell(k,"hold",170)}${cell(k,"dbl",150)}<td><div class="${ml.length?'muted':'x'}">${ml.length?ml.join("<br>"):'—'}</div>${app?`<div class="srcl ${mo?'o':''}">${mo?'App 覆盖':'继承全局'}</div>`:''}</td></tr>`}).join("");
+ return `<div class="dvh"><span class="appic big" style="background:${app?s.c:'transparent'};${app?'':'color:var(--accent);font-size:26px'}">${app?s.ic:'§globe§'}</span><div class="grow"><div class="${quick?'dvt q':'dvt'}">${name}</div><div class="muted" style="font-size:11.5px">${app?'当前实际生效映射 · 未覆盖项继承全局':'所有 App 的基础映射'}</div></div>${quick?'<span class="muted" style="font-size:11.5px">再按主页 / 返回键或 Esc 关闭</span>':'<button class="btn pri" data-go="mapping">编辑映射</button><span class="xbtn" title="关闭">§xmark§</span>'}</div>
+ <div class="dvtbl"><table class="tbl dtv"><tr><th>遥控键</th><th>短按</th><th>长按</th><th>双击</th><th>更多</th></tr>${rows}</table></div>
+ ${quick?'':'<div class="muted" style="font-size:11px;margin-top:10px">长按主页键可随时打开这张表；浮层打开期间遥控键不会触发原动作。</div>'}`;
+}
+const xh=(t,help)=>`<div class="shx"><h2>${t}</h2><span class="grow"></span><span class="xc" title="${help||'关闭'}">§xcircle§</span></div>`;
+const plain=(w,inner,h)=>`<div class="sdim"></div><div class="sheet plain" style="width:${w}px${h?`;height:${h}px`:''}">${inner}</div>`;
+function sheetDetail(){return plain(900,`<div style="padding:20px">${detailView(sc().id,false)}</div>`,610)}
+const PRESET_CARDS=[ // Presets.all 顺序（Presets.swift:56）；文字 = displayName / note
+ ["Ghostty · Codex / Claude Code","Ghostty","左右切 Tab，上下选 CLI 选项，OK=确认、长按=Ctrl+C，返回=Esc、长按=Ctrl+U 清行。TV 单击进 App 控制模式（长按=App 轮盘，全局一致）。「批准并不再问(2)」可自行绑到控制模式内的空槽（vibe 调研 §1.3）。"],
+ ["Codex 桌面版","Codex","上下选择，左右切任务标签，OK=确认，返回=Esc；控制模式内 Home 聚焦输入框。"],
+ ["ChatGPT 桌面版","ChatGPT","上下选择，OK=发送，返回=Esc；控制模式内 返回=Cmd+. 停止生成、菜单=Cmd+K 搜索/历史会话。新对话 ⌘⇧O 可自行绑到控制模式内空槽。语音输入推荐用遥控器自带语音链路（ChatGPT 内置语音无公开快捷键，待实测）。"],
+ ["Google Chrome","Google Chrome","左右切标签，上下翻页，OK=确认，返回=浏览器后退；控制模式内 Home=地址栏、菜单=Cmd+K。"],
+ ["Safari","Safari","左右切标签，上下翻页，OK=确认，返回=后退；控制模式内 Home=地址栏、菜单=Cmd+K。"]];
+function sheetPresets(){ // ProfilePage.swift:241-373
+ const applied=S.state==="layer"; // 用“层激活”状态位复用为“已套用”演示
+ const prev=!applied;
+ const PV=[["方向键 · 左 · 短按","—","上一个标签页"],["方向键 · 左 · 快捷控制模式","左侧桌面空间","发送按键 · ⌘LEFT_BRACKET",1],["方向键 · 右 · 短按","—","下一个标签页"],["确认键（方向环中心） · 长按","—","发送按键 · ⌃C"],["返回键 · 短按","—","发送按键 · Esc ⎋"],["返回键 · 长按","—","发送按键 · ⌃U"]];
+ return plain(520,`<div style="padding:18px 20px">${xh("预设库")}
+ ${applied?'<div class="okmsg">已套用「Ghostty · Codex / Claude Code」，可在 Profile 页撤销本次套用</div>':''}
+ <div class="pscroll">${PRESET_CARDS.map(([n,a,note],i)=>`<div class="pcard"><div class="pch"><div class="grow"><b>${n}</b><div class="muted" style="font-size:11px">建议应用到：${a}</div></div><button class="btn sm">${i===0&&prev?'收起':'预览'}</button><span class="btn sm pri">应用 ⌄</span></div>
+  <div class="muted" style="font-size:11px;margin-top:6px">${note}</div>
+  ${i===0&&prev?`<table class="pvt">${PV.map(([a,b,c,cf])=>`<tr class="${cf?'cf':''}"><td>${a}</td><td class="faint">${b}</td><td>→</td><td>${c}</td></tr>`).join("")}<tr><td colspan="4" class="faint">……</td></tr></table>`:''}</div>`).join("")}</div></div>`)}
+function sheetAddApp(){ // ProfilePage.swift:193-237
+ const R=[["Ghostty","#2b2f77","G",1],["Visual Studio Code","#0065a9","V"],["Safari","#1e88e5","S"],["Notion","#111","N"],["Spotify","#1db954","S"],["QuickTime Player","#555","Q"],["访达","#2e9bff","访"]];
+ return plain(400,`<div style="padding:18px 20px"><div class="shx"><h2 style="font-size:13px">选择要添加专用按键方案的 App</h2></div>
+ <div class="nlist">${R.map(([n,c,i,ex],x)=>`<div class="nli ${x===1?'hl':''}"><span class="appic" style="background:${c};width:20px;height:20px;font-size:10px">${i}</span>${n}<span class="grow"></span>${ex?'<span class="faint" style="font-size:11px">已存在</span>':''}</div>`).join("")}</div>
+ <div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn">取消</button></div></div>`)}
+function sheetKeyLearn(){ // MappingPage.swift:241-297
+ const st=S.state; const done=st==="ok"||st==="layer"; const off=st==="disc";
+ const body=done?`<div class="kl"><div class="klb">菜单</div><div class="kln">菜单键</div><div class="muted" style="font-size:11px">HID usage 0x65</div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn">再识别一个</button><button class="btn pri" data-go="mapping">编辑此键</button></div></div>`
+  : off?`<div class="kl"><div style="font-size:26px" class="muted">§nolink§</div><div>引擎未运行（预览模式或遥控器未连接），无法识别</div></div>`
+  : `<div class="kl"><div class="spin"></div><div>请按一下遥控器上的任意键…</div><div class="muted" style="font-size:11px">识别期间按键不触发映射之外的额外动作</div></div>`;
+ return plain(320,`<div style="padding:20px">${xh("识别按键")}<div style="display:flex;gap:14px;align-items:center"><div style="position:relative;width:76px;height:203px;flex:none">${remoteSvg({sel:done?["menu"]:[],scale:.42,pulse:!done&&!off,nostatus:true})}</div>${body}</div></div>`)}
+function sheetRecorder(){ // ActionPicker.swift:40-100
+ const st=S.state; const rec=st==="loading"; const idle=st==="disc"; const warn=st==="perm";
+ const inner=rec?`<div class="rech">按下快捷键…</div><div class="muted" style="font-size:11px;text-align:center">直接按下真实组合键，左右修饰键自动区分；Esc 也会被录入，取消请点右上角 ✕</div>`
+  : idle?`<div style="text-align:center;padding:8px 0"><button class="btn lg">点此录制快捷键</button></div>`
+  : `<div class="recv">${warn?'⌘Q':'⇧⌘T'}</div>${warn?'<div class="ywarn">⌘Q 会退出前台 App，确定？</div>':''}<div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn">重录</button><button class="btn pri">确认</button></div>`;
+ return plain(340,`<div style="padding:20px">${xh("录制快捷键","取消录制")}${inner}</div>`)}
+function sheetHealth(){ // HealthCheckSheet.swift:28-165
  const st=S.state; const run=st==="loading";
- const I=[["辅助功能权限","用于模拟键盘与鼠标",st==="perm"?"warn":"ok"],["输入监控权限","用于接管遥控器按键",st==="perm"?"err":"ok"],["遥控器连接",st==="disc"?"长按 主页+返回 进入配对":"MI RC 2 Pro · 电量 82%",st==="disc"?"warn":"ok"],["BlackHole 虚拟声卡","遥控器麦克风语音需要","ok"],["事件注入通道",st==="degraded"?"CGEventTap 被系统停用":"正常",st==="degraded"?"err":"ok"],["配置文件","config.json · 7 个场景","ok"]];
- const bad=I.filter(x=>x[2]!=="ok").length;
- return sheet(560,"一键体检与修复",run?"正在检查…":bad?`发现 ${bad} 个问题。`:"一切正常。",
- `<div class="group">${I.map(([n,d,s],i)=>{const r=run&&i>2;return `<div class="hc"><span class="si ${r?'run':s}">${r?'…':s==='ok'?'§check§':'!'}</span><div class="ttl"><b>${n}</b><small>${r?'等待检查':d}</small></div>${!r&&s!=='ok'?`<button class="btn sm">${n.includes('权限')?'打开系统设置':n.includes('连接')?'配对引导':'修复'}</button>`:''}</div>`}).join("")}</div>`,
- `<button class="btn ghost">重新体检</button><span class="grow"></span>${st==='perm'?'<button class="btn">退出并重新打开</button>':''}<button class="btn">完成</button>${bad&&!run?'<button class="btn pri">尝试自动修复</button>':''}`)}
-function sheetReauth(){return `<div class="sdim"></div><div class="alert" style="width:340px"><div class="ai">§shield§</div><h3>检测到你更新了版本，需要重新授权一次</h3><p>macOS 会把新版本视为新 App。请在「系统设置 › 隐私与安全性」中关闭再打开 MiRemote 的「输入监控」和「辅助功能」，然后重启 App。</p><div class="ab"><button class="btn pri">打开系统设置</button><button class="btn">重启 App 生效</button><button class="btn ghost">稍后再说</button></div></div>`}
-function dialogDelete(){const s=S.scene==="global"?SCENES[1]:sc();return `<div class="sdim"></div><div class="alert"><div class="ai">§trash§</div><h3>删除「${s.name}」场景？</h3><p>${ovCount(s)} 项覆盖将被移除，该 App 改回使用全局默认。${S.scene===s.id?'它是正在编辑的场景，删除后切回全局默认。':''}</p><div class="ab"><button class="btn dangerfill">删除</button><button class="btn">取消</button></div></div>`}
-const SHEETS={"sheet-detail":["profiles",sheetDetail],"sheet-presets":["profiles",sheetPresets],"sheet-addapp":["profiles",sheetAddApp],"sheet-keylearn":["mapping",sheetKeyLearn],"sheet-recorder":["mapping",sheetRecorder],"sheet-health":["general",sheetHealth],"sheet-reauth":["mapping",sheetReauth],"dialog-delete":["profiles",dialogDelete]};
-function onboarding(n){
- const steps=["授权","BlackHole 虚拟声卡","配对遥控器"];
- const st=`<div class="steps">${steps.map((t,i)=>`${i?'<span class="ln"></span>':''}<span class="st ${i+1===n?'on':i+1<n?'done':''}"><b>${i+1<n?'§check§':i+1}</b>${t}</span>`).join("")}</div>`;
- let body="";
- if(n===1){const P=[["蓝牙","连接遥控器",S.state==="perm"?"ok":"ok"],["输入监控","接管遥控器按键",S.state==="perm"?"warn":"ok"],["辅助功能","模拟键盘与鼠标",S.state==="perm"?"warn":"ok"]];
-  body=`<h2>第 1 步 · 授权</h2><div class="sub">MiRemote 需要这些权限才能把遥控器按键变成 Mac 操作。</div><div class="group" style="margin-top:14px">${P.map(([a,b,s])=>`<div class="hc"><span class="si ${s}">${s==='ok'?'§check§':'!'}</span><div class="ttl"><b>${a}</b><small>${b}</small></div>${s==='ok'?'<span class="tag ok">已授权</span>':'<button class="btn sm pri">去授权</button>'}</div>`).join("")}</div>`}
- if(n===2){const ok=S.state!=="perm";body=`<h2>第 2 步 · BlackHole 虚拟声卡</h2><div class="sub">用遥控器麦克风说话时，需要 BlackHole 把声音接入豆包输入法。只用 Mac 麦克风可以跳过。</div><div class="group" style="margin-top:14px"><div class="hc"><span class="si ${ok?'ok':'warn'}">${ok?'§check§':'!'}</span><div class="ttl"><b>BlackHole 2ch</b><small>${ok?'已安装':'未安装'}</small></div>${ok?'':'<button class="btn sm pri">下载安装</button>'}</div><div class="hc"><span class="si run">2</span><div class="ttl"><b>在豆包输入法里选 BlackHole 2ch 作为麦克风</b><small>设置 › 语音 › 麦克风</small></div></div></div>`}
- if(n===3){const done=S.state==="ok";body=`<div style="display:flex;gap:22px;align-items:center"><div style="position:relative;width:130px;height:346px;flex:none">${remoteSvg({sel:done?[]:["home","back"],pulse:!done,scale:.72,nostatus:true})}</div><div style="flex:1"><h2>第 3 步 · 配对遥控器</h2><div class="sub">同时长按遥控器上的 <b>主页</b> + <b>返回</b> 约 3 秒，直到指示灯闪烁。</div>
-  <div class="banner ${done?'info':'warn'}" style="margin-top:14px">${done?'§check§<span class="grow"><b>已连接 MI RC 2 Pro</b> · 试着按一下 OK 键。</span>':`§nolink§<span class="grow">正在等待遥控器出现…<br><small>指示灯在遥控器顶部电源键旁：快速闪烁 = 进入配对模式；不闪说明没按够 3 秒或电量不足。</small></span>`}</div>
-  <div class="muted" style="font-size:12px;margin-top:10px;line-height:1.7">· 让遥控器离 Mac 1 米以内<br>· 如果已和电视配对，请先在电视上取消配对<br>· 指示灯不闪：更换电池后重试</div></div></div>`}
- return `<div class="sdim"></div><div class="sheet" style="width:640px"><div class="sh">${st}</div><div class="sb" style="padding:10px 26px 18px">${body}</div><div class="sf"><span class="left">${n}/3 · 可随时在「通用 › 诊断」重新运行</span><button class="btn ghost">跳过引导</button>${n>1?'<button class="btn" data-go="onb-'+(n-1)+'">上一步</button>':''}<button class="btn pri" ${n<3?`data-go="onb-${n+1}"`:''}>${n<3?'继续':'完成'}</button></div></div>`;
+ const I=[["辅助功能权限",st==="perm"?["bad","按键无法注入。去系统设置勾选 MiRemote","去授权"]:["ok"]],
+  ["输入监控权限",st==="perm"?["bad","无法读取遥控器按键。去系统设置勾选 MiRemote","去授权"]:["ok"]],
+  ["遥控器连接",st==="disc"?["bad","检查电量、靠近 Mac，或在蓝牙面板重连","打开蓝牙设置"]:["ok"]],
+  ["BlackHole 虚拟声卡",st==="perm"?["warn","遥控器麦克风模式不可用（不用语音可忽略）","去下载"]:["ok"]],
+  ["事件注入通道",st==="degraded"?["bad","按键注入通道已断开","重建通道"]:["ok"]],
+  ["配置文件",["ok"]]];
+ const bad=I.filter(x=>x[1][0]!=="ok").length;
+ const ic={ok:'<span class="hci ok">§check§</span>',bad:'<span class="hci bad">×</span>',warn:'<span class="hci warn">!</span>',run:'<span class="spin sm"></span>'};
+ return plain(480,`<div style="padding:20px">${xh("一键体检与修复")}
+ ${run?'':bad?`<div class="sumo">§warn§ 发现 ${bad} 个问题，按右侧按钮逐项处理</div>`:'<div class="sumg">§check§ 全部正常</div>'}
+ <div class="hlist">${I.map(([n,[s,d,a]],i)=>{const r=run&&i>2;const ss=r?'run':s;return `<div class="hli">${ic[ss]}<div class="grow"><div>${n}</div>${!r&&d?`<div class="muted" style="font-size:11px">${d}</div>`:''}</div>${!r&&s!=='ok'&&a?`<button class="btn sm">${a}</button>`:''}</div>`}).join("")}</div>
+ <div style="display:flex;gap:8px;margin-top:14px"><button class="btn">重新体检</button><span class="grow"></span>${st==='perm'?'<button class="btn pri" title="授权后重启 App，让新权限进入按键通道">退出并重新打开</button>':''}<button class="btn">尝试自动修复</button></div></div>`)}
+const PROW=(ic,t,ex,state,act)=>`<div class="hli"><span class="pri2">${ic}</span><div class="grow"><div>${t}</div><div class="muted" style="font-size:11px">${ex}</div></div>${state==='ok'?'<span class="okl">§check§ 已授权</span>':state==='run'?'<span class="faint" style="font-size:11px">检测中…</span>':`<span class="warnl">未授权</span><button class="btn sm">${act||'去授权'}</button>`}</div>`;
+function sheetReauth(){ // OnboardingWizard.swift:385-428，RootView.swift:87 以 .sheet 呈现
+ const ok=S.state==="ok";
+ return plain(430,`<div style="padding:20px;display:flex;flex-direction:column;height:100%;box-sizing:border-box"><h2 style="margin:0 0 6px;font-size:16px">检测到你更新了版本，需要重新授权一次</h2><div class="muted" style="font-size:11.5px">这是 macOS 的安全机制：测试版每次更新都要重新点一下授权，30 秒搞定。你的所有按键设置都还在（配置文件不受升级影响）。</div>
+ <div class="hlist" style="margin-top:10px">${PROW("§sliders§","输入监控","读取遥控器按键事件",ok?'ok':'bad')}${PROW("§target§","辅助功能","把按键翻译成快捷键/系统动作",ok?'ok':'bad')}</div><span class="grow"></span>
+ <div style="display:flex;align-items:center;gap:8px"><button class="btn">稍后再说</button><span class="grow"></span>${ok?'<button class="btn pri">重启 App 生效</button>':'<span class="muted" style="font-size:11px">授权后此处自动亮绿灯</span>'}</div></div>`,260)}
+function ctxDelete(){ // ProfilePage.swift:112-127：右键菜单；删除立即生效，无确认对话框
+ return `<div class="nmenu" style="left:470px;top:262px"><div class="nmi">查看详情</div><div class="nmi hl">删除该 App 专用方案</div></div>`;
 }
-const ICONSTATE=()=>({degraded:["red","§stop§"],layer:["acc","⇄"],disc:["dim",""],paused:["dim","§pause§"]}[S.state]||["",""]);
+const SHEETS={"sheet-detail":["profiles",sheetDetail],"sheet-presets":["profiles",sheetPresets],"sheet-addapp":["profiles",sheetAddApp],"sheet-keylearn":["mapping",sheetKeyLearn],"sheet-recorder":["mapping",sheetRecorder],"sheet-health":["general",sheetHealth],"sheet-reauth":["mapping",sheetReauth],"dialog-delete":["profiles",ctxDelete]};
+function onboarding(n){ // OnboardingWizard.swift:70-300，460x470
+ const step=n-1; const perm=S.state==="perm";
+ const dots=`<div class="obdots">${[0,1,2].map(i=>`${i?'<span class="obl"></span>':''}<span class="obd ${i===step?'on':''}"></span>`).join("")}</div>`;
+ let body="",right="";
+ if(n===1){body=`<h2 class="obh">第 1 步 · 授权</h2><div class="muted" style="font-size:11.5px">MiRemote 需要三项系统权限才能接管遥控器按键。输入监控和辅助功能授权后，请点“退出并重新打开”。</div>
+  <div class="hlist" style="margin-top:10px">${PROW("§wifi§","蓝牙","连接遥控器、接收语音音频","ok")}${PROW("§sliders§","输入监控","读取遥控器按键事件",perm?'bad':'ok')}${PROW("§target§","辅助功能","把按键翻译成快捷键/系统动作",perm?'bad':'ok')}</div>
+  <div class="muted" style="font-size:11px;margin-top:8px">提示：正式签名版正常更新会保留授权；测试版或签名身份变化时可能需要重新授权。</div>`;
+  right=(perm?'<button class="btn pri" title="macOS 需要重启 App 才会把新权限应用到输入通道">退出并重新打开</button>':'')+`<button class="btn pri" ${perm?'disabled title="授权全部完成后继续"':''} data-go="onb-2">下一步</button>`;}
+ if(n===2){const ok=!perm;body=`<h2 class="obh">第 2 步 · BlackHole 虚拟声卡</h2><div class="muted" style="font-size:11.5px">语音输入（遥控器麦克风模式）需要它把音频接进豆包输入法。不用语音可跳过。</div>
+  <div class="hlist" style="margin-top:10px">${PROW("§speaker§","BlackHole 2ch","/Library/Audio/Plug-Ins/HAL/",ok?'ok':'bad',"下载安装包")}</div>
+  ${ok?'<div class="okl" style="margin-top:10px">§check§ 已安装，可继续下一步</div>':`<div class="muted" style="font-size:11px;margin-top:10px;line-height:1.7">① 点「下载安装包」到官方页面下载 .pkg 并双击安装（安装要输开机密码——用于注册虚拟声卡，安全）。<br>② 装好后系统有时不会立刻识别，点下面的按钮重启音频服务（声音会中断约 1 秒，属正常）。<br>③ 检测到驱动后本行自动亮绿灯并进入下一步。</div><button class="btn" style="margin-top:8px">我已安装，重启音频服务</button><div class="muted" style="font-size:11px;margin-top:6px">重启音频服务会弹管理员密码框（执行 killall coreaudiod，让系统重新加载声卡驱动）。</div>`}`;
+  right=`<button class="btn pri" data-go="onb-3">${ok?'下一步':'跳过'}</button>`;}
+ if(n===3){const done=S.state==="ok";
+  body=`<h2 class="obh">第 3 步 · 配对遥控器</h2>${done?`<div class="okl" style="margin-top:8px">§check§ 遥控器已连接</div><div class="muted" style="font-size:11.5px;margin-top:6px">完成后试试按遥控器上任意一个键——映射页的示意图会实时亮起。</div><div class="muted" style="font-size:11px;margin-top:6px">使用遥控器麦克风模式前，记得在豆包输入法设置里把麦克风选为 BlackHole 2ch。</div>`
+  :`<div style="display:flex;gap:14px;margin-top:8px"><div style="position:relative;width:84px;height:224px;flex:none">${remoteSvg({sel:["home","back"],pulse:true,scale:.4667,nostatus:true})}</div><div style="font-size:11.5px;line-height:1.6"><div>同时长按左侧高亮的两个键——「主页 ⌂」和「返回 ←」——约 3 秒</div><div class="muted" style="font-size:11px;margin-top:4px">指示灯在遥控器顶部电源键旁：快速闪烁 = 进入配对模式；不闪说明没按够 3 秒或电量不足。</div><div class="muted" style="font-size:11px;margin-top:4px">① 长按进入配对 → ② 点下方按钮到系统蓝牙里点「连接」→ ③ 回到这里，连上会自动打勾。</div><button class="btn sm" style="margin-top:8px">打开蓝牙设置</button><div class="muted" style="font-size:11px;margin-top:6px"><span class="spin sm"></span> 正在等待遥控器出现…</div><div class="disc" style="margin-top:8px">§chev§ 没反应？</div></div></div>`}`;
+  right=`<button class="btn pri">${done?'完成':'稍后配对，直接完成'}</button>`;}
+ return plain(460,`<div style="padding:20px;display:flex;flex-direction:column;height:100%;box-sizing:border-box"><div style="display:flex;align-items:center"><span class="grow"></span>${dots}<span class="grow"></span><span class="xc" title="稍后设置；下次启动仍会显示向导">§xcircle§</span></div><div style="margin-top:10px">${body}</div><span class="grow"></span>
+ <div style="display:flex;gap:8px;align-items:center">${n>1?`<button class="btn" data-go="onb-${n-1}">上一步</button>`:''}<button class="btn">退出 App</button><span class="grow"></span>${right}</div></div>`,470);
+}
+function iconState(){ // StatusItemController.swift:91-99：故障红 > 语音 > 鼠标 > 层 > 未连接（降透明度）> 空闲
+ return {degraded:"red",layer:"acc",disc:"dim"}[S.state]||"";
+}
 function desk(inner,opt={}){
- const [c,g]=ICONSTATE();
- return `<div class="desk"><div class="mbar"><b></b><b>${opt.app||"Ghostty"}</b><span>文件</span><span>编辑</span><span>窗口</span><div class="r"><span class="sitem ${c} ${opt.on?'on':''}"><i class="gl"></i>${g}</span><span>§battery§</span><span>§wifi§</span><span>10月29日 周四 15:20</span></div></div>
+ const c=iconState(); const title=S.state==="layer"?" 控制":""; // layerShortText(2)（AppModel.swift:205-212），精简模式关闭时显示
+ return `<div class="desk"><div class="mbar"><b></b><b>${opt.app||"Ghostty"}</b><span>文件</span><span>编辑</span><span>窗口</span><div class="r"><span class="sitem ${c} ${opt.on?'on':''}"><span class="sgl">§remote§</span>${title}</span><span>§battery§</span><span>§wifi§</span><span>10月29日 周四 15:20</span></div></div>
  <div class="fakewin" style="left:90px;top:80px;width:620px;height:420px"></div><div class="fakewin" style="left:430px;top:200px;width:620px;height:430px"></div>${inner}</div>`;
 }
-const hint=a=>`<div class="hintbar">${a.map(([k,t])=>`<span>${k.split(" ").map(x=>`<i class="kc">${x}</i>`).join("")}${t}</span>`).join("")}</div>`;
-function ovWindow(){
- const W=[["Ghostty","#2b2f77","G","claude — mi_remote"],["Ghostty","#2b2f77","G","zsh — ~"],["Google Chrome","#1a73e8","C","mi_remote_control · GitHub"],["微信","#1aad19","微","文件传输助手"],["IINA","#6d4aff","I","lecture-03.mp4"]];
- const scope=S.state==="layer"?"当前 App":"全局";
- return desk(`<div class="ovl"><div class="ovh">窗口选择器<span class="sub">· ${scope} · ${W.length} 个窗口</span></div><div style="display:flex;gap:12px">${W.map(([a,c,i,t],x)=>`<div class="wcard ${x===2?'sel':''}"><span class="num">${x+1}</span><span class="appic big" style="background:${c}">${i}</span><div class="t">${t}</div><div class="a">${a}</div></div>`).join("")}</div></div>`
+const hint=a=>`<div class="hintbar">${a.map(([k,t])=>`<span>${k?k.split(" ").map(x=>`<i class="kc">${x}</i>`).join(""):''}${t}</span>`).join("")}</div>`;
+function ovWindow(){ // OverlayCenter.swift:836-910：无序号角标；标题按范围
+ const W=[["Ghostty","#2b2f77","G","claude — mi_remote"],["Ghostty","#2b2f77","G","zsh — ~"],["Google Chrome","#1a73e8","C","mi_remote_control · GitHub"],["微信","#1aad19","微","微信"],["IINA","#6d4aff","I","lecture-03.mp4"]];
+ const cur=S.state==="layer"; const L=cur?W.slice(0,2):W;
+ return desk(`<div class="ovl"><div class="ovh">§macwin§ ${cur?'窗口 · Ghostty':'窗口 · 所有 App · 全部桌面'}</div><div style="display:flex;gap:16px">${L.map(([a,c,i,t],x)=>`<div class="wcard ${x===(cur?1:2)?'sel':''}"><span class="appic big" style="background:${c}">${i}</span><div class="t">${t}</div><div class="a">${a}</div></div>`).join("")}</div></div>`
  +hint([["← →","选窗（按住加速）"],["菜单","全局 → 当前 → 关闭"],["OK","前往"],["返回","关闭"]]));
 }
-function ovSystem(){
- const C=[["媒体",[["§playpause§","播放 / 暂停"],["§next§","下一首"],["§mute§","静音"],["§sun§","亮度"]]],["窗口与桌面",[["§display§","显示桌面"],["§grid§","调度中心"],["§windows§","当前应用所有窗口"],["§search§","Spotlight"]]],["电源（按住执行）",[["§moon§","睡眠",1],["§padlock§","锁屏",1],["§restart§","重启",1],["§power§","关机",1]]]];
- return desk(`<div class="ovl"><div class="ovh">系统功能<span class="sub">· 红色项需按住 OK 1 秒执行</span></div><div class="mgrid">${C.map(([cat,it])=>`<div class="mcat">${cat}</div>`+it.map(([g,n,r])=>`<div class="mitem ${r?'red':''} ${n==='睡眠'?'sel':''}"><span class="g">${g}</span>${n}${n==='睡眠'?'<div class="holdbar"><i></i></div>':''}</div>`).join("")).join("")}</div></div>`
+function ovSystem(){ // OverlayCenter.swift:22-36, 925-980：3 列，9 普通 + 分隔 + 3 危险项
+ const N=[["§grid§","调度中心"],["§sqsq§","App Exposé"],["§dock§","显示桌面"],["§aleft§","左侧桌面"],["§aright§","右侧桌面"],["§cursor§","聚焦编辑区"],["§playpause§","播放 / 暂停"],["§mute§","静音"],["§gear§","打开 MiRemote 设置"]];
+ const D=[["§esc§","退出当前 App"],["§padlock§","锁屏"],["§moon§","睡眠"]];
+ const conf=S.state==="loading"; const selD=conf?2:-1;
+ const tile=([g,n],i,d)=>`<div class="smt ${d?'red':''} ${(d?i===selD:(!conf&&i===0))?'sel':''}"><span class="g">${g}</span>${n}${d?'<small>按住 OK 确认</small>':''}${d&&i===selD?'<span class="cring"></span>':''}</div>`;
+ return desk(`<div class="ovl"><div class="ovh">§gridnine§ 系统功能</div><div class="sm3">${N.map((x,i)=>tile(x,i,0)).join("")}</div><div class="smsep"></div><div class="sm3">${D.map((x,i)=>tile(x,i,1)).join("")}</div></div>`
  +hint([["↑ ↓ ← →","选择"],["OK","执行 · 红色项按住"],["返回","关闭"]]));
 }
-function ovWheel(){
- const A=[["Ghostty","#2b2f77","G"],["Chrome","#1a73e8","C"],["微信","#1aad19","微"],["IINA","#6d4aff","I"],["飞书","#3370ff","飞"],["Claude","#c96442","C"],["访达","#2e9bff","访"],["音乐","#fa2d48","音"]];
- return desk(`<div class="ovl" style="padding:20px"><div class="wheel"><div class="ci"></div>${A.map(([n,c,i],x)=>{const a=x/A.length*2*Math.PI-Math.PI/2;return `<div class="wi ${x===1?'sel':''}" style="left:${150+110*Math.cos(a)}px;top:${150+110*Math.sin(a)}px"><span class="appic" style="background:${c};width:${x===1?40:32}px;height:${x===1?40:32}px">${i}</span></div>`}).join("")}<div class="ctr"><b>Google Chrome</b><div class="muted" style="font-size:11.5px">3 个窗口</div></div></div></div>`
- +hint([["← →","选 App"],["OK","切换"],["返回","取消"]]));
+function ovWheel(){ // OverlayCenter.swift:1007-1080
+ const A=[["Ghostty","#2b2f77","G"],["Google Chrome","#1a73e8","C"],["微信","#1aad19","微"],["IINA","#6d4aff","I"],["飞书","#3370ff","飞"],["Claude","#c96442","C"],["访达","#2e9bff","访"],["音乐","#fa2d48","音"]];
+ return desk(`<div class="ovl" style="padding:20px"><div class="wheel"><div class="ci"></div>${A.map(([n,c,i],x)=>{const a=x/A.length*2*Math.PI-Math.PI/2;return `<div class="wi ${x===1?'sel':''}" style="left:${150+110*Math.cos(a)}px;top:${150+110*Math.sin(a)}px"><span class="appic" style="background:${c};width:${x===1?40:32}px;height:${x===1?40:32}px">${i}</span></div>`}).join("")}<div class="ctr"><b>Google Chrome</b><div class="muted" style="font-size:11.5px">最近使用</div><div class="faint" style="font-size:10.5px">§xcircle§ 返回取消</div></div></div><div class="faint" style="text-align:center;font-size:11px;margin-top:6px">3 秒无操作自动关闭</div></div>`
+ +hint([["↑ ↓ ← →","选 App"],["OK TV","切换"],["返回","取消"]]));
 }
-function ovTutorial(){const s=sc();
- return desk(`<div class="ovl qlk"><div class="ovh">按键教程<span class="sub">· ${s.id==='global'?'全局默认':s.name+' 场景'} · 按住主页键打开</span></div><div style="display:flex;gap:18px"><div style="position:relative;width:90px;height:240px;flex:none">${remoteSvg({sel:[],scale:.5,nostatus:true})}</div><div style="flex:1;max-height:520px;overflow:hidden">${mapTable(s.id)}</div></div></div>`
- +hint([["返回","关闭教程"]]),{app:s.id==='global'?'访达':s.name});
+function ovTutorial(){const s=sc(); // 按键教程 = MappingDetailView(isQuickLook)
+ return desk(`<div class="ovl qlk tut" style="width:900px">${detailView(s.id,true)}</div>`+hint([["主页 返回 OK","关闭教程"]]),{app:s.id==='global'?'访达':s.name});
 }
+const HUDK=["ok","back","up","down","left","right","volUp","volDown","menu","home","power"]; // OverlayCenter.swift:619-631
 function ovHud(){
- const flash=S.state==="loading";
- const R=[["OK","批准"],["音量−","拒绝"],["菜单","切换 agent"],["↑ ↓","上 / 下一选项"],["TV","退出 App 控制模式"]];
- return desk((flash?'':`<div class="hud"><div class="hh">⇄ App 控制模式 · Ghostty</div>${R.map(([k,t])=>`<div class="hr"><i class="kc">${k}</i>${t}</div>`).join("")}</div>`)
- +`<div class="badge">${flash?'Ghostty 布局':'App 控制 · Ghostty'}</div>`,{on:false});
+ const flash=S.state==="loading"; const sid=S.scene==="global"?"ghostty":S.scene; const nm=SCENES.find(x=>x.id===sid).name;
+ const rows=HUDK.map(k=>[K(k).g,resolve(k,2,sid)]).filter(([,r])=>r.src!=="none").map(([g,r])=>[g,r.v]); rows.push(["TV","退出控制模式"]);
+ const lh=["ok","back","up","down","left"].map(k=>{let t=resolve(k,2,sid).v;if(t.length>10)t=t.slice(0,10)+"…";return [K(k).g,t]}); // hints(forLayer:) 前 5 条 + TV 退出
+ return desk((flash?'':`<div class="hud"><div class="hh">§waves§ App 控制模式 · ${nm}</div>${rows.map(([k,t])=>`<div class="hr"><i class="kc">${k}</i>${t}</div>`).join("")}</div>`+hint(lh.concat([["TV","退出"]])))
+ +`<div class="badge">${flash?`${nm} 布局`:`App 控制 · ${nm}`}</div>`,{on:false,app:nm});
 }
-function menubar(){
- const st=S.state; const conn=st!=="disc";
- const line=!conn?"未连接 · 长按 主页+返回 配对":st==="paused"?"已连接 · 已暂停遥控":st==="layer"?"已连接 · App 控制模式 · Ghostty":st==="degraded"?"已连接 · 按键通道异常":"已连接 · 空闲";
- return desk(`<div class="pop" style="right:150px"><div class="ph2"><div class="bring" style="--p:${conn?82:0}%"><span>${conn?'82%':'—'}</span></div><div style="flex:1"><b>MI RC 2 Pro</b><div class="muted" style="font-size:11.5px">${line}</div></div><span class="toggle ${st==='paused'?'':'on'}" title="遥控开关"></span></div>
- ${st==='perm'||st==='degraded'?`<div class="banner ${st==='degraded'?'err':'warn'}" style="margin:0 0 8px">${st==='perm'?'§shield§ 缺少输入监控权限':'§stop§ 事件注入通道失效'}<span class="grow"></span><button class="btn sm pri" data-go="sheet-health">修复</button></div>`:''}
- <div class="sep"></div><div class="pr"><span class="appic" style="background:#2b2f77;width:22px;height:22px;font-size:11px">G</span><div class="ttl">当前场景 · Ghostty<small>覆盖 ${ovCount(SCENES[1])} 项 · 其余继承全局</small></div></div>
- <div class="pr"><span style="width:22px;text-align:center">§mic§</span><div class="ttl">语音<small>遥控器麦克风 · 链路正常</small></div></div>
- <div class="sep"></div><div class="pbtns"><button class="btn" data-go="mapping">打开设置窗口</button><button class="btn" data-go="sheet-health">一键体检与修复…</button></div>
- <div class="pbtns" style="margin-top:6px"><button class="btn ghost">退出 MiRemote</button></div></div>`,{on:true});
+function menubar(){ // StatusItemController.swift:193-283 StatusPanelView（左键，NSPopover，宽 300）
+ const st=S.state; const conn=st!=="disc"; const paused=st==="paused";
+ const line=!conn?"未连接 · 长按 主页+返回 配对":paused?"已连接 · 已暂停遥控":st==="layer"?"已连接 · App 控制 · Ghostty":"已连接 · 空闲"; // statusLine :265-280
+ const dot=st==="degraded"?"red":conn?"green":"grey"; const dh=st==="degraded"?"按键通道异常":conn?"运行正常":"未连接";
+ return desk(`<div class="mpop"><div class="mpa"></div>
+ <div class="msc"><span class="mic">§remote§</span><div class="grow"><b>MI RC 2 Pro</b><div class="msl">${line.split(" · ").map((x,i)=>`<span class="nu">${i?"· ":""}${x}</span>`).join("")}</div></div>${conn&&st!=="loading"?`<span class="bring2" style="--p:82%" title="电量 82%"><span>82</span></span>`:''}<span class="hdot ${dot}" title="${dh}"></span></div>
+ <div class="msep"></div>
+ <div class="mrow"><div class="grow"><div>暂停遥控</div><div class="muted" style="font-size:11px">按键与手势暂不生效，真实键盘不受影响</div></div><span class="toggle sm ${paused?'on':''}"></span></div>
+ <div class="msep"></div>
+ <div class="muted" style="font-size:11px;margin-bottom:6px">语音输入</div><span class="seg full"><span class="on">遥控器麦克风</span><span>Mac 麦克风</span><span>关闭</span></span>
+ <div class="msep"></div>
+ <div style="display:flex;gap:8px;align-items:center"><button class="btn sm" data-go="mapping">打开设置</button><button class="btn sm" data-go="sheet-health">一键体检</button><span class="grow"></span><button class="btn sm danger" title="退出 MiRemote（恢复真实键盘）">§power§</button></div></div>`,{on:true});
 }
-const OVERLAYS={"ov-window":ovWindow,"ov-system":ovSystem,"ov-wheel":ovWheel,"ov-tutorial":ovTutorial,"ov-hud":ovHud,menubar};
+function menubarMenu(){ // StatusItemController.swift:169-181 buildMenu（右键 / Option+左键，原生 NSMenu）
+ return desk(`<div class="nmenu" style="right:178px;top:26px;min-width:200px"><div class="nmi">打开设置窗口</div><div class="nmi hl">一键体检与修复…</div><div class="nms"></div><div class="nmi">退出 MiRemote<span class="grow"></span><span class="nke">⌘Q</span></div></div>`,{on:true});
+}
+const OVERLAYS={"ov-window":ovWindow,"ov-system":ovSystem,"ov-wheel":ovWheel,"ov-tutorial":ovTutorial,"ov-hud":ovHud,menubar,"menubar-menu":menubarMenu};
 function render(){
  const h=document.documentElement; h.dataset.theme=S.theme;
  h.classList.toggle("glass-on",S.glass==="on"); h.classList.toggle("glass-rt",S.glass==="rt");
  let html;
  if(PAGES[S.screen]) html=winHtml(S.screen,PAGES[S.screen]());
- else if(SHEETS[S.screen]){const [pg,f]=SHEETS[S.screen]; html=winHtml(pg,PAGES[pg](S.scene),f());}
+ else if(S.screen==="dialog-delete") html=winHtml("profiles",profilesPage("chrome"),ctxDelete());
+ else if(S.screen==="sheet-presets") html=winHtml("profiles",profilesPage(null,S.state==="layer"),sheetPresets());
+ else if(SHEETS[S.screen]){const [pg,f]=SHEETS[S.screen]; html=winHtml(pg,PAGES[pg](),f());}
  else if(/^onb-/.test(S.screen)) html=winHtml("mapping",PAGES.mapping(),onboarding(+S.screen.slice(4)));
  else html=OVERLAYS[S.screen]();
  document.getElementById("stage").innerHTML=ICX(html); bind(); syncBar(); setUrl();
@@ -606,14 +781,16 @@ function bind(){
  const a=document.getElementById("advToggle"); if(a)a.onclick=()=>{S.adv=S.adv==="1"?"0":"1";render()};
  const sb=document.getElementById("sideBtn"); if(sb)sb.onclick=()=>{S.side=S.side==="hidden"?"open":"hidden";render()};
 }
-function syncBar(){[["pScreen","screen"],["pScene","scene"],["pState","state"],["pLbl","lbl"],["pAdv","adv"],["pSide","side"],["pGlass","glass"],["pTheme","theme"],["pWidth","width"]].forEach(([id,k])=>{const e=document.getElementById(id);e.value=S[k];e.onchange=()=>{S[k]=e.value;render()}})}
+function syncBar(){[["pScreen","screen"],["pScene","scene"],["pState","state"],["pLbl","lbl"],["pAdv","adv"],["pGest","gest"],["pSide","side"],["pGlass","glass"],["pTheme","theme"],["pWidth","width"]].forEach(([id,k])=>{const e=document.getElementById(id);if(!e)return;e.value=S[k];e.onchange=()=>{S[k]=e.value;render()}})}
 function init(){
  document.getElementById("pScreen").innerHTML=SCREENS.map(([g,l])=>`<optgroup label="${g}">${l.map(([v,n])=>`<option value="${v}">${n}</option>`).join("")}</optgroup>`).join("");
  document.getElementById("pScene").innerHTML=SCENES.map(s=>`<option value="${s.id}">${s.name}</option>`).join("");
  document.addEventListener("keydown",e=>{if(e.ctrlKey&&e.metaKey&&(e.key==="s"||e.key==="S")){e.preventDefault();S.side=S.side==="hidden"?"open":"hidden";render()}}); // ⌃⌘S 显示/隐藏边栏
  render();
 }
+window.addEventListener("resize",()=>{clearTimeout(window.__rz);window.__rz=setTimeout(render,80)});
 init();
 </script>
 </body>
 </html>
+
