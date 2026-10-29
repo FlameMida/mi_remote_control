@@ -241,7 +241,11 @@ final class SettingsWindowAssembly {
     private let toolbarController: SettingsToolbarController
     private var cancellables: Set<AnyCancellable> = []
 
-    init(model: AppModel, nav: SettingsNav = SettingsNav(), permissions: PermissionStatus = PermissionStatus(),
+    convenience init(model: AppModel, size: CGSize = SettingsWindowLayout.defaultSize) {
+        self.init(model: model, nav: SettingsNav(), permissions: PermissionStatus(), size: size)
+    }
+
+    init(model: AppModel, nav: SettingsNav, permissions: PermissionStatus,
          size: CGSize = SettingsWindowLayout.defaultSize) {
         self.nav = nav
         let translucent = GlassSurface.appearance(
