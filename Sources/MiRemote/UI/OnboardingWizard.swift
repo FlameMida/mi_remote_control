@@ -52,7 +52,11 @@ struct OnboardingWizard: View {
     @EnvironmentObject var model: AppModel
     @Environment(\.dismiss) private var dismiss
 
-    @State private var step = 0
+    @State private var step: Int
+
+    init(initialStep: Int = 0) {
+        _step = State(initialValue: initialStep)
+    }
     @State private var ax: EnvCheckState = .unknown
     @State private var im: EnvCheckState = .unknown
     @State private var bt: EnvCheckState = .unknown

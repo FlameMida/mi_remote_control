@@ -42,6 +42,7 @@ struct VoicePage: View {
             VStack(alignment: .leading, spacing: Spacing.section) {
                 PageHeader(title: "语音",
                            subtitle: "选择音频来源，并为不同 App 自动发送各自的语音输入快捷键。")
+                PageStatusBanner(page: .voice)
 
                 if model.voiceMode == .remoteMic && !blackHoleInstalled {
                     Label("BlackHole 未安装，遥控器麦克风模式不可用", systemImage: "exclamationmark.triangle.fill")

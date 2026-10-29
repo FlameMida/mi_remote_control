@@ -1328,6 +1328,7 @@ enum SelfTest {
         expect(RemoteModel.selfCheck(), "ui-redesign: RemoteModel 型号判定")
         expect(SidebarHeaderLayout.selfCheck(), "ui-redesign: 侧栏头三行与电量")
         expect(SidebarToggle.selfCheck(), "ui-redesign: 侧栏收起状态映射")
+        expect(StatusIssue.selfCheck(), "ui-redesign: 问题优先级与横幅过滤")
         // ===== UI 重设计 end =====
 
         print(failures == 0 ? "SELF-TEST PASS" : "SELF-TEST FAIL (\(failures))")

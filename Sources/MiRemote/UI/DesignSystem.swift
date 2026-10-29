@@ -214,12 +214,16 @@ struct StatusBanner: View {
 
     let kind: Kind
     let title: String
+    /// 可选补充说明：与标题同行显示，标题加粗、说明常规字重（「标题 · 说明」）。
+    let detail: String?
     let actionTitle: String?
     let action: (() -> Void)?
 
-    init(kind: Kind, title: String, actionTitle: String? = nil, action: (() -> Void)? = nil) {
+    init(kind: Kind, title: String, detail: String? = nil,
+         actionTitle: String? = nil, action: (() -> Void)? = nil) {
         self.kind = kind
         self.title = title
+        self.detail = detail
         self.actionTitle = actionTitle
         self.action = action
     }
@@ -240,12 +244,19 @@ struct StatusBanner: View {
         }
     }
 
+    private var message: Text {
+        if let detail, !detail.isEmpty {
+            return Text("\(Text(title).bold()) · \(detail)")
+        }
+        return Text(title)
+    }
+
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Image(systemName: symbol)
                 .foregroundStyle(tint)
                 .accessibilityHidden(true)
-            Text(title)
+            message
                 .font(.callout)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)

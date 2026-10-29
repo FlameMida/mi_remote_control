@@ -66,6 +66,7 @@ struct MappingPage: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.section) {
                 header
+                PageStatusBanner(page: .mapping)
                 if model.activeLayer != 0 {
                     Label("已开启：\(modeDisplayName(model.activeLayer))（同一按键现在使用第二功能）", systemImage: "switch.2")
                         .font(.caption)

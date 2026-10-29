@@ -31,6 +31,27 @@ struct RootView: View {
     @State private var showOnboarding = false
     @State private var showHealthCheck = false
     @State private var showReauth = false
+    @State private var onboardingStep = 0
+    @StateObject private var permissions = PermissionStatus()
+
+    private var issue: StatusIssue? {
+        StatusIssue.current(degraded: model.degraded,
+                            missingPermission: permissions.missing,
+                            connected: model.connected,
+                            suspended: model.remoteSuspended)
+    }
+
+    private func fix(_ issue: StatusIssue) {
+        switch issue {
+        case .degraded, .permission:
+            showHealthCheck = true
+        case .disconnected:
+            onboardingStep = 2
+            showOnboarding = true
+        case .paused:
+            break
+        }
+    }
 
     var body: some View {
         NavigationSplitView(columnVisibility: Binding(
@@ -41,6 +62,10 @@ struct RootView: View {
                 SidebarHeader()
                 .padding(.horizontal, Spacing.rowH - 2)
                 .padding(.vertical, Spacing.rowH)
+
+                SidebarIssueRow()
+                    .padding(.horizontal, Spacing.rowH)
+                    .padding(.bottom, Spacing.rowV)
 
                 List(SidebarItem.allCases, selection: $selection) { item in
                     Label(item.title, systemImage: item.icon).tag(item)
@@ -54,7 +79,7 @@ struct RootView: View {
             case .mapping: MappingPage()
             case .profile: ProfilePage(selection: $selection)
             case .voice:   VoicePage()
-            case .general: GeneralPage(onShowOnboarding: { showOnboarding = true },
+            case .general: GeneralPage(onShowOnboarding: { onboardingStep = 0; showOnboarding = true },
                                        onShowHealthCheck: { showHealthCheck = true })
             }
         }
@@ -71,7 +96,7 @@ struct RootView: View {
         }
         .navigationTitle(model.sidebarHidden ? selection.title : "MiRemote 设置")
         .frame(minWidth: 760, minHeight: 560)
-        .sheet(isPresented: $showOnboarding) { OnboardingWizard() }
+        .sheet(isPresented: $showOnboarding) { OnboardingWizard(initialStep: onboardingStep) }
         .sheet(isPresented: $showHealthCheck) { HealthCheckSheet() }
         .sheet(isPresented: $showReauth) { ReauthSheet() }
         .onAppear {
@@ -89,6 +114,7 @@ struct RootView: View {
                 bluetooth: CBCentralManager.authorization,
                 accessibility: EnvironmentCheck.accessibility().state,
                 inputMonitoring: EnvironmentCheck.inputMonitoring().state) {
+                onboardingStep = 0
                 showOnboarding = true
             }
             PermissionMemory.snapshot()
@@ -96,6 +122,8 @@ struct RootView: View {
         .onReceive(NotificationCenter.default.publisher(for: .miremoteShowHealthCheck)) { _ in
             showHealthCheck = true
         }
+        .environment(\.statusIssue, issue)
+        .environment(\.statusFix, { fix($0) })
     }
 }
 

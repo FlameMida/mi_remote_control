@@ -12,6 +12,7 @@ struct GeneralPage: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.section) {
                 PageHeader(title: "通用", subtitle: "调整触发阈值、开机行为与提示反馈。")
+                PageStatusBanner(page: .general)
 
                 SettingsGroup(title: "启动与显示") {
                     SettingsRow(icon: "power.circle", title: "登录时启动", subtitle: nil) {
