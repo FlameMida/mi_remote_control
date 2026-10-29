@@ -136,7 +136,7 @@ MiRemote 的界面由三类窗体组成：主设置窗（4 个侧栏页和若干
 5. **默认场景按目前行为，不做变更**（详见下节）。
 6. **追加要求：侧栏可收起**。标题栏有切换按钮，快捷键 ⌃⌘S，收起形态遵循 macOS `NavigationSplitView` 惯例。
 7. **追加要求：支持 macOS 26 液态玻璃**。范围是侧栏、工具栏、浮层、菜单栏面板，并为旧系统和「降低透明度」提供回退。
-- 已有项目约束：视觉延续 `mockups/v3-macos.html` 的 macOS 系统设置风格。遥控器一律使用用户指定的画法（`REMOTE_SVG` / `RemoteDiagram`：`.rsvgwrap` / `.rshell` / `.remote-key`），所有出现遥控器的窗体都不另画，包括映射页、识别按键、配对引导第 3 步、映射速查浮层。
+- 已有项目约束：视觉延续 `mockups/v3-macos.html` 的 macOS 系统设置风格。遥控器一律使用用户指定的画法（`REMOTE_SVG` / `RemoteDiagram`：`.rsvgwrap` / `.rshell` / `.remote-key`），所有出现遥控器的窗体都不另画，包括映射页、识别按键、配对引导第 3 步、映射速查浮层。唯一例外：检测到 MI RC 2 Pro（VID 0x2717 / PID 0x32B8）已连接时，这些窗体统一改用 RC 2 Pro 专用画法（`RC2ProDiagram`），其余型号、未识别或未连接时仍用上述通用画法。
 
 ## 默认场景行为（现状，保持不变）
 
@@ -645,7 +645,7 @@ MiRemote 的界面由三类窗体组成：主设置窗（4 个侧栏页和若干
 | `BaseTapNote.text(key, trigger, profile) -> String?` | 纯函数，返回基础状态短按的说明文字；规则与 `MappingEngine.fireTap` 同源 | 检查器、映射详情表头 |
 | `SlotResolver.resolve(key, trigger, layer, profile) -> (action, source)` | 来源：appOverride / inherited / unset | 检查器、标注、速查浮层 |
 | `SourceTag` / `SceneChip` / `StatusBanner` / `HintBar` | 共享展示组件 | 映射页、场景页、语音页、菜单栏、浮层 |
-| `RemoteDiagram(mode: .editor/.compact/.pairing/.learn)` | 统一沿用 `REMOTE_SVG` 画法，只按尺寸缩放 | 映射页、识别按键、引导第 3 步、映射速查 |
+| `RemoteDiagram(model:)` | 按型号选择画法：MI RC 2 Pro 已连接时用 `RC2ProDiagram`，否则用通用 `REMOTE_SVG` 画法；尺寸由调用方 frame 决定 | 映射页、识别按键、引导第 3 步、映射速查 |
 | 侧栏可见性 | `NavigationSplitView(columnVisibility:)` + 工具栏 `sidebar.left` 按钮 + 主菜单「显示 › 隐藏边栏 ⌃⌘S」 | RootView、GUIAppDelegate 菜单 |
 
 ### 错误与边界

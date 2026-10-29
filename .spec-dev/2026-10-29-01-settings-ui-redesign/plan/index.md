@@ -13,7 +13,7 @@
 **关键取舍**：
 - 侧栏与工具栏玻璃交给系统（`NavigationSplitView` + 桥接工具栏在 macOS 26 SDK 下自动为玻璃，14–15 为系统侧栏材质），`GlassKind` 只保留需要手工处理的 `sheet / panel / overlay`（spec「macOS 26 液态玻璃与回退」、组件表）。
 - 玻璃 API 用 `#if compiler(>=6.2)` 包住 `if #available(macOS 26, *)`，使 macOS 14 SDK / 旧 Xcode 仍能编译（spec「风险」第 2 条）。
-- RC 2 Pro 画法放新文件 `UI/RC2ProDiagram.swift`，`RemoteDiagram` 增加 `model:` 参数；不引入 `mode` 枚举，尺寸仍由调用方 `frame` 决定（spec 组件表写「统一沿用 REMOTE_SVG」，与 RC 2 Pro Requirement 冲突，以 Requirement 为准，见「待确认决定」D2）。
+- RC 2 Pro 画法放新文件 `UI/RC2ProDiagram.swift`，`RemoteDiagram` 增加 `model:` 参数；不引入 `mode` 枚举，尺寸仍由调用方 `frame` 决定（spec 组件表与约束已于执行前修订为按型号选择画法，见 D2）。
 - 型号判定只用生效的 `RemoteIdentity.vendorID/productID` + 连接状态，不改 `HIDEngine`（spec「MI RC 2 Pro 专用遥控器示意图」判定规则；D3）。
 - 接口细化：spec 组件表的签名是示意，本计划按代码现状细化且不改语义——`BaseTapNote.text` 只对短按调用并以 `ownTap` 区分 App 场景是否明确设置；`SlotResolver.resolve` 以 `MappingSlot`（tap / hold / double / gesture / layer）合并 trigger 与 layer；`GlassKind` 不含 sidebar / toolbar / chip（chip 用 `.overlay`）。各票「接口」节写明对应关系。
 - `SelfTest.swift` 的新增断言集中放在文件末尾 `print(failures == 0 ? "SELF-TEST PASS" ...)` 之前的一个 `// ===== UI 重设计（settings-ui-redesign）=====` 块，降低与 fix/code-audit 的文本冲突。
@@ -181,7 +181,7 @@ JS
 ## 待确认决定（执行到对应任务前须有用户裁决）
 
 - D1（T14）：spec「通用页」写的分组名（启动 / 显示与反馈 / 按键手感 / 关于与诊断 / 危险操作）与现有代码和定稿原型（启动与显示 / 高级 / 关于）不一致，且原型无「恢复」。本计划默认：保留现有三组名称与顺序（Requirement 标题为「结构不变」），在「高级 › 触发阈值」两条滑杆行加「默认 350 ms / 250 ms」与「恢复」，把「退出 MiRemote」「彻底卸载指引」移到「关于」组末尾单独一段并用危险色。用户若选择按 spec 分组名重排，先改 spec 与 T14 再执行。
-- D2（T08）：组件表中「`RemoteDiagram(mode: ...)` 统一沿用 `REMOTE_SVG` 画法」与 RC 2 Pro Requirement 冲突；本计划以 Requirement 为准实施（`RemoteDiagram(model:)` 按型号选择通用或 RC 2 Pro 画法，尺寸由调用方决定）。实施票不写 spec；组件表该行的文字修订请用户在交接时确认后，在执行前单独提交（或保留现状并在 D 的「实际交付」中注明以 Requirement 为准）。
+- D2（T08，已决定）：用户确认修订 spec。第 139 行约束增加 RC 2 Pro 例外，第 648 行组件表改为 `RemoteDiagram(model:)` 按型号选择画法，已在执行前单独提交，spec 与 RC 2 Pro Requirement 现已一致。
 - D3（T04）：型号只按生效 VID/PID + 连接状态判断；是否在 `HIDEngine.handleDeviceMatched` 读取实际设备 VID/PID 并上报，本计划不做（避免改硬件层且与 fix/code-audit 无关的面扩大），如需要另起需求。
 - D4（全局）：液态玻璃需要 Xcode 26 SDK 构建；仓库当前构建机若为 macOS 14 SDK，产物只有回退外观。是否要求发布构建使用 Xcode 26，由用户决定；不影响各票红绿。
 - D5（T12）：spec 要求详情表头「用一句纯文字说明基础状态的原生功能」，原型未给出该句。本计划采用 `BaseTapNote.detailHeader = "基础状态下方向键为光标键、返回键为删除（Delete）、OK 为回车（Return）；App 场景明确设置的 OK 短按会替代回车。"`，验收时请用户确认文案。
