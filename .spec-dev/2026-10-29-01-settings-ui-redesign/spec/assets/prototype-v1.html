@@ -194,7 +194,7 @@ html[data-theme=dark] .rshell{fill:#525252;stroke:#404040}
   <label>主题 <select id="pTheme"><option value="light">浅色</option><option value="dark">深色</option></select></label>
   <label>窗口 <select id="pWidth"><option value="std">标准 1040×700</option><option value="narrow">最小 760×560</option></select></label>
   <button id="pPop">切换场景弹层</button>
-  <span class="sim">⚠ 所有数据均为模拟；不连接设备、不读写 config.json</span>
+  <span class="sim">注：所有数据均为模拟；不连接设备、不读写 config.json</span>
 </div>
 <div class="stage"><div class="win" id="win">
   <div class="titlebar"><span class="tl r"></span><span class="tl y"></span><span class="tl g"></span><span class="t">MiRemote</span></div>
@@ -206,13 +206,13 @@ html[data-theme=dark] .rshell{fill:#525252;stroke:#404040}
 <script>
 /* ======================= 模拟数据（SIMULATED） ======================= */
 const KEYS = [
- {id:"power",  n:"电源键", g:"⏻", x:217,y:46, r:17, side:"l", ly:46},
- {id:"voice",  n:"语音键", g:"🎙", x:283,y:46, r:17, side:"r", ly:46},
- {id:"up",     n:"上",     g:"▲", x:250,y:116, r:6, side:"l", ly:112},
+ {id:"power",  n:"电源键", g:"电源", x:217,y:46, r:17, side:"l", ly:46},
+ {id:"voice",  n:"语音键", g:"语音", x:283,y:46, r:17, side:"r", ly:46},
+ {id:"up",     n:"上",     g:"↑", x:250,y:116, r:6, side:"l", ly:112},
  {id:"ok",     n:"OK 确认键", g:"OK", x:250,y:168, r:33, side:"r", ly:112},
- {id:"left",   n:"左",     g:"◀", x:198,y:168, r:6, side:"l", ly:168},
- {id:"right",  n:"右",     g:"▶", x:302,y:168, r:6, side:"r", ly:168},
- {id:"down",   n:"下",     g:"▼", x:250,y:220, r:6, side:"r", ly:222},
+ {id:"left",   n:"左",     g:"←", x:198,y:168, r:6, side:"l", ly:168},
+ {id:"right",  n:"右",     g:"→", x:302,y:168, r:6, side:"r", ly:168},
+ {id:"down",   n:"下",     g:"↓", x:250,y:220, r:6, side:"r", ly:222},
  {id:"back",   n:"返回键", g:"←", x:217,y:271, r:19, side:"l", ly:271},
  {id:"home",   n:"主页键", g:"⌂", x:217,y:317, r:19, side:"l", ly:317},
  {id:"menu",   n:"菜单键", g:"≡", x:217,y:363, r:19, side:"l", ly:363},
@@ -233,14 +233,14 @@ const GLOBAL_BASE = {
 const GLOBAL_L1 = {menu:"下一个 App",left:"左一个桌面",right:"右一个桌面",back:"上一个 App",home:"显示桌面",tv:"App Exposé"};
 const GLOBAL_L3 = {up:"上一个窗口",down:"下一个窗口",left:"上一个 App",right:"下一个 App",ok:"聚焦输入框",back:"左一个桌面",home:"右一个桌面",menu:"进 / 出 App 导航模式",power:"显示桌面",tv:"App Exposé"};
 const GLOBAL_APP = {home:"⌃C 中断"};
-const AI_APP = {ok:"⏎ 批准",back:"Esc 拒绝",up:"↑ 选项上移",down:"↓ 选项下移",menu:"⇧Tab 切自动模式",home:"⌃C 中断生成",power:"聚焦输入",volUp:"下一个 Agent",volDown:"上一个 Agent"};
+const AI_APP = {ok:"Return 批准",back:"Esc 拒绝",up:"↑ 选项上移",down:"↓ 选项下移",menu:"⇧Tab 切自动模式",home:"⌃C 中断生成",power:"聚焦输入",volUp:"下一个 Agent",volDown:"上一个 Agent"};
 const SCENES = [
- {id:"global", name:"全局默认", ic:"🌐", c:"#5b6b82", base:{}, app:{}, live:false},
+ {id:"global", name:"全局默认", ic:"全", c:"#5b6b82", base:{}, app:{}, live:false},
  {id:"ghostty",name:"Ghostty", ic:"G", c:"#2b2f8f", base:{home:{tap:"⌃C 中断"},power:{tap:"聚焦输入"}}, app:AI_APP, live:true},
- {id:"claude", name:"Claude",  ic:"✳", c:"#d97757", base:{ok:{tap:"⌘⏎ 发送"},menu:{tap:"新对话 ⌘N"}}, app:AI_APP},
+ {id:"claude", name:"Claude",  ic:"C", c:"#d97757", base:{ok:{tap:"⌘Return 发送"},menu:{tap:"新对话 ⌘N"}}, app:AI_APP},
  {id:"chrome", name:"Google Chrome", ic:"C", c:"#1a73e8", base:{volUp:{tap:"下一个标签"},volDown:{tap:"上一个标签"},menu:{hold:"标签搜索 ⇧⌘A"}}, app:{left:"上一个标签",right:"下一个标签",ok:"打开链接",back:"后退 ⌘["}},
- {id:"wechat", name:"微信", ic:"微", c:"#07c160", base:{ok:{tap:"⏎ 发送"},home:{tap:"切换会话 ⌘↓"}}, app:{up:"上一个会话",down:"下一个会话"}},
- {id:"iina",   name:"IINA", ic:"▶", c:"#3a3a8c", base:{ok:{tap:"播放 / 暂停"},volUp:{tap:"快进 5s"},volDown:{tap:"快退 5s"}}, app:{left:"上一集",right:"下一集"}},
+ {id:"wechat", name:"微信", ic:"微", c:"#07c160", base:{ok:{tap:"Return 发送"},home:{tap:"切换会话 ⌘↓"}}, app:{up:"上一个会话",down:"下一个会话"}},
+ {id:"iina",   name:"IINA", ic:"I", c:"#3a3a8c", base:{ok:{tap:"播放 / 暂停"},volUp:{tap:"快进 5s"},volDown:{tap:"快退 5s"}}, app:{left:"上一集",right:"下一集"}},
  {id:"feishu", name:"飞书", ic:"飞", c:"#3370ff", base:{}, app:{}},
 ];
 const MODES={base:"基础",app:"App 控制模式",l1:"快捷控制模式",l3:"App 导航模式"};
@@ -250,15 +250,15 @@ const P=new URLSearchParams(location.search);
 const S={screen:P.get("screen")||"mapping",scene:P.get("scene")||"ghostty",mode:P.get("mode")||"base",
  key:P.get("key")||"ok",state:P.get("state")||"ok",theme:P.get("theme")||"light",width:P.get("width")||"std",pop:P.get("pop")==="1"};
 if(P.get("shot")) document.documentElement.classList.add("shot");
-/* ======================= 解析：继承 / 覆盖 / 固定（对齐 MappingEngine.fireTap 基础层保护） ======================= */
+/* ======================= 解析：继承 / 覆盖 / 原生功能说明（对齐 MappingEngine.fireTap 基础层保护） ======================= */
 function scene(){return SCENES.find(s=>s.id===S.scene)}
 function emptyScene(){return S.state==="empty" && S.scene!=="global"}
 function resolve(keyId, slot){ // returns {v, src:'ovr'|'inh'|'lock'|'none'|'mode'}
   const sc=scene(), isG=sc.id==="global", em=emptyScene();
   if(S.mode==="base"){
     if(slot==="tap"){
-      if(ARROWS.includes(keyId)||keyId==="back") return {v:GLOBAL_BASE[keyId].tap,src:"lock",why:"基础层固定为内容操作（光标 / 删除），任何场景都不能改写"};
-      if(keyId==="ok" && isG) return {v:"Return 确认",src:"lock",why:"全局的 OK 短按固定为 Return；只有 App 场景可显式覆盖"};
+      if(ARROWS.includes(keyId)||keyId==="back") return {v:GLOBAL_BASE[keyId].tap,src:"lock",why:"基础状态下此短按保持原生功能（光标键 / 删除）；这里的设置只在第二功能模式下生效"};
+      if(keyId==="ok" && isG) return {v:"Return 确认",src:"lock",why:"基础状态下 OK 短按是回车（Return）；只有 App 场景里明确设置的短按会替代回车"};
     }
     const o=!isG&&!em&&sc.base[keyId]&&sc.base[keyId][slot];
     if(o) return {v:o,src:"ovr"};
@@ -270,7 +270,7 @@ function resolve(keyId, slot){ // returns {v, src:'ovr'|'inh'|'lock'|'none'|'mod
   const map = S.mode==="app" ? (isG?GLOBAL_APP:(em?{}:sc.app)) : (S.mode==="l1"?GLOBAL_L1:GLOBAL_L3);
   if(map[keyId]) return {v:map[keyId],src:(S.mode==="app"&&!isG)?"ovr":(isG||S.mode!=="app")?"ovr":"inh"};
   if(S.mode==="app"&&!isG&&GLOBAL_APP[keyId]) return {v:GLOBAL_APP[keyId],src:"inh"};
-  if(keyId==="tv"&&S.mode==="app") return {v:"退出 App 控制模式",src:"lock",why:"TV 单击在模式内固定为退出，保证随时可退"};
+  if(keyId==="tv"&&S.mode==="app") return {v:"退出 App 控制模式",src:"lock",why:"TV 单击在模式内始终为退出，保证随时可退"};
   return {v:"回落到基础层",src:"none"};
 }
 function overrideCount(sc){ if(sc.id==="global")return null; if(S.state==="empty")return 0;
@@ -294,8 +294,8 @@ function side(){
     <div class="row"><span>前台</span><span><b style="color:var(--text)">Ghostty</b> · ${conn?'基础':'—'}</span></div></div>`;
 }
 function banner(){
-  if(S.state==="disc") return `<div class="banner warn">⚠<span class="sp"><b>遥控器未连接。</b>同时长按「主页 + 返回」3 秒进入配对；映射仍可编辑，连接后立即生效。</span><button class="btn">查看配对步骤</button></div>`;
-  if(S.state==="perm") return `<div class="banner bad">⛔<span class="sp"><b>缺少「辅助功能」权限，</b>按键动作当前不会发出。授权后无需重启。</span><button class="btn pri">去授权</button></div>`;
+  if(S.state==="disc") return `<div class="banner warn"><span class="sp"><b>遥控器未连接。</b>同时长按「主页 + 返回」3 秒进入配对；映射仍可编辑，连接后立即生效。</span><button class="btn">查看配对步骤</button></div>`;
+  if(S.state==="perm") return `<div class="banner bad"><span class="sp"><b>缺少「辅助功能」权限，</b>按键动作当前不会发出。授权后无需重启。</span><button class="btn pri">去授权</button></div>`;
   return "";
 }
 function toolbar(){
@@ -304,9 +304,9 @@ function toolbar(){
   const viewSeg = `<div class="seg" id="viewSeg"><span data-view="mapping" class="${S.screen==='mapping'?'on':''}">遥控器</span><span data-view="table" class="${S.screen==='table'?'on':''}">表格</span></div>`;
   return `<div class="toolbar"><h1>按键映射</h1>
    <div class="scene" id="sceneBtn"><span class="appic" style="background:${sc.c}">${sc.ic}</span>${sc.name}<span class="chev">▾</span></div>
-   ${modeSeg}<span class="grow"></span><span class="saved">✓ 已保存</span>${viewSeg}<button class="btn">◉ 识别按键</button></div>
+   ${modeSeg}<span class="grow"></span><span class="saved">已保存</span>${viewSeg}<button class="btn">识别按键</button></div>
    <div class="sub">${sc.id==='global'?'<b>全局默认</b>：所有 App 的起点；App 场景未覆盖的键继承这里。'
-     :`<b>${sc.name}</b> 场景 · 覆盖 ${oc} 个键，其余继承全局${sc.live?' · <span style="color:var(--ok)">● 当前前台 App</span>':''}`}
+     :`<b>${sc.name}</b> 场景 · 覆盖 ${oc} 个键，其余继承全局${sc.live?' · <span style="color:var(--ok)">当前前台 App</span>':''}`}
      ${S.mode!=='base'?` · <span class="tag mode">${MODES[S.mode]}</span> 仅单击可在模式内改写；未设置的键回落到基础层`:''}</div>`;
 }
 function remoteSvg(){
@@ -320,15 +320,15 @@ function remote(){
     const r=resolve(k.id,"tap");
     const lx = k.side==="l"?158:342;
     lines.push(`<path d="M${lx} ${k.ly} L${k.side==='l'?lx+8:lx-8} ${k.ly} L${k.x+(k.side==='l'?-k.r:k.r)} ${k.y}" stroke="${k.id===S.key?'var(--accent)':'var(--text3)'}" stroke-width="${k.id===S.key?1.4:.8}" fill="none" ${r.src==='inh'||r.src==='none'?'stroke-dasharray="3 3"':''}/>`);
-    labels.push(`<div class="lbl ${k.side} ${r.src} ${k.id===S.key?'sel':''}" data-key="${k.id}" style="top:${k.ly}px"><div class="kn">${k.n}${r.src==='lock'?' 🔒':''}</div><div class="ac">${r.v}</div></div>`);
+    labels.push(`<div class="lbl ${k.side} ${r.src} ${k.id===S.key?'sel':''}" data-key="${k.id}" style="top:${k.ly}px"><div class="kn">${k.n}</div><div class="ac">${r.v}</div></div>`);
   });
   return `<div class="rstage"><svg class="lines" width="100%" height="100%">${lines.join("")}</svg>
    <div class="rbody"><div class="rsvgwrap">${remoteSvg()}</div>${labels.join("")}</div>
-   <div class="legend"><span><i style="background:var(--accent)"></i>本场景设置</span><span><i style="background:var(--text3)"></i>继承全局（虚线）</span><span>🔒 固定</span></div></div>`;
+   <div class="legend"><span><i style="background:var(--accent)"></i>本场景设置</span><span><i style="background:var(--text3)"></i>继承全局（虚线）</span></div></div>`;
 }
 function slotRow(name, hint, slot){
   const r=resolve(S.key,slot); const sc=scene();
-  const tag = {ovr:sc.id==='global'?'':'<span class="tag ovr">本场景</span>',inh:'<span class="tag inh">继承全局</span>',lock:'<span class="tag lock">🔒 固定</span>',none:''}[r.src]||'';
+  const tag = {ovr:sc.id==='global'?'':'<span class="tag ovr">本场景</span>',inh:'<span class="tag inh">继承全局</span>',lock:'<span class="tag lock">基础状态保持原生功能</span>',none:''}[r.src]||'';
   const right = r.src==='lock'?'':(r.src==='ovr'&&sc.id!=='global'?'<span class="reset">恢复继承</span>':'<span class="chev2">⌄</span>');
   return `<div class="slot"><div class="nm">${name}<small>${hint}</small></div>
    <div class="act">${tag}<span class="v ${r.src==='inh'||r.src==='lock'?'dim':''} ${r.src==='none'?'none':''}" title="${r.why||''}">${r.v}</span>${right}</div></div>
@@ -356,17 +356,17 @@ function inspector(){
 }
 function table(){
   const sc=scene(); const cls={ovr:"o",inh:"i",lock:"i",none:"x"};
-  const cell=(k,sl)=>{const r=resolve(k,sl);return `<td class="${cls[r.src]}">${r.src==='lock'?'🔒 ':''}${r.v}</td>`};
+  const cell=(k,sl)=>{const r=resolve(k,sl);return `<td class="${cls[r.src]}">${r.v}</td>`};
   const rows=KEYS.map(k=>{const save=S.mode;
      S.mode="base";const t=cell(k.id,"tap"),h=cell(k.id,"hold"),d=cell(k.id,"double");S.mode="app";const a=cell(k.id,"tap");S.mode=save;
      return `<tr data-key="${k.id}" class="${k.id===S.key?'sel':''}"><td><b>${k.n}</b></td>${t}${h}${d}${a}</tr>`}).join("");
   return `<div class="insp" style="flex:1"><table class="tbl"><tr><th>遥控键</th><th>单击</th><th>长按</th><th>双击</th><th>App 控制模式</th></tr>${rows}</table>
-    <div class="note"><span style="color:var(--accent);font-weight:600">蓝色</span> = ${sc.id==='global'?'全局设置':'本场景覆盖'}；灰色 = 继承全局；🔒 = 固定。点击行跳转到遥控器视图编辑。此表同时作为「映射速查」浮层的数据源。</div></div>`;
+    <div class="note"><span style="color:var(--accent);font-weight:600">蓝色</span> = ${sc.id==='global'?'全局设置':'本场景覆盖'}；灰色 = 继承全局。点击行跳转到遥控器视图编辑。此表同时作为「映射速查」浮层的数据源。</div></div>`;
 }
 function mapping(){
   let inner;
   if(emptyScene() && S.mode==="app"){
-    inner=`<div class="rstage" style="display:grid;place-items:center"><div class="empty"><div class="e">🎛️</div><b style="color:var(--text)">${scene().name} 还没有 App 控制模式按键</b>
+    inner=`<div class="rstage" style="display:grid;place-items:center"><div class="empty"><div class="e"></div><b style="color:var(--text)">${scene().name} 还没有 App 控制模式按键</b>
       未设置的键会回落到基础层。可以先套用预设，或切到「表格」逐键设置。<div style="display:flex;gap:8px;margin-top:6px"><button class="btn pri">套用「${scene().name}」预设</button><button class="btn">从其他场景复制…</button></div></div></div>${inspector()}`;
   } else inner = S.screen==="table"?table():remote()+inspector();
   return toolbar()+`<div class="content">${inner}</div>`+(S.pop?popover():"");
@@ -374,9 +374,9 @@ function mapping(){
 function popover(){
   const items=SCENES.filter(s=>s.id!=="global").map(s=>`<div class="it ${S.scene===s.id?'on':''}" data-scene="${s.id}"><span class="appic" style="background:${s.c}">${s.ic}</span>${s.name}${s.live?' <span class="live">前台</span>':''}<small>${overrideCount(s)?'覆盖 '+overrideCount(s)+' 键':'无覆盖'}</small></div>`).join("");
   return `<div class="pop" style="left:110px;top:52px"><input placeholder="搜索 App…">
-   <div class="it ${S.scene==='global'?'on':''}" data-scene="global"><span class="appic" style="background:#5b6b82">🌐</span>全局默认<small>所有 App 的起点</small></div>
+   <div class="it ${S.scene==='global'?'on':''}" data-scene="global"><span class="appic" style="background:#5b6b82">全</span>全局默认<small>所有 App 的起点</small></div>
    <div class="sec">App 场景（${SCENES.length-1}）</div>${items}<hr>
-   <div class="it">＋ 从运行中的 App 添加…</div><div class="it">⬇ 套用预设…</div><div class="it">⇅ 导入 / 导出 JSON…</div></div>`;
+   <div class="it">＋ 从运行中的 App 添加…</div><div class="it">↓ 套用预设…</div><div class="it">⇅ 导入 / 导出 JSON…</div></div>`;
 }
 function overview(){
   const disc=S.state==="disc", perm=S.state==="perm";
@@ -384,9 +384,9 @@ function overview(){
   <div class="sub">遥控器、权限和语音链路的实时状态。有问题时在这里直接修复。</div>
   <div class="ov">
    <div class="card"><h3>遥控器<span class="grow"></span><span class="pill"><span class="dot ${disc?'off':''}"></span>${disc?'未连接':'已连接'}</span></h3>
-     ${disc?`<div class="empty" style="padding:10px"><div class="e">📡</div>同时长按「主页 + 返回」3 秒配对<button class="btn">查看配对步骤</button></div>`
+     ${disc?`<div class="empty" style="padding:10px"><div class="e"></div>同时长按「主页 + 返回」3 秒配对<button class="btn">查看配对步骤</button></div>`
      :`<div class="big">82%</div><div class="note" style="padding:0">电量 · MI RC 2 Pro · BLE HID</div>
-       <div style="margin-top:10px" class="gt"><span>最近按键</span></div><div class="keys"><span class="kc hot">OK 单击 → ⏎ 批准</span><span class="kc">TV 单击 → 进入 App 控制模式</span><span class="kc">↓ 光标</span><span class="kc">音量 +</span></div>`}</div>
+       <div style="margin-top:10px" class="gt"><span>最近按键</span></div><div class="keys"><span class="kc hot">OK 单击 → 批准</span><span class="kc">TV 单击 → 进入 App 控制模式</span><span class="kc">↓ 光标</span><span class="kc">音量 +</span></div>`}</div>
    <div class="card"><h3>当前状态<span class="grow"></span></h3>
      <div class="chk"><span>前台 App</span><span class="s"><span class="appic" style="background:#2b2f8f;display:inline-grid;width:16px;height:16px;font-size:9px;vertical-align:-3px">G</span> Ghostty</span></div>
      <div class="chk"><span>生效场景</span><span class="s">Ghostty（覆盖 9 键）</span></div>
@@ -394,12 +394,12 @@ function overview(){
      <div class="chk"><span>暂停遥控</span><span class="s"><span class="sw" style="display:inline-block;vertical-align:-4px"></span></span></div>
      <div style="margin-top:8px"><button class="btn link">编辑 Ghostty 的映射 →</button></div></div>
    <div class="card"><h3>权限<span class="grow"></span>${perm?'<span style="color:var(--bad);font-size:11px">1 项缺失</span>':'<span style="color:var(--ok);font-size:11px">全部就绪</span>'}</h3>
-     <div class="chk"><span class="ico ok">✓</span>蓝牙<span class="s" style="color:var(--text2)">已授权</span></div>
-     <div class="chk"><span class="ico ok">✓</span>输入监控<span class="s" style="color:var(--text2)">已授权</span></div>
-     <div class="chk"><span class="ico ${perm?'bad':'ok'}">${perm?'!':'✓'}</span>辅助功能<span class="s">${perm?'<button class="btn pri">去授权</button>':'<span style="color:var(--text2)">已授权</span>'}</span></div></div>
+     <div class="chk"><span class="ico ok"></span>蓝牙<span class="s" style="color:var(--text2)">已授权</span></div>
+     <div class="chk"><span class="ico ok"></span>输入监控<span class="s" style="color:var(--text2)">已授权</span></div>
+     <div class="chk"><span class="ico ${perm?'bad':'ok'}">${perm?'!':''}</span>辅助功能<span class="s">${perm?'<button class="btn pri">去授权</button>':'<span style="color:var(--text2)">已授权</span>'}</span></div></div>
    <div class="card"><h3>语音链路<span class="grow"></span><span style="color:var(--warn);font-size:11px">1 项未通过</span></h3>
-     <div class="chk"><span class="ico ok">✓</span>BlackHole 2ch 已安装</div>
-     <div class="chk"><span class="ico ${disc?'bad':'ok'}">${disc?'!':'✓'}</span>遥控器音频通道<span class="s" style="color:var(--text2)">${disc?'等待连接':'就绪'}</span></div>
+     <div class="chk"><span class="ico ok"></span>BlackHole 2ch 已安装</div>
+     <div class="chk"><span class="ico ${disc?'bad':'ok'}">${disc?'!':''}</span>遥控器音频通道<span class="s" style="color:var(--text2)">${disc?'等待连接':'就绪'}</span></div>
      <div class="chk"><span class="ico pend"></span>按语音键有音频帧<span class="s" style="color:var(--text2)">按住语音键说话以检测</span></div>
      <div class="chk"><span class="ico bad">!</span>当前输入法是豆包<span class="s"><button class="btn">怎么切换</button></span></div></div>
   </div><span class="sim-badge">模拟数据</span>`;
