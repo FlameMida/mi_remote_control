@@ -44,21 +44,54 @@ struct MappingDetailView: View {
         .volUp, .volDown, .voice, .power,
     ]
 
+    @Environment(\.dismiss) private var dismiss
+
+    private static let footnote = "长按主页键可随时打开这张表；浮层打开期间遥控键不会触发原动作。"
+
+    private var titleText: String {
+        appName ?? (profile == "global" ? "全局默认" : profileDisplayName(profile))
+    }
+
+    private var subtitleText: String {
+        profile == "global" ? "所有 App 的基础映射" : "当前实际生效映射 · 未覆盖项继承全局"
+    }
+
     var body: some View {
+        if isQuickLook {
+            quickLookBody
+        } else {
+            SheetScaffold(title: titleText, subtitle: subtitleText, onClose: { dismiss() }) {
+                // 骨架无图标位：应用图标放在正文顶部（T12 允许的小偏差）
+                appIcon
+                table
+            } footer: {
+                Text(Self.footnote)
+                    .font(.caption2).foregroundStyle(.secondary)
+                Spacer()
+                if let onEdit {
+                    Button("编辑映射", action: onEdit)
+                        .buttonStyle(.borderedProminent)
+                        .keyboardShortcut(.defaultAction)
+                        .noWrap()
+                }
+            }
+        }
+    }
+
+    /// 映射速查浮层：保留原布局，背景换成统一浮层外观。
+    private var quickLookBody: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 12) {
                 appIcon
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(appName ?? (profile == "global" ? "全局默认" : profileDisplayName(profile)))
-                        .font(isQuickLook ? .title.bold() : .title2.bold())
-                    Text(profile == "global" ? "所有 App 的基础映射" : "当前实际生效映射 · 未覆盖项继承全局")
+                    Text(titleText)
+                        .font(.title.bold())
+                    Text(subtitleText)
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
-                if isQuickLook {
-                    Text("再按主页 / 返回键或 Esc 关闭")
-                        .font(.caption).foregroundStyle(.secondary)
-                }
+                Text("再按主页 / 返回键或 Esc 关闭")
+                    .font(.caption).foregroundStyle(.secondary)
                 if let onEdit {
                     Button("编辑映射", action: onEdit).buttonStyle(.borderedProminent)
                 }
@@ -67,6 +100,24 @@ struct MappingDetailView: View {
                         .buttonStyle(.borderless).help("关闭")
                 }
             }
+
+            table
+
+            Text(Self.footnote)
+                .font(.caption2).foregroundStyle(.secondary)
+        }
+        .padding(Spacing.sheetPadding)
+        .frame(minWidth: 760, minHeight: 500)
+        .glassSurface(.overlay, in: RoundedRectangle(cornerRadius: Radius.overlay))
+    }
+
+    /// 表头说明 + 表头行 + 13 行映射表（sheet 与速查共用）。
+    private var table: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(BaseTapNote.detailHeader)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
 
             HStack(spacing: 0) {
                 tableHeader("遥控键", width: 116)
@@ -89,32 +140,12 @@ struct MappingDetailView: View {
             .clipShape(RoundedRectangle(cornerRadius: Radius.card))
             .overlay(RoundedRectangle(cornerRadius: Radius.card)
                 .stroke(Color(nsColor: .separatorColor), lineWidth: 1))
-
-            if isQuickLook {
-                Text("长按主页键可随时打开这张表；浮层打开期间遥控键不会触发原动作。")
-                    .font(.caption2).foregroundStyle(.secondary)
-            }
-        }
-        .padding(Spacing.sheetPadding)
-        .frame(minWidth: 760, minHeight: isQuickLook ? 500 : 480)
-        // 速查浮层与其余三浮层统一 HUD 体系：材质大卡；设置页 sheet 保持不透明底
-        .background {
-            if isQuickLook {
-                RoundedRectangle(cornerRadius: Radius.overlay).fill(.regularMaterial)
-            } else {
-                Color(nsColor: .windowBackgroundColor)
-            }
-        }
-        .overlay {
-            if isQuickLook {
-                RoundedRectangle(cornerRadius: Radius.overlay)
-                    .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
-            }
         }
     }
 
     private func tableHeader(_ title: String, width: CGFloat?) -> some View {
         Text(title).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            .noWrap()
             .frame(width: width, alignment: .leading)
     }
 
@@ -136,14 +167,20 @@ struct MappingDetailView: View {
                 }
             }
             .frame(width: 116, alignment: .leading)
-            actionText(binding?.tap, width: 170, overridden: overlay?.tap != nil)
-            actionText(binding?.hold, width: 170, overridden: overlay?.hold != nil)
-            actionText(binding?.double, width: 150, overridden: overlay?.double != nil)
+            actionText(binding?.tap, width: 170,
+                       source: SlotResolver.resolve(config: config, profile: profile, key: key, slot: .tap).source)
+            actionText(binding?.hold, width: 170,
+                       source: SlotResolver.resolve(config: config, profile: profile, key: key, slot: .hold).source)
+            actionText(binding?.double, width: 150,
+                       source: SlotResolver.resolve(config: config, profile: profile, key: key, slot: .double).source)
             VStack(alignment: .leading, spacing: 2) {
                 Text(moreSummary(binding))
                     .font(.caption).foregroundStyle(moreSummary(binding) == "—" ? .tertiary : .secondary)
                     .lineLimit(3)
-                sourceLabel(overridden: overlay?.gesture != nil || overlay?.layers != nil)
+                if moreSummary(binding) != "—" {
+                    SourceTag(source: (overlay?.gesture != nil || overlay?.layers != nil) ? .appOverride : .inherited,
+                              profile: profile)
+                }
             }
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -151,23 +188,15 @@ struct MappingDetailView: View {
         .padding(.vertical, 8)
     }
 
-    private func actionText(_ action: Action?, width: CGFloat, overridden: Bool) -> some View {
+    private func actionText(_ action: Action?, width: CGFloat, source: SlotSource) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(ActionSummary.describe(action))
                 .font(.caption)
                 .foregroundStyle(action == nil || action == Action.none ? .tertiary : .primary)
                 .lineLimit(2)
-            sourceLabel(overridden: overridden)
+            SourceTag(source: source, profile: profile)
         }
             .frame(width: width, alignment: .leading)
-    }
-
-    @ViewBuilder private func sourceLabel(overridden: Bool) -> some View {
-        if profile != "global" {
-            Text(overridden ? "App 覆盖" : "继承全局")
-                .font(.caption2.weight(overridden ? .medium : .regular))
-                .foregroundStyle(overridden ? Color.accentColor : .secondary)
-        }
     }
 
     private func moreSummary(_ binding: KeyBinding?) -> String {
