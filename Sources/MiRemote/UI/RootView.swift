@@ -35,34 +35,8 @@ struct RootView: View {
     var body: some View {
         NavigationSplitView {
             VStack(alignment: .leading, spacing: 0) {
-                // 侧栏头部
-                HStack(spacing: Spacing.intra) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: Radius.badge)
-                            .fill(LinearGradient(colors: [Color(white: 0.28), Color(white: 0.12)],
-                                                 startPoint: .top, endPoint: .bottom))
-                        Image(systemName: "av.remote")
-                            .font(.title3.weight(.medium))
-                            .foregroundStyle(.white)
-                    }
-                    .frame(width: 36, height: 36)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("遥控器控制台").font(.headline)
-                        HStack(spacing: 4) {
-                            Text("MI RC 2 Pro").font(.caption2).foregroundStyle(.secondary)
-                            if let pct = model.batteryPercent {
-                                Image(systemName: batterySymbol(pct)).font(.caption2).foregroundStyle(.secondary)
-                                Text("\(pct)%").font(.caption2).foregroundStyle(.secondary)
-                            } else if model.connected {
-                                ProgressView().controlSize(.mini)
-                                Text("正在读取电量…").font(.caption2).foregroundStyle(.secondary)
-                            } else {
-                                Image(systemName: "battery.0percent").font(.caption2).foregroundStyle(.tertiary)
-                                Text("电量待连接").font(.caption2).foregroundStyle(.tertiary)
-                            }
-                        }
-                    }
-                }
+                // 侧栏头部（固定三行，见 SidebarHeader）
+                SidebarHeader()
                 .padding(.horizontal, Spacing.rowH - 2)
                 .padding(.vertical, Spacing.rowH)
 
@@ -106,16 +80,6 @@ struct RootView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .miremoteShowHealthCheck)) { _ in
             showHealthCheck = true
-        }
-    }
-
-    private func batterySymbol(_ pct: Int) -> String {
-        switch pct {
-        case 0..<15:  return "battery.0percent"
-        case 15..<40: return "battery.25percent"
-        case 40..<65: return "battery.50percent"
-        case 65..<90: return "battery.75percent"
-        default:      return "battery.100percent"
         }
     }
 }
