@@ -116,7 +116,8 @@ struct MappingPage: View {
         VStack(spacing: Spacing.intra) {
             RemoteDiagram(selected: $model.selectedKey,
                           flashing: model.lastPressedKey,
-                          connected: model.connected)
+                          connected: model.connected,
+                          model: model.remoteModel)
                 .frame(width: 190)
             Text("深色圆键为遥控器实体按键位置示意，选中的按键以强调色描边高亮")
                 .font(.footnote)
@@ -258,6 +259,9 @@ struct KeyLearnSheet: View {
                 .keyboardShortcut(.cancelAction)
             }
             if let key = learned {
+                RemoteDiagram(selected: .constant(key), flashing: key, connected: model.connected,
+                              interactive: false, model: model.remoteModel)
+                    .frame(width: 76)
                 VStack(spacing: 6) {
                     Text(KeyDisplay.badge(key))
                         .font(.title.bold())

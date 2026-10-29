@@ -265,7 +265,8 @@ struct OnboardingWizard: View {
                                   flashing: nil,
                                   connected: false,
                                   emphasized: pairingPulse ? [.home, .back] : [],
-                                  interactive: false)
+                                  interactive: false,
+                                  model: model.remoteModel)
                         .frame(width: 84)
                     VStack(alignment: .leading, spacing: 6) {
                         Text("同时长按左侧高亮的两个键——「主页 ⌂」和「返回 ←」——约 3 秒")

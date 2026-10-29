@@ -123,6 +123,8 @@ struct RemoteDiagram: View {
     var emphasized: Set<RemoteKey> = []
     /// false = 纯展示（不可点选、不画选中高亮），供向导等只读场景
     var interactive: Bool = true
+    /// 示意图型号：.rc2Pro 用专用画法，.generic 用下方通用画法（同一 180x480 画框、同命中契约）
+    var model: RemoteModel = .generic
 
     private typealias G = RemoteDiagramGeometry
     private let bodyFill = Color(nsColor: NSColor(name: nil) { $0.name == .darkAqua
@@ -146,7 +148,8 @@ struct RemoteDiagram: View {
                                      y: (geo.size.height - G.canvas.height * scale) / 2)
                 let logical = CGPoint(x: (location.x - origin.x) / scale,
                                       y: (location.y - origin.y) / scale)
-                if let key = G.key(at: logical) {
+                let hit = model == .rc2Pro ? RC2ProGeometry.key(at: logical) : G.key(at: logical)
+                if let key = hit {
                     withAnimation(Motion.select) { selected = key }
                 }
             }
@@ -158,8 +161,39 @@ struct RemoteDiagram: View {
         (interactive && selected == key) || flashing == key || emphasized.contains(key)
     }
 
+    /// 引线锚点（逻辑坐标）：按型号取专用坐标。
+    static func anchor(of key: RemoteKey, model: RemoteModel) -> CGPoint {
+        if model == .rc2Pro { return RC2ProGeometry.anchor(of: key) }
+        typealias G = RemoteDiagramGeometry
+        if let c = G.circles[key] { return c.center }
+        if let d = G.sectorDot[key] { return d }
+        switch key {
+        case .ok:      return G.ringCenter
+        case .volUp:   return CGPoint(x: G.volRect.midX, y: (G.volRect.minY + G.volSplitY) / 2)
+        case .volDown: return CGPoint(x: G.volRect.midX, y: (G.volSplitY + G.volRect.maxY) / 2)
+        default:       return G.ringCenter
+        }
+    }
+
+    private func rc2ProState(_ key: RemoteKey) -> RC2ProKeyState {
+        RC2ProKeyState(selected: interactive && selected == key,
+                       pulse: emphasized.contains(key),
+                       hovered: false,
+                       pressed: flashing == key)
+    }
+
     @ViewBuilder
     private func canvasView(scale: CGFloat) -> some View {
+        if model == .rc2Pro {
+            RC2ProCanvas(scale: scale, connected: connected, interactive: interactive,
+                         state: { rc2ProState($0) })
+        } else {
+            genericCanvasView(scale: scale)
+        }
+    }
+
+    @ViewBuilder
+    private func genericCanvasView(scale: CGFloat) -> some View {
         ZStack(alignment: .topLeading) {
             Canvas { ctx, _ in
                 ctx.scaleBy(x: scale, y: scale)

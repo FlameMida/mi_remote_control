@@ -1329,6 +1329,7 @@ enum SelfTest {
         expect(SidebarHeaderLayout.selfCheck(), "ui-redesign: 侧栏头三行与电量")
         expect(SidebarToggle.selfCheck(), "ui-redesign: 侧栏收起状态映射")
         expect(StatusIssue.selfCheck(), "ui-redesign: 问题优先级与横幅过滤")
+        expect(RC2ProGeometry.selfCheck(), "ui-redesign: RC 2 Pro 示意图几何与 13 键命中")
         // ===== UI 重设计 end =====
 
         print(failures == 0 ? "SELF-TEST PASS" : "SELF-TEST FAIL (\(failures))")
