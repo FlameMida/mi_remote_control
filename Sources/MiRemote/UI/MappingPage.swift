@@ -317,7 +317,7 @@ private struct SlotRow: View {
             // 与 SettingsRow 同布局，标题列下方加来源标签
             HStack(spacing: Spacing.intra) {
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(title).font(.body)
+                    Text(title).font(.body).noWrap()
                     if let subtitle {
                         Text(subtitle).font(.caption).foregroundStyle(.secondary)
                     }
@@ -326,8 +326,7 @@ private struct SlotRow: View {
                             .padding(.top, 2)
                     }
                 }
-                // 窄检查器里标题列不让位给动作选择器（否则「短按」被挤没）
-                .fixedSize(horizontal: true, vertical: false)
+                // 窄检查器里标题不让位给动作选择器（否则「短按」被挤没）；副标题可换行
                 .layoutPriority(1)
                 Spacer(minLength: 4)
                 HStack(spacing: 8) {
