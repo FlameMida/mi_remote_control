@@ -40,6 +40,15 @@ jobs:
           # runner 默认开启「降低透明度」，系统级材质会画成不透明；尝试关闭（失败不影响）
           defaults write com.apple.universalaccess reduceTransparency -bool false || true
           defaults read com.apple.universalaccess reduceTransparency || true
+          # runner 虚拟屏默认 1024x768，放不下原型的 1120x700 标准窗；尽力调大（各虚拟化方案择一，失败不影响）
+          if [ -x "/Library/Application Support/VMware Tools/vmware-resolutionSet" ]; then
+            sudo "/Library/Application Support/VMware Tools/vmware-resolutionSet" 1600 1000 || true
+          elif [ -x "/Library/Application Support/Veertu/Anka/addons/change_res" ]; then
+            "/Library/Application Support/Veertu/Anka/addons/change_res" 1600x1000x32@30 || true
+          fi
+          sleep 3
+          system_profiler SPDisplaysDataType 2>/dev/null | grep -i -E "resolution|virtual|display type" || true
+          ls "/Library/Application Support/" | grep -i -E "vmware|veertu|anka|parallels|tart" || true
           .build/miremote --snapshot snapshots 2>&1 | tail -80
         shell: bash
       - name: 上传界面快照

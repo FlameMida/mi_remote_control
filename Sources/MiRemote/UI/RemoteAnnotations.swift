@@ -39,8 +39,33 @@ enum AnnotationLayer: Hashable, CaseIterable {
 enum RemoteAnnotationLayout {
     static let stage = CGSize(width: 500, height: 490)
     static let diagramOrigin = CGPoint(x: 160, y: 0)
-    static let inspectorMinWidth: CGFloat = 280
+    static let inspectorMinWidth: CGFloat = 260
     static let narrowScale: CGFloat = 0.86
+    /// 原型 .rpanel 宽态定宽 520（padding 10 + 舞台 500 + 10），窄态 240；.mwrap 两栏间距 18
+    static let panelWidth: CGFloat = 520
+    static let panelPadding: CGFloat = 10
+    static let narrowPanelWidth: CGFloat = 240
+    static let columnGap: CGFloat = 18
+    /// 面板放不下 520 时整体等比缩小标注舞台，缩到此比例以下才退回窄态（原型 1120 标准窗为 1.0）
+    static let minAnnotatedScale: CGFloat = 0.8
+
+    struct PanelLayout: Equatable {
+        let annotated: Bool
+        let panelWidth: CGFloat
+        let scale: CGFloat
+    }
+
+    /// 内容宽（页面左右内边距之内）→ 遥控器面板宽度、是否显示标注、舞台缩放。
+    /// 检查器取剩余宽（原型 .insp flex:1），至少 inspectorMinWidth。
+    static func panelLayout(contentWidth: CGFloat) -> PanelLayout {
+        let avail = contentWidth - columnGap - inspectorMinWidth
+        let width = min(panelWidth, avail)
+        let scale = (width - panelPadding * 2) / stage.width
+        if scale >= minAnnotatedScale {
+            return PanelLayout(annotated: true, panelWidth: width, scale: min(scale, 1))
+        }
+        return PanelLayout(annotated: false, panelWidth: narrowPanelWidth, scale: narrowScale)
+    }
 
     enum Side { case left, right }
 
@@ -130,6 +155,11 @@ enum RemoteAnnotationLayout {
     static func selfCheck() -> Bool {
         var ok = true
         if showsAnnotations(panelWidth: 499) != false || showsAnnotations(panelWidth: 500) != true { ok = false }
+        // 原型标准窗 1120：内容 1120-216-48=856 → 面板 520、缩放 1；1024 宽窗仍显示标注；窄窗 780 退回 240
+        if panelLayout(contentWidth: 856) != PanelLayout(annotated: true, panelWidth: 520, scale: 1) { ok = false }
+        let mid = panelLayout(contentWidth: 736)
+        if !mid.annotated || abs(mid.panelWidth - 458) > 0.5 { ok = false }
+        if panelLayout(contentWidth: 520).annotated { ok = false }
         for model in [RemoteModel.generic, .rc2Pro] {
             let expectedY = model == .rc2Pro ? rc2ProLabelY : genericLabelY
             let ls = labels(model: model)
@@ -182,13 +212,16 @@ struct RemoteAnnotationStage: View {
     @EnvironmentObject var model: AppModel
     @Binding var layer: AnnotationLayer
     let showsAnnotations: Bool
+    /// 宽态舞台缩放（面板不足 520 时等比缩小，原型标准窗为 1）
+    let scale: CGFloat
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private typealias L = RemoteAnnotationLayout
 
-    init(layer: Binding<AnnotationLayer>, showsAnnotations: Bool) {
+    init(layer: Binding<AnnotationLayer>, showsAnnotations: Bool, scale: CGFloat = 1) {
         self._layer = layer
         self.showsAnnotations = showsAnnotations
+        self.scale = scale
     }
 
     private var diagram: RemoteDiagram {
@@ -250,6 +283,8 @@ struct RemoteAnnotationStage: View {
                 }
             }
             .frame(width: L.stage.width, height: L.stage.height, alignment: .topLeading)
+            .scaleEffect(scale, anchor: .topLeading)
+            .frame(width: L.stage.width * scale, height: L.stage.height * scale, alignment: .topLeading)
         } else {
             diagram
                 .frame(width: 180 * L.narrowScale, height: 480 * L.narrowScale)

@@ -69,10 +69,10 @@ struct MappingPage: View {
                                 reduceTransparency: reduceTransparency) == .liquidGlass
     }
 
-    private var showsAnnotations: Bool {
-        // 面板可用宽 = 内容宽 - 检查器最小宽 - 两栏间距（宽态面板不加左右内边距，标注自带 8pt 留白）
-        RemoteAnnotationLayout.showsAnnotations(
-            panelWidth: contentWidth - RemoteAnnotationLayout.inspectorMinWidth - 24)
+    /// 原型 .mwrap：宽态遥控器面板 520（标注两侧 + 引线）为主栏，检查器取剩余宽；
+    /// 面板不够 520 时等比缩小标注舞台，再窄才退回 240 窄态（只留缩小的示意图）
+    private var panelLayout: RemoteAnnotationLayout.PanelLayout {
+        RemoteAnnotationLayout.panelLayout(contentWidth: contentWidth)
     }
 
     init(onOpenProfiles: @escaping () -> Void) {
@@ -92,10 +92,10 @@ struct MappingPage: View {
                         .font(.caption)
                         .foregroundStyle(Color.accentColor)
                 }
-                HStack(alignment: .top, spacing: 24) {
+                HStack(alignment: .top, spacing: RemoteAnnotationLayout.columnGap) {
                     remotePanel
                     keyEditor
-                        .frame(minWidth: showsAnnotations ? RemoteAnnotationLayout.inspectorMinWidth : nil)
+                        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                 }
             }
             .padding(.horizontal, Spacing.page)
@@ -140,39 +140,44 @@ struct MappingPage: View {
     }
 
     private var remotePanel: some View {
-        VStack(spacing: Spacing.intra) {
-            // 窄态分段换到标签下一行（原型 .rtop flex-wrap）
-            let layout = showsAnnotations
+        let pl = panelLayout
+        let annotated = pl.annotated
+        return VStack(alignment: annotated ? .leading : .center, spacing: Spacing.intra) {
+            // 原型 .rtop：「示意图显示」在分段左侧同行；窄态 240 面板放不下时换到下一行（flex-wrap）
+            let layout = annotated
                 ? AnyLayout(HStackLayout(spacing: 8)) : AnyLayout(VStackLayout(spacing: 4))
             layout {
                 Text("示意图显示")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .noWrap()
-                // 原型 .rtop .seg：小号文字分段（白色选中块），窄态也能放进 240 宽面板
                 PanelSegmented(selection: $annotationLayer,
                                glass: glassOn,
                                options: AnnotationLayer.allCases.map { ($0, $0.title) })
                     .fixedSize()
                     .accessibilityLabel("示意图显示")
             }
-            RemoteAnnotationStage(layer: $annotationLayer, showsAnnotations: showsAnnotations)
+            .frame(maxWidth: .infinity, alignment: annotated ? .leading : .center)
+            RemoteAnnotationStage(layer: $annotationLayer, showsAnnotations: annotated, scale: pl.scale)
+                .frame(maxWidth: .infinity)
             Text("深色圆键为遥控器实体按键位置示意，选中的按键以强调色描边高亮")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: showsAnnotations ? RemoteAnnotationLayout.stage.width : 190)
+                .frame(maxWidth: annotated ? .infinity : 190)
             HStack(spacing: 12) {
                 legendItem(model.currentProfile == "global" ? "已设置" : "App 覆盖", color: .accentColor)
-                if showsAnnotations {
+                if annotated {
                     legendItem("继承全局（虚线）", color: Color(nsColor: .tertiaryLabelColor))
                 }
             }
+            .padding(.horizontal, 4)
         }
-        .padding(.vertical, 16)
-        .padding(.horizontal, showsAnnotations ? 0 : 8)
-        // 原型窄态 .rpanel 定宽 240
-        .frame(width: showsAnnotations ? nil : 240)
+        // 原型 .rpanel padding 10 10 8；宽 520（不足时缩），窄态 240
+        .padding(.horizontal, RemoteAnnotationLayout.panelPadding)
+        .padding(.top, RemoteAnnotationLayout.panelPadding)
+        .padding(.bottom, 8)
+        .frame(width: pl.panelWidth)
         .cardBackground(in: RoundedRectangle(cornerRadius: Radius.hud))
         .overlay(RoundedRectangle(cornerRadius: Radius.hud)
             .stroke(Color(nsColor: .separatorColor).opacity(0.6), lineWidth: 1))

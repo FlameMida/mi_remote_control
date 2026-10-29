@@ -90,6 +90,10 @@ final class SnapshotRunner: NSObject, NSApplicationDelegate {
             w.setContentSize(size)
         }
         w.center()
+        // 比 runner 屏幕宽的窗（原型标准 1120）贴左摆放，整窗用 screencapture -l 按窗口截
+        if let sf = NSScreen.main?.visibleFrame, w.frame.width > sf.width {
+            w.setFrameOrigin(NSPoint(x: sf.minX, y: w.frame.minY))
+        }
         w.makeKeyAndOrderFront(nil)
     }
 
@@ -122,7 +126,17 @@ final class SnapshotRunner: NSObject, NSApplicationDelegate {
         win("mapping-sidebar-hidden-light") { [self] in
             setTheme(dark: false); openSettings(sidebarHidden: true, page: .mapping)
         }
+        // 与原型截图同尺寸：01 / 22 为 1120×700 标准窗，30 / 48 为 780×580 窄窗；另截 1024 宽窗
+        for (w, h, tag) in [(1120, 700, "1120"), (1024, 700, "1024")] {
+            for dark in [false, true] where !dark || tag == "1120" {
+                win("mapping-\(tag)-\(dark ? "dark" : "light")", delay: 1.4) { [self] in
+                    setTheme(dark: dark); setConnected()
+                    openSettings(size: CGSize(width: w, height: h), page: .mapping)
+                }
+            }
+        }
         win("mapping-narrow-light") { [self] in
+            setTheme(dark: false)
             openSettings(size: CGSize(width: 780, height: 580), page: .mapping)
         }
         win("mapping-disconnected-light") { [self] in
@@ -242,6 +256,11 @@ final class SnapshotRunner: NSObject, NSApplicationDelegate {
 
     private func capture(rect: CGRect, name: String) {
         guard let screen = NSScreen.screens.first?.frame else { return }
+        // 设置窗超出屏幕（runner 屏 1024×768 放不下 1120 标准窗）时按窗口 ID 截整窗
+        if let win = assembly?.window, win.isVisible, !screen.contains(win.frame),
+           rect == windowRect, captureWindow(win, name: name) {
+            return
+        }
         let r = rect.intersection(screen)
         // screencapture -R 用左上原点的全局坐标
         let x = Int(r.minX), y = Int(screen.maxY - r.maxY), w = Int(r.width), h = Int(r.height)
@@ -265,6 +284,24 @@ final class SnapshotRunner: NSObject, NSApplicationDelegate {
         } else {
             note("\(name): 截图失败")
         }
+    }
+
+    private func captureWindow(_ win: NSWindow, name: String) -> Bool {
+        let path = outDir.appendingPathComponent("\(name).png").path
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
+        p.arguments = ["-x", "-t", "png", "-l\(win.windowNumber)", path]
+        do {
+            try p.run()
+            p.waitUntilExit()
+        } catch {
+            note("\(name): screencapture -l 启动失败 \(error)")
+            return false
+        }
+        let size = (try? FileManager.default.attributesOfItem(atPath: path)[.size] as? Int) ?? 0
+        guard p.terminationStatus == 0, size > 2000 else { return false }
+        note("\(name): screencapture -l 整窗 \(Int(win.frame.width))x\(Int(win.frame.height))")
+        return true
     }
 
     private func cacheDisplay(window: NSWindow, path: String) -> Bool {
