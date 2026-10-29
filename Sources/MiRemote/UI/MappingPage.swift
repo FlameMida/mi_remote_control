@@ -322,7 +322,9 @@ private struct SlotRow: View {
                             .padding(.top, 2)
                     }
                 }
-                // 窄检查器里标题不让位给动作选择器（否则「短按」被挤没）；副标题可换行
+                // 窄检查器里标题不让位给动作选择器（否则「短按」被挤没）；副标题可换行。
+                // 原型 .slot .nm 有固定列宽，「松开时立即触发」一行放得下，不被挤成一字一行
+                .frame(minWidth: 96, alignment: .leading)
                 .layoutPriority(1)
                 Spacer(minLength: 4)
                 HStack(spacing: 8) {
