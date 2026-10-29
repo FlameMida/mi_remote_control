@@ -23,7 +23,7 @@ struct PermissionCheckRow: View {
             Spacer()
             switch state {
             case .granted:
-                Label("已授权", systemImage: "checkmark.circle.fill")
+                Label("已授权", systemImage: "checkmark")
                     .font(.caption).foregroundStyle(.green)
             case .denied:
                 Label(waitingForRestart ? "等待重启" : "未授权",
@@ -41,8 +41,27 @@ struct PermissionCheckRow: View {
                 }
             }
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
     }
+}
+
+/// 权限行分组卡片（原型 .group：圆角卡片底 + 细描边，行间分隔线对齐文字列）。
+struct PermissionGroup<Content: View>: View {
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) { content }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .cardBackground(in: RoundedRectangle(cornerRadius: Radius.card))
+            .overlay(RoundedRectangle(cornerRadius: Radius.card)
+                .stroke(Color(nsColor: .separatorColor), lineWidth: 0.5))
+    }
+}
+
+/// 分组内行分隔线：从文字列起（图标 22 + 间距 10 + 行内边距 12）。
+struct PermissionDivider: View {
+    var body: some View { Divider().padding(.leading, 44) }
 }
 
 // MARK: - 首启三步向导（权限 → BlackHole → 配对）
@@ -166,12 +185,14 @@ struct OnboardingWizard: View {
             Text("第 1 步 · 授权").font(.title3.bold())
             Text("MiRemote 需要三项系统权限才能接管遥控器按键。输入监控和辅助功能授权后，请点“退出并重新打开”。")
                 .font(.caption).foregroundStyle(.secondary)
+            PermissionGroup {
             PermissionCheckRow(icon: "antenna.radiowaves.left.and.right", title: "蓝牙",
                                explain: "连接遥控器、接收语音音频",
                                state: bt,
                                actionTitle: bt == .denied ? "去系统设置" : "去授权") {
                 requestBluetoothPermission()
             }
+            PermissionDivider()
             PermissionCheckRow(icon: "keyboard", title: "输入监控",
                                explain: "读取遥控器按键事件",
                                state: im,
@@ -180,6 +201,7 @@ struct OnboardingWizard: View {
                 _ = EnvironmentCheck.requestInputMonitoring()
                 if let url = EnvironmentCheck.inputMonitoring().guideURL { NSWorkspace.shared.open(url) }
             }
+            PermissionDivider()
             PermissionCheckRow(icon: "accessibility", title: "辅助功能",
                                explain: "把按键翻译成快捷键/系统动作",
                                state: ax,
@@ -187,6 +209,7 @@ struct OnboardingWizard: View {
                 axRequestOpened = true
                 _ = EnvironmentCheck.requestAccessibility()
                 if let url = EnvironmentCheck.accessibility().guideURL { NSWorkspace.shared.open(url) }
+            }
             }
             Text("提示：正式签名版正常更新会保留授权；测试版或签名身份变化时可能需要重新授权。")
                 .font(.footnote).foregroundStyle(.tertiary)
@@ -199,11 +222,13 @@ struct OnboardingWizard: View {
             Text("第 2 步 · BlackHole 虚拟声卡").font(.title3.bold())
             Text("语音输入（遥控器麦克风模式）需要它把音频接进豆包输入法。不用语音可跳过。")
                 .font(.caption).foregroundStyle(.secondary)
+            PermissionGroup {
             PermissionCheckRow(icon: "waveform", title: "BlackHole 2ch",
                                explain: "/Library/Audio/Plug-Ins/HAL/",
                                state: blackhole,
                                actionTitle: "下载安装包") {
                 if let url = EnvironmentCheck.blackHole().guideURL { NSWorkspace.shared.open(url) }
+            }
             }
             if blackhole != .granted {
                 Text("① 点「下载安装包」到官方页面下载 .pkg 并双击安装（安装要输开机密码——用于注册虚拟声卡，安全）。\n② 装好后系统有时不会立刻识别，点下面的按钮重启音频服务（声音会中断约 1 秒，属正常）。\n③ 检测到驱动后本行自动亮绿灯并进入下一步。")
@@ -411,17 +436,20 @@ struct ReauthSheet: View {
                       subtitle: "这是 macOS 的安全机制：测试版每次更新都要重新点一下授权，30 秒搞定。你的所有按键设置都还在（配置文件不受升级影响）。",
                       onClose: nil) {
 
+            PermissionGroup {
             PermissionCheckRow(icon: "keyboard", title: "输入监控",
                                explain: "读取遥控器按键事件",
                                state: im) {
                 _ = EnvironmentCheck.requestInputMonitoring()
                 if let url = EnvironmentCheck.inputMonitoring().guideURL { NSWorkspace.shared.open(url) }
             }
+            PermissionDivider()
             PermissionCheckRow(icon: "accessibility", title: "辅助功能",
                                explain: "把按键翻译成快捷键/系统动作",
                                state: ax) {
                 _ = EnvironmentCheck.requestAccessibility()
                 if let url = EnvironmentCheck.accessibility().guideURL { NSWorkspace.shared.open(url) }
+            }
             }
 
             Spacer(minLength: 0)

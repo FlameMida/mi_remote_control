@@ -70,6 +70,12 @@ enum StatusIssue: Equatable {
         }
     }
 
+    /// 侧栏问题行底色：故障为红，其余为警示橙（原型 .issue / .issue.err）。
+    var isError: Bool {
+        if case .degraded = self { return true }
+        return false
+    }
+
     var rowTint: Color {
         switch self {
         case .degraded:   return .red
@@ -212,14 +218,19 @@ struct SidebarIssueRow: View {
                         .foregroundStyle(issue.rowTint)
                         .accessibilityHidden(true)
                     Text(issue.rowText)
-                        .font(.callout)
+                        .font(.system(size: 11.5))
                         .noWrap()
                     Spacer(minLength: 4)
                     Text(issue.rowAction)
-                        .font(.callout)
+                        .font(.system(size: 11.5, weight: .semibold))
                         .foregroundStyle(Color.accentColor)
                         .noWrap()
                 }
+                .padding(.vertical, 7)
+                .padding(.horizontal, 8)
+                // 原型 .issue：故障 err-soft，其余 warn-soft 底，圆角 8
+                .background((issue.isError ? Color.red : Color.orange).opacity(0.12),
+                            in: RoundedRectangle(cornerRadius: 8))
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)

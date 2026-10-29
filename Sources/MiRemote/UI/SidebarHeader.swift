@@ -103,7 +103,7 @@ struct SidebarHeader: View {
         HStack(spacing: Spacing.intra) {
             ZStack {
                 RoundedRectangle(cornerRadius: Radius.badge)
-                    .fill(LinearGradient(colors: [Color(white: 0.28), Color(white: 0.12)],
+                    .fill(LinearGradient(colors: [Color(white: 0.16), Color(white: 0.04)],
                                          startPoint: .top, endPoint: .bottom))
                 Image(systemName: "av.remote")
                     .font(.title3.weight(.medium))
