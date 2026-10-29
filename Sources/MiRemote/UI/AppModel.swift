@@ -463,6 +463,11 @@ final class AppModel: ObservableObject {
         services?.keyMapper?.lastExternalApplication?.localizedName
     }
 
+    /// 场景配置页「前台」标签用的前台 App bundle id（引擎未跑时为 nil）。
+    var frontAppBundleID: String? {
+        services?.keyMapper?.lastExternalApplication?.bundleIdentifier
+    }
+
     /// 暂停/恢复遥控（引擎侧幂等）；读回真实状态防止 UI 与引擎漂移。
     func setRemoteSuspended(_ on: Bool) {
         services?.setRemoteSuspended(on)

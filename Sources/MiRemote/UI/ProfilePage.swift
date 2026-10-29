@@ -23,23 +23,29 @@ struct ProfilePage: View {
                 PageStatusBanner(page: .profile)
 
                 SettingsGroup(title: "全局") {
-                    Button {
-                        detailProfile = ProfileDetailSelection(id: "global")
-                    } label: {
-                        SettingsRow(icon: "globe", title: "全局默认（Global）",
-                                    subtitle: "适用于所有未单独配置的 App") {
-                            Image(systemName: "chevron.right").foregroundStyle(.secondary).font(.caption)
-                        }
+                    sceneRow(id: "global", title: "全局默认（Global）",
+                             subtitle: "适用于所有未单独配置的 App") {
+                        Image(systemName: "globe")
+                            .foregroundStyle(Color.accentColor)
+                            .frame(width: 24, height: 24)
                     }
-                    .buttonStyle(.plain)
+                    .onTapGesture { detailProfile = ProfileDetailSelection(id: "global") }
                 }
 
                 SettingsGroup(title: "按 App 覆盖") {
                     if overlayProfiles.isEmpty {
-                        Text("暂无 App 专用按键方案。点下方按钮添加，或从预设库一键套用。")
-                            .font(.caption).foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(14)
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("还没有按 App 的覆盖").font(.callout.weight(.semibold))
+                            Text("未单独配置的 App 都使用全局默认。")
+                                .font(.caption).foregroundStyle(.secondary)
+                            HStack(spacing: 8) {
+                                Button("从运行中的 App 添加") { showAddApp = true }.noWrap()
+                                Button("浏览预设库") { showPresets = true }.noWrap()
+                            }
+                            .padding(.top, 4)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(14)
                     }
                     ForEach(Array(overlayProfiles.enumerated()), id: \.element) { idx, bundle in
                         if idx != 0 { RowDivider() }
@@ -51,18 +57,19 @@ struct ProfilePage: View {
                     Button {
                         showAddApp = true
                     } label: {
-                        Label("从运行中的 App 添加", systemImage: "plus")
+                        Label("从运行中的 App 添加", systemImage: "plus").noWrap()
                     }
                     .buttonStyle(.borderedProminent)
 
-                    Button("导入预设") { showPresets = true }
+                    Button("导入预设") { showPresets = true }.noWrap()
 
-                    Button("导入 JSON 文件") { importJSON() }
-                    Button("导出 JSON") { exportJSON() }
+                    Button("导入 JSON 文件") { importJSON() }.noWrap()
+                    Button("导出 JSON") { exportJSON() }.noWrap()
 
                     if model.presetUndoSnapshot != nil {
                         Button("撤销本次套用") { model.undoPresetApply() }
                             .foregroundStyle(.orange)
+                            .noWrap()
                     }
                 }
             }
@@ -83,21 +90,33 @@ struct ProfilePage: View {
         }
     }
 
-    @ViewBuilder
-    private func profileRow(_ bundle: String) -> some View {
-        let overrides = model.config.profiles[bundle] ?? [:]
-        // 整行可点进详情；删除只在 hover 时出现（系统设置语汇：行尾只留 chevron），也可右键删除
+    /// 全局行与 App 行共用：图标 + 名称 / 摘要 + 标签区（前台 / 正在编辑）+ 编辑映射 + hover 删除（仅 App 行）+ chevron。
+    private func sceneRow<Icon: View>(id: String, title: String, subtitle: String,
+                                      @ViewBuilder icon: () -> Icon) -> some View {
         HStack(spacing: Spacing.intra) {
-            appIcon(bundle)
+            icon()
             VStack(alignment: .leading, spacing: 1) {
-                Text(profileDisplayName(bundle)).font(.body)
-                Text(overrides.isEmpty ? "全部继承全局" : "已覆盖 \(overrides.count) 个键 · 其余继承全局")
+                Text(title).font(.body)
+                Text(subtitle)
                     .font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
-            if hoveredProfile == bundle {
+            if id == model.frontAppBundleID {
+                RowTag(kind: .front)
+            }
+            if id == model.currentProfile {
+                RowTag(kind: .editing)
+            }
+            Button("编辑映射") {
+                model.currentProfile = id
+                selection = .mapping
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .noWrap()
+            if id != "global", hoveredProfile == id {
                 Button {
-                    removeProfile(bundle)
+                    removeProfile(id)
                 } label: {
                     Image(systemName: "trash").foregroundStyle(.secondary).font(.caption)
                 }
@@ -111,6 +130,16 @@ struct ProfilePage: View {
         .padding(.vertical, Spacing.rowV)
         .frame(minHeight: Spacing.rowMinHeight)
         .contentShape(Rectangle())
+    }
+
+    @ViewBuilder
+    private func profileRow(_ bundle: String) -> some View {
+        let overrides = model.config.profiles[bundle] ?? [:]
+        // 整行可点进详情；删除只在 hover 时出现（系统设置语汇：行尾只留 chevron），也可右键删除
+        sceneRow(id: bundle, title: profileDisplayName(bundle),
+                 subtitle: overrides.isEmpty ? "全部继承全局" : "已覆盖 \(overrides.count) 个键 · 其余继承全局") {
+            appIcon(bundle)
+        }
         .onTapGesture { detailProfile = ProfileDetailSelection(id: bundle) }
         .onHover { hovering in
             withAnimation(Motion.select) { hoveredProfile = hovering ? bundle : nil }
@@ -189,6 +218,30 @@ private struct ProfileDetailSelection: Identifiable {
     let id: String
 }
 
+/// 场景行标签：「前台」带绿点、「正在编辑」强调色胶囊。
+private struct RowTag: View {
+    enum Kind { case front, editing }
+    let kind: Kind
+
+    var body: some View {
+        switch kind {
+        case .front:
+            HStack(spacing: 4) {
+                Circle().fill(Color.green).frame(width: 6, height: 6)
+                Text("前台").font(.caption2).foregroundStyle(.secondary).noWrap()
+            }
+        case .editing:
+            Text("正在编辑")
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(Color.accentColor)
+                .noWrap()
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.accentColor.opacity(0.15), in: Capsule())
+        }
+    }
+}
+
 // MARK: - 从运行中的 App 添加
 
 @MainActor
@@ -203,8 +256,7 @@ struct AddRunningAppSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("选择要添加专用按键方案的 App").font(.headline)
+        SheetScaffold(title: "选择要添加专用按键方案的 App", subtitle: nil, onClose: nil) {
             List(apps, id: \.processIdentifier) { app in
                 Button {
                     guard let bundle = app.bundleIdentifier else { return }
@@ -229,12 +281,10 @@ struct AddRunningAppSheet: View {
                 .buttonStyle(.plain)
             }
             .frame(width: 360, height: 300)
-            HStack {
-                Spacer()
-                Button("取消") { dismiss() }
-            }
+        } footer: {
+            Spacer()
+            Button("取消") { dismiss() }.keyboardShortcut(.cancelAction)
         }
-        .padding(16)
     }
 }
 
@@ -249,16 +299,7 @@ struct PresetLibrarySheet: View {
     @State private var appliedMessage: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("预设库").font(.headline)
-                Spacer()
-                Button { dismiss() } label: {
-                    Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .keyboardShortcut(.cancelAction)
-            }
+        SheetScaffold(title: "预设库", subtitle: nil, onClose: { dismiss() }) {
             if let msg = appliedMessage {
                 Label(msg, systemImage: "checkmark.circle.fill")
                     .font(.caption).foregroundStyle(.green)
@@ -272,7 +313,6 @@ struct PresetLibrarySheet: View {
             }
             .frame(width: 480, height: 420)
         }
-        .padding(16)
     }
 
     @ViewBuilder
