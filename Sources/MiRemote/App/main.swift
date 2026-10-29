@@ -224,6 +224,16 @@ if cliServiceMode && !uiPreview {
         exit(0)
     }
     sigint.resume()
+    // kill <pid>（单实例提示里给出的方式）/ launchd 停止发送的是 SIGTERM：默认动作直接终止进程，
+    // 跳过 stop() 会残留 hidutil 中转映射（遥控器键位停在 F13–F20）与按住的语音触发键。
+    signal(SIGTERM, SIG_IGN)
+    let sigterm = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
+    sigterm.setEventHandler {
+        log("收到 SIGTERM，退出中…")
+        services.stop()
+        exit(0)
+    }
+    sigterm.resume()
     services.start()
     RunLoop.main.run()
 } else {

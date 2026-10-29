@@ -13,6 +13,8 @@ final class GUIAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var statusController: StatusItemController?
     private var badgeController: FloatingBadgeController?
     private var overlayCenter: OverlayCenter?
+    /// SIGTERM 清理通道（kill / launchd 停止不会走 applicationWillTerminate）。
+    private var sigtermSource: DispatchSourceSignal?
 
     init(uiPreview: Bool) {
         self.uiPreview = uiPreview
@@ -61,7 +63,25 @@ final class GUIAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             services.start()
         }
 
+        installSigtermHandler()
         showWindow()
+    }
+
+    /// SIGTERM 默认动作直接终止进程，applicationWillTerminate 不会执行：hidutil 中转映射、
+    /// 按住的语音触发键与默认麦克风切换都会残留。这里接管 SIGTERM，同步清理后退出
+    ///（不走 NSApp.terminate，避免退出确认弹窗挡住外部的停止请求）。
+    private func installSigtermHandler() {
+        signal(SIGTERM, SIG_IGN)
+        let source = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
+        source.setEventHandler { [weak self] in
+            MainActor.assumeIsolated {
+                log("收到 SIGTERM，清理后退出…")
+                self?.services?.stop()
+                exit(0)
+            }
+        }
+        source.resume()
+        sigtermSource = source
     }
 
     /// 纯代码创建 NSApplication 时系统不会自动生成主菜单；显式补齐标准快捷键，
