@@ -47,7 +47,7 @@ enum RemoteAnnotationLayout {
     static let narrowPanelWidth: CGFloat = 240
     static let columnGap: CGFloat = 18
     /// 面板放不下 520 时整体等比缩小标注舞台，缩到此比例以下才退回窄态（原型 1120 标准窗为 1.0）
-    static let minAnnotatedScale: CGFloat = 0.8
+    static let minAnnotatedScale: CGFloat = 0.7
 
     struct PanelLayout: Equatable {
         let annotated: Bool
@@ -159,6 +159,8 @@ enum RemoteAnnotationLayout {
         if panelLayout(contentWidth: 856) != PanelLayout(annotated: true, panelWidth: 520, scale: 1) { ok = false }
         let mid = panelLayout(contentWidth: 736)
         if !mid.annotated || abs(mid.panelWidth - 458) > 0.5 { ok = false }
+        // runner 屏 1024 上默认窗被收窄到 984：内容约 688 仍显示标注（缩约 0.78）
+        if !panelLayout(contentWidth: 688).annotated { ok = false }
         if panelLayout(contentWidth: 520).annotated { ok = false }
         for model in [RemoteModel.generic, .rc2Pro] {
             let expectedY = model == .rc2Pro ? rc2ProLabelY : genericLabelY
