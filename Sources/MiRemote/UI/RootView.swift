@@ -76,7 +76,7 @@ struct RootView: View {
             .toolbar(removing: .sidebarToggle)
         } detail: {
             switch selection {
-            case .mapping: MappingPage()
+            case .mapping: MappingPage(onOpenProfiles: { selection = .profile })
             case .profile: ProfilePage(selection: $selection)
             case .voice:   VoicePage()
             case .general: GeneralPage(onShowOnboarding: { onboardingStep = 0; showOnboarding = true },

@@ -61,12 +61,20 @@ struct MappingPage: View {
     @EnvironmentObject var model: AppModel
     @State private var showKeyLearn = false
     @State private var showSaved = false
+    let onOpenProfiles: () -> Void
+
+    init(onOpenProfiles: @escaping () -> Void) {
+        self.onOpenProfiles = onOpenProfiles
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.section) {
                 header
                 PageStatusBanner(page: .mapping)
+                SceneChip(profile: model.currentProfile,
+                          overrideCount: model.config.profiles[model.currentProfile]?.count ?? 0,
+                          onOpen: onOpenProfiles)
                 if model.activeLayer != 0 {
                     Label("已开启：\(modeDisplayName(model.activeLayer))（同一按键现在使用第二功能）", systemImage: "switch.2")
                         .font(.caption)
@@ -91,22 +99,22 @@ struct MappingPage: View {
     }
 
     private var header: some View {
-        HStack(alignment: .top) {
-            PageHeader(title: "按键映射",
-                       subtitle: model.currentProfile == "global"
-                       ? "点击左侧遥控器上的按键，编辑它的触发动作。改动即时保存并生效。"
-                       : "正在编辑场景「\(profileDisplayName(model.currentProfile))」的覆盖绑定。")
-            Spacer()
+        PageHeader(title: "按键映射",
+                   subtitle: model.currentProfile == "global"
+                   ? "点击左侧遥控器上的按键，编辑它的触发动作。改动即时保存并生效。"
+                   : "正在编辑场景「\(profileDisplayName(model.currentProfile))」的覆盖绑定。") {
             if showSaved {
                 Label("已保存", systemImage: "checkmark.circle.fill")
                     .font(.caption)
                     .foregroundStyle(.green)
+                    .noWrap()
                     .transition(.opacity)
             }
+            Spacer(minLength: 12)
             Button {
                 showKeyLearn = true
             } label: {
-                Label("识别按键", systemImage: "dot.radiowaves.left.and.right")
+                Label("识别按键", systemImage: "dot.radiowaves.left.and.right").noWrap()
             }
             .help("按一下遥控器上的键，识别它是哪个键")
         }
@@ -153,26 +161,22 @@ struct MappingPage: View {
 
             // 分组 A：触发方式
             SettingsGroup(title: "触发方式") {
-                SettingsRow(icon: "checkmark", iconColor: .blue, title: "短按", subtitle: "松开时立即触发") {
-                    ActionPicker(action: binding.tap) { new in
-                        model.updateBinding(for: key) { $0.tap = new }
-                    }
+                SlotRow(key: key, slot: .tap, icon: "checkmark", iconColor: .blue,
+                        title: "短按", subtitle: "松开时立即触发",
+                        note: BaseTapNote.text(key: key, profile: model.currentProfile, ownTap: binding.tap)) { new in
+                    model.updateBinding(for: key) { $0.tap = new }
                 }
                 RowDivider()
-                SettingsRow(icon: "clock", iconColor: .orange, title: "长按",
-                            subtitle: "超过 \(model.config.settings.holdMs) ms 触发") {
-                    ActionPicker(action: binding.hold) { new in
-                        model.updateBinding(for: key) { $0.hold = new }
-                    }
+                SlotRow(key: key, slot: .hold, icon: "clock", iconColor: .orange, title: "长按",
+                        subtitle: "超过 \(model.config.settings.holdMs) ms 触发", note: nil) { new in
+                    model.updateBinding(for: key) { $0.hold = new }
                 }
                 RowDivider()
-                SettingsRow(icon: "ellipsis", iconColor: .purple, title: "双击",
-                            subtitle: model.config.settings.doubleMs > 0
-                                ? "\(model.config.settings.doubleMs)ms 窗口内连按两次；配了双击后此键短按需等窗口确认"
-                                : "已关闭（在通用页开启）") {
-                    ActionPicker(action: binding.double) { new in
-                        model.updateBinding(for: key) { $0.double = new }
-                    }
+                SlotRow(key: key, slot: .double, icon: "ellipsis", iconColor: .purple, title: "双击",
+                        subtitle: model.config.settings.doubleMs > 0
+                            ? "\(model.config.settings.doubleMs)ms 窗口内连按两次；配了双击后此键短按需等窗口确认"
+                            : "已关闭（在通用页开启）", note: nil) { new in
+                    model.updateBinding(for: key) { $0.double = new }
                 }
             }
 
@@ -183,13 +187,12 @@ struct MappingPage: View {
                     ForEach(Array(zip(["up", "down", "left", "right"],
                                       ["arrow.up", "arrow.down", "arrow.left", "arrow.right"])), id: \.0) { dir, sym in
                         if dir != "up" { RowDivider() }
-                        SettingsRow(icon: sym, iconColor: .teal, title: gestureTitle(dir)) {
-                            ActionPicker(action: binding.gesture?[dir]) { new in
-                                model.updateBinding(for: key) { b in
-                                    var g = b.gesture ?? [:]
-                                    if let new { g[dir] = new } else { g.removeValue(forKey: dir) }
-                                    b.gesture = g.isEmpty ? nil : g
-                                }
+                        SlotRow(key: key, slot: .gesture(dir), icon: sym, iconColor: .teal,
+                                title: gestureTitle(dir), subtitle: nil, note: nil) { new in
+                            model.updateBinding(for: key) { b in
+                                var g = b.gesture ?? [:]
+                                if let new { g[dir] = new } else { g.removeValue(forKey: dir) }
+                                b.gesture = g.isEmpty ? nil : g
                             }
                         }
                     }
@@ -203,13 +206,12 @@ struct MappingPage: View {
                 SettingsGroup(title: "模式开启时，这个键执行") {
                     ForEach(1...3, id: \.self) { layer in
                         if layer != 1 { RowDivider() }
-                        SettingsRow(icon: "switch.2", iconColor: .blue, title: modeDisplayName(layer)) {
-                            ActionPicker(action: binding.layers?["\(layer)"]) { new in
-                                model.updateBinding(for: key) { b in
-                                    var l = b.layers ?? [:]
-                                    if let new { l["\(layer)"] = new } else { l.removeValue(forKey: "\(layer)") }
-                                    b.layers = l.isEmpty ? nil : l
-                                }
+                        SlotRow(key: key, slot: .layer(layer), icon: "switch.2", iconColor: .blue,
+                                title: modeDisplayName(layer), subtitle: nil, note: nil) { new in
+                            model.updateBinding(for: key) { b in
+                                var l = b.layers ?? [:]
+                                if let new { l["\(layer)"] = new } else { l.removeValue(forKey: "\(layer)") }
+                                b.layers = l.isEmpty ? nil : l
                             }
                         }
                     }
@@ -228,6 +230,118 @@ struct MappingPage: View {
 
     private func gestureTitle(_ dir: String) -> String {
         ["up": "上", "down": "下", "left": "左", "right": "右"][dir].map { "OK + \($0)" } ?? dir
+    }
+}
+
+// MARK: - 检查器槽位行（来源标签 / 恢复继承 / 基础状态说明）
+
+@MainActor
+private struct SlotRow: View {
+    @EnvironmentObject var model: AppModel
+    let key: RemoteKey
+    let slot: MappingSlot
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let subtitle: String?
+    let note: String?
+    let onChange: (Action?) -> Void
+
+    init(key: RemoteKey, slot: MappingSlot, icon: String, iconColor: Color, title: String,
+         subtitle: String?, note: String?, onChange: @escaping (Action?) -> Void) {
+        self.key = key
+        self.slot = slot
+        self.icon = icon
+        self.iconColor = iconColor
+        self.title = title
+        self.subtitle = subtitle
+        self.note = note
+        self.onChange = onChange
+    }
+
+    var body: some View {
+        let r = SlotResolver.resolve(config: model.config, profile: model.currentProfile, key: key, slot: slot)
+        VStack(alignment: .leading, spacing: 0) {
+            // 与 SettingsRow 同布局，标题列下方加来源标签
+            HStack(spacing: Spacing.intra) {
+                Image(systemName: icon)
+                    .foregroundStyle(iconColor)
+                    .frame(width: 20)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title).font(.body)
+                    if let subtitle {
+                        Text(subtitle).font(.caption).foregroundStyle(.secondary)
+                    }
+                    if model.currentProfile != "global", r.source != .unset {
+                        SourceTag(source: r.source, profile: model.currentProfile)
+                            .padding(.top, 2)
+                    }
+                }
+                Spacer()
+                HStack(spacing: 8) {
+                    ActionPicker(action: r.action, onChange: onChange)
+                        .foregroundStyle(r.source == .inherited ? .secondary : .primary)
+                    if r.source == .appOverride && model.currentProfile != "global" {
+                        Button("↺ 恢复") { model.restoreInherited(key, slot: slot) }
+                            .buttonStyle(.link)
+                            .noWrap()
+                            .help("恢复继承（删除本 App 的覆盖）")
+                    }
+                }
+            }
+            .padding(.horizontal, Spacing.rowH)
+            .padding(.vertical, Spacing.rowV)
+            .frame(minHeight: Spacing.rowMinHeight)
+            if let note {
+                Text(note)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.leading, Spacing.rowH + 20 + Spacing.intra)
+                    .padding(.trailing, Spacing.rowH)
+                    .padding(.bottom, Spacing.rowV)
+            }
+        }
+    }
+}
+
+// MARK: - 场景标签（只读；点击只跳到场景配置页，不切换场景）
+
+struct SceneChip: View {
+    let profile: String
+    let overrideCount: Int
+    let onOpen: () -> Void
+
+    init(profile: String, overrideCount: Int, onOpen: @escaping () -> Void) {
+        self.profile = profile
+        self.overrideCount = overrideCount
+        self.onOpen = onOpen
+    }
+
+    var body: some View {
+        Button(action: onOpen) {
+            HStack(spacing: 8) {
+                Text(profile == "global" ? "全局默认" : profileDisplayName(profile))
+                    .font(.callout.weight(.semibold))
+                    .noWrap()
+                Text(profile == "global" ? "适用于所有未单独配置的 App"
+                                         : "已覆盖 \(overrideCount) 个键 · 其余继承全局")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .noWrap()
+                Text("在场景配置中切换 ›")
+                    .font(.caption)
+                    .foregroundStyle(Color.accentColor)
+                    .noWrap()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
+            .glassSurface(.overlay, in: Capsule())
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .help("场景在「场景配置」页选择；本页只显示当前场景")
     }
 }
 
