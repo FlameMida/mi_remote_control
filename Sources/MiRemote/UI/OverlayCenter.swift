@@ -787,7 +787,7 @@ struct HintBarView: View {
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 9)
-        .background(.regularMaterial, in: Capsule())
+        .glassSurface(.overlay, in: Capsule())
         .overlay(Capsule().stroke(Color(nsColor: .separatorColor), lineWidth: 1))
     }
 }
@@ -886,7 +886,7 @@ private struct WindowPickerView: View {
         }
         .padding(Spacing.sheetPadding)
         .frame(maxWidth: 1000)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Radius.overlay))
+        .glassSurface(.overlay, in: RoundedRectangle(cornerRadius: Radius.overlay))
         .overlay(RoundedRectangle(cornerRadius: Radius.overlay)
             .stroke(Color(nsColor: .separatorColor), lineWidth: 1))
         .shadow(radius: 24, y: 8)
@@ -955,7 +955,7 @@ private struct SystemMenuView: View {
             }
         }
         .padding(24)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Radius.overlay))
+        .glassSurface(.overlay, in: RoundedRectangle(cornerRadius: Radius.overlay))
         .overlay(RoundedRectangle(cornerRadius: Radius.overlay)
             .stroke(Color(nsColor: .separatorColor), lineWidth: 1))
         .shadow(radius: 24, y: 8)
@@ -1035,7 +1035,7 @@ struct AppWheelView: View {
                 .font(.callout).foregroundStyle(.secondary)
         }
         .padding(Spacing.sheetPadding)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Radius.overlay))
+        .glassSurface(.overlay, in: RoundedRectangle(cornerRadius: Radius.overlay))
         .overlay(RoundedRectangle(cornerRadius: Radius.overlay)
             .stroke(Color(nsColor: .separatorColor), lineWidth: 1))
         .shadow(radius: 24, y: 8)
@@ -1140,7 +1140,7 @@ private struct ControlModeHUDView: View {
         }
         .padding(12)
         .frame(width: 240, alignment: .leading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Radius.hud))
+        .glassSurface(.overlay, in: RoundedRectangle(cornerRadius: Radius.hud))
         .overlay(RoundedRectangle(cornerRadius: Radius.hud)
             .stroke(Color(nsColor: .separatorColor), lineWidth: 1))
     }
