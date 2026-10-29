@@ -1320,6 +1320,10 @@ enum SelfTest {
             expect(bad.keyName == "fn" && bad.mode == .tap, "CLI 坏值安全回落配置值")
         }
 
+        // ===== UI 重设计（settings-ui-redesign）=====
+        expect(GlassSurface.selfCheck(), "ui-redesign: GlassSurface 外观选择")
+        // ===== UI 重设计 end =====
+
         print(failures == 0 ? "SELF-TEST PASS" : "SELF-TEST FAIL (\(failures))")
         return failures == 0 ? 0 : 1
     }
