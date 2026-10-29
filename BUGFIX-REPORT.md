@@ -17,7 +17,7 @@
 | F3 | 高 | App/main.swift:227；UI/GUIAppDelegate.swift:66、:73 | b1aa149 |
 | F4 | 中 | Integrations/ClaudeHooks.swift:75、:180 `uninstall` | a33f9b5 |
 | F5 | 低 | Actions/Macro.swift:73 `utf16Chunks`、:101 `typeText` | ef0a5c0 |
-| F6 | 中 | UI/AppModel.swift:369 `saveConfig`；App/AppServices.swift:40 `backupIfUnreadable` | 98a29d3 |
+| F6 | 中 | UI/AppModel.swift:369 `saveConfig`；App/AppServices.swift:44 `backupIfUnreadable` | 98a29d3 |
 
 ### F1 蓝牙断链时语音会话不结束（高）
 - 现象：用户正在按住语音键说话时遥控器断开（超出距离、没电、蓝牙关闭）。之后语音触发键一直处于按下状态，系统默认输入一直停在虚拟声卡，要等下一次完整的语音会话才能恢复。
