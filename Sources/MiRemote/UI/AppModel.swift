@@ -365,6 +365,12 @@ final class AppModel: ObservableObject {
         saveConfig()
     }
 
+    /// App 场景某槽位「恢复继承」：移除该槽位的显式设置并落盘（触发「已保存」）。
+    func restoreInherited(_ key: RemoteKey, slot: MappingSlot) {
+        config = SlotResolver.removingOverride(config: config, profile: currentProfile, key: key, slot: slot)
+        saveConfig()
+    }
+
     /// 写回 config.json → 引擎热加载 → inline「已保存」提示。
     func saveConfig() {
         // 启动时若 config.json 解析失败，config 是回退的默认值：先备份原文件，绝不静默覆盖。
