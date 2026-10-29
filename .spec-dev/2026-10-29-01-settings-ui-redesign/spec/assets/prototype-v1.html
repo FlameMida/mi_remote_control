@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MiRemote 设置窗重设计 · 原型 v1（方案 A，DRAFT）</title>
+<style>
+:root{
+  --page:#dcdce0; --win:#ffffff; --title:#ececee; --title-b:#d6d6da;
+  --side:#f3f3f5; --side-b:#e2e2e6; --sel:#e2e2e7;
+  --group:#ffffff; --group-b:#e4e4e7; --hair:#ececef;
+  --text:#1d1d1f; --text2:#6e6e73; --text3:#a1a1a6;
+  --accent:#0a6cff; --accent-soft:rgba(10,108,255,.10); --accent-line:rgba(10,108,255,.45);
+  --ok:#28a745; --warn:#c77700; --warn-soft:#fff6e5; --bad:#d93025; --bad-soft:#fdecea;
+  --ctl:#f1f1f3; --ctl-b:#d8d8dc; --remote:#e4e4e8; --remote-b:#cfcfd4; --keybg:#1f1f22; --keyfg:#fff;
+  --shadow:0 30px 70px -20px rgba(0,0,0,.35),0 10px 24px -10px rgba(0,0,0,.2);
+  --pop:#ffffff; --pop-shadow:0 18px 50px -10px rgba(0,0,0,.35);
+}
+html[data-theme=dark]{
+  --page:#1b1b1d; --win:#1e1e20; --title:#2a2a2d; --title-b:#3a3a3e;
+  --side:#252528; --side-b:#353539; --sel:#38383d;
+  --group:#2a2a2d; --group-b:#3a3a3e; --hair:#36363a;
+  --text:#f2f2f4; --text2:#a1a1a8; --text3:#6e6e75;
+  --accent:#3b8cff; --accent-soft:rgba(59,140,255,.16); --accent-line:rgba(59,140,255,.55);
+  --ok:#34c759; --warn:#ffb340; --warn-soft:#3a2f1a; --bad:#ff6b5e; --bad-soft:#3d2321;
+  --ctl:#36363a; --ctl-b:#47474c; --remote:#3a3a3e; --remote-b:#4a4a50; --keybg:#111113; --keyfg:#f2f2f4;
+  --pop:#2c2c30; --pop-shadow:0 18px 50px -10px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--page);font:13px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei",sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+/* ---------- prototype control bar (not part of the product) ---------- */
+.proto{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:10px 20px;background:#111;color:#ddd;font-size:12px}
+.proto b{color:#fff}
+.proto select,.proto button{font:inherit;background:#2a2a2a;color:#eee;border:1px solid #444;border-radius:6px;padding:3px 8px}
+.proto .sim{margin-left:auto;color:#ffcf66}
+html.shot .proto{display:none}
+.stage{display:flex;justify-content:center;padding:32px 20px}
+html.shot .stage{padding:24px}
+/* ---------- window ---------- */
+.win{width:1040px;height:700px;background:var(--win);border-radius:12px;box-shadow:var(--shadow);border:1px solid rgba(0,0,0,.12);display:flex;flex-direction:column;overflow:hidden;position:relative}
+.win.narrow{width:760px;height:560px}
+.titlebar{height:44px;flex:none;background:var(--title);border-bottom:1px solid var(--title-b);display:flex;align-items:center;padding:0 14px;gap:8px}
+.tl{width:12px;height:12px;border-radius:50%}
+.tl.r{background:#ff5f57}.tl.y{background:#febc2e}.tl.g{background:#28c840}
+.titlebar .t{margin-left:14px;font-weight:600;color:var(--text2)}
+.body{flex:1;display:flex;min-height:0}
+/* sidebar */
+.side{width:214px;flex:none;background:var(--side);border-right:1px solid var(--side-b);padding:14px 10px;display:flex;flex-direction:column;gap:4px}
+.win.narrow .side{width:186px}
+.dev{display:flex;gap:10px;align-items:center;padding:6px 8px 12px}
+.dev .ic{width:34px;height:34px;border-radius:9px;background:#1f1f22;display:grid;place-items:center}
+.dev .ic i{width:9px;height:20px;border:2px solid #ddd;border-radius:3px;display:block}
+.dev .n{font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok);display:inline-block}
+.dot.off{background:var(--text3)}.dot.warn{background:var(--warn)}.dot.bad{background:var(--bad)}
+.nav{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;cursor:pointer;color:var(--text)}
+.nav.on{background:var(--sel);font-weight:600}
+.nav svg{width:16px;height:16px;stroke:var(--accent);fill:none;stroke-width:1.6}
+.nav .badge{margin-left:auto;min-width:16px;height:16px;border-radius:8px;background:var(--bad);color:#fff;font-size:10px;display:grid;place-items:center;padding:0 4px}
+.side .foot{margin-top:auto;border-top:1px solid var(--side-b);padding:10px 8px 0;font-size:11px;color:var(--text2);display:flex;flex-direction:column;gap:6px}
+.side .foot .row{display:flex;justify-content:space-between;align-items:center}
+.sw{width:30px;height:18px;border-radius:9px;background:var(--ctl-b);position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.sw.on{background:var(--ok)}.sw.on::after{left:14px}
+/* content */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.banner{display:flex;gap:10px;align-items:center;padding:9px 20px;font-size:12px;border-bottom:1px solid var(--hair)}
+.banner.warn{background:var(--warn-soft);color:var(--warn)}
+.banner.bad{background:var(--bad-soft);color:var(--bad)}
+.banner .sp{flex:1;color:var(--text)}
+.btn{font:inherit;font-size:12px;padding:4px 11px;border-radius:6px;background:var(--ctl);border:1px solid var(--ctl-b);color:var(--text);cursor:pointer;white-space:nowrap}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.link{background:none;border:none;color:var(--accent);padding:2px 4px}
+.toolbar{display:flex;align-items:center;gap:10px;padding:14px 20px 10px;flex-wrap:wrap}
+.toolbar h1{font-size:20px;margin:0 6px 0 0}
+.scene{display:flex;align-items:center;gap:7px;padding:4px 10px 4px 6px;border-radius:7px;border:1px solid var(--ctl-b);background:var(--ctl);cursor:pointer;font-weight:600}
+.scene .chev{color:var(--text2);font-weight:400}
+.appic{width:20px;height:20px;border-radius:5px;display:grid;place-items:center;color:#fff;font-size:10px;font-weight:700;flex:none}
+.seg{display:inline-flex;background:var(--ctl);border:1px solid var(--ctl-b);border-radius:7px;padding:2px}
+.seg span{padding:3px 11px;border-radius:5px;cursor:pointer;color:var(--text2);white-space:nowrap}
+.seg span.on{background:var(--win);color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+html[data-theme=dark] .seg span.on{background:#55555b}
+.grow{flex:1}
+.saved{font-size:11px;color:var(--ok)}
+.sub{padding:0 20px 8px;font-size:12px;color:var(--text2)}
+.sub b{color:var(--text)}
+.content{flex:1;min-height:0;display:flex;gap:18px;padding:4px 20px 18px}
+/* remote stage */
+.rstage{position:relative;width:500px;height:480px;flex:none;background:var(--group);border:1px solid var(--group-b);border-radius:12px}
+.rstage svg.lines{position:absolute;inset:0;pointer-events:none}
+.remote{position:absolute;left:165px;top:14px;width:170px;height:452px;border-radius:70px;background:var(--remote);border:1px solid var(--remote-b)}
+.k{position:absolute;transform:translate(-50%,-50%);border-radius:50%;background:var(--keybg);color:var(--keyfg);display:grid;place-items:center;cursor:pointer;font-size:12px;font-weight:600;border:2px solid transparent}
+.k.sel{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.ring{position:absolute;left:250px;top:164px;width:156px;height:156px;transform:translate(-50%,-50%);border-radius:50%;background:var(--keybg)}
+.rock{position:absolute;left:290px;top:309px;width:50px;height:104px;transform:translate(-50%,-50%);border-radius:25px;background:var(--keybg)}
+.lbl{position:absolute;width:150px;transform:translateY(-50%);cursor:pointer;padding:3px 7px;border-radius:6px}
+.lbl.l{left:8px;text-align:right}.lbl.r{left:342px}
+.lbl .kn{font-size:10px;color:var(--text3)}
+.lbl .ac{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbl.inh .ac{color:var(--text2)}
+.lbl.ovr .ac{color:var(--accent);font-weight:600}
+.lbl.lock .ac{color:var(--text2)}
+.lbl.none .ac{color:var(--text3);font-style:italic}
+.lbl.sel{background:var(--accent-soft)}
+.legend{position:absolute;left:12px;bottom:10px;display:flex;gap:12px;font-size:10px;color:var(--text2)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.rbody{position:absolute;left:0;top:0;width:500px;height:480px;transform-origin:0 0}
+.win.narrow .lbl,.win.narrow svg.lines,.win.narrow .legend{display:none}
+.win.narrow .rstage{width:200px;height:400px;overflow:hidden}
+.win.narrow .rbody{transform:translate(-118px,4px) scale(.82)}
+.win.narrow .tag{font-size:0;padding:0;width:8px;height:8px;border-radius:50%;border:none}
+.win.narrow .tag.inh,.win.narrow .tag.lock{background:var(--text3)}.win.narrow .tag.ovr{background:var(--accent)}
+.win.narrow .slot .nm{width:50px}
+.rsvgwrap{position:absolute;left:160px;top:0}
+.rshell{fill:#d7d9db;stroke:#c1c3c6}
+html[data-theme=dark] .rshell{fill:#525252;stroke:#404040}
+.remote-key{cursor:pointer}.remote-key .hit{fill:transparent}
+.remote-key .keyface{fill:#1c1c1e;stroke:transparent;stroke-width:2;transition:stroke .15s,filter .15s}
+.remote-key.selected .keyface{stroke:var(--accent);filter:drop-shadow(0 0 3px rgba(10,102,255,.6))}
+.remote-key .arc{fill:none;stroke:transparent;stroke-width:2.5;stroke-linecap:round;transition:stroke .15s}
+.remote-key.selected .arc{stroke:var(--accent);filter:drop-shadow(0 0 3px rgba(10,102,255,.6))}
+.remote-key .dot{fill:#6e6e73}.remote-key.selected .dot{fill:var(--accent)}
+/* inspector */
+.insp{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px;overflow:auto}
+.khead{display:flex;gap:10px;align-items:center}
+.kbadge{width:36px;height:36px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700}
+.khead .n{font-size:15px;font-weight:600}
+.khead .u{font-size:11px;color:var(--text2)}
+.gt{font-size:11px;color:var(--text2);margin:2px 4px 6px;display:flex;justify-content:space-between}
+.group{background:var(--group);border:1px solid var(--group-b);border-radius:10px}
+.slot{display:flex;align-items:center;gap:10px;padding:9px 12px;min-height:44px;border-top:1px solid var(--hair)}
+.slot:first-child{border-top:none}
+.slot .nm{width:64px;flex:none}
+.slot .nm small{display:block;font-size:10px;color:var(--text3)}
+.act{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:6px;text-align:right}
+.act .v{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act .v.dim{color:var(--text2)}
+.act .v.none{color:var(--text3)}
+.tag{font-size:10px;padding:1px 6px;border-radius:4px;white-space:nowrap;flex:none}
+.tag.inh{background:var(--ctl);color:var(--text2);border:1px solid var(--ctl-b)}
+.tag.ovr{background:var(--accent-soft);color:var(--accent)}
+.tag.lock{background:var(--ctl);color:var(--text2)}
+.tag.mode{background:rgba(160,90,255,.14);color:#9b5cff}
+.chev2{color:var(--text3)}
+.note{font-size:11px;color:var(--text2);padding:0 4px}
+.reset{font-size:11px;color:var(--accent);cursor:pointer;white-space:nowrap}
+/* table view */
+.tbl{width:100%;border-collapse:collapse;background:var(--group);border:1px solid var(--group-b);border-radius:10px;overflow:hidden;font-size:12px}
+.tbl th{font-weight:500;color:var(--text2);text-align:left;padding:7px 10px;border-bottom:1px solid var(--hair);background:var(--side)}
+.tbl td{padding:6px 10px;border-bottom:1px solid var(--hair);white-space:nowrap}
+.tbl tr.sel td{background:var(--accent-soft)}
+.tbl .o{color:var(--accent);font-weight:600}
+.tbl .i{color:var(--text2)}
+.tbl .x{color:var(--text3)}
+/* popover */
+.pop{position:absolute;width:330px;background:var(--pop);border:1px solid var(--group-b);border-radius:10px;box-shadow:var(--pop-shadow);padding:8px;z-index:10}
+.pop input{width:100%;font:inherit;padding:6px 9px;border-radius:6px;border:1px solid var(--ctl-b);background:var(--ctl);color:var(--text);margin-bottom:6px}
+.pop .sec{font-size:10px;color:var(--text3);padding:6px 8px 3px}
+.pop .it{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer}
+.pop .it.on{background:var(--accent);color:#fff}
+.pop .it.on small{color:rgba(255,255,255,.8)}
+.pop .it small{color:var(--text2);font-size:11px;margin-left:auto}
+.pop .live{font-size:10px;padding:0 5px;border-radius:4px;background:var(--ok);color:#fff}
+.pop hr{border:none;border-top:1px solid var(--hair);margin:6px 0}
+/* overview */
+.ov{flex:1;overflow:auto;padding:4px 20px 20px;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:start}
+.card{background:var(--group);border:1px solid var(--group-b);border-radius:12px;padding:14px}
+.card h3{margin:0 0 10px;font-size:13px;display:flex;align-items:center;gap:8px}
+.card h3 .grow{flex:1}
+.big{font-size:24px;font-weight:600}
+.chk{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--hair);font-size:12px}
+.chk:first-of-type{border-top:none}
+.chk .s{margin-left:auto;font-size:11px}
+.ico{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:10px;font-weight:700;flex:none}
+.ico.ok{background:var(--ok)}.ico.bad{background:var(--bad)}.ico.pend{border:1.5px dashed var(--text3)}.ico.warn{background:var(--warn)}
+.keys{display:flex;gap:6px;flex-wrap:wrap}
+.kc{font-size:11px;padding:3px 8px;border-radius:12px;background:var(--ctl);border:1px solid var(--ctl-b)}
+.kc.hot{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent)}
+.span2{grid-column:1/3}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:30px;color:var(--text2);text-align:center}
+.empty .e{font-size:28px}
+.sim-badge{position:absolute;right:10px;bottom:8px;font-size:10px;color:var(--text3)}
+</style>
+</head>
+<body>
+<div class="proto" id="proto">
+  <b>原型控制（非产品 UI）</b>
+  <label>屏幕 <select id="pScreen"><option value="mapping">按键映射 · 遥控器视图</option><option value="table">按键映射 · 表格视图</option><option value="overview">概览</option></select></label>
+  <label>场景 <select id="pScene"></select></label>
+  <label>模式 <select id="pMode"><option value="base">基础</option><option value="app">App 控制模式</option><option value="l1">快捷控制模式</option><option value="l3">App 导航模式</option></select></label>
+  <label>状态 <select id="pState"><option value="ok">正常</option><option value="disc">遥控器未连接</option><option value="perm">缺辅助功能权限</option><option value="empty">场景无覆盖（空）</option></select></label>
+  <label>主题 <select id="pTheme"><option value="light">浅色</option><option value="dark">深色</option></select></label>
+  <label>窗口 <select id="pWidth"><option value="std">标准 1040×700</option><option value="narrow">最小 760×560</option></select></label>
+  <button id="pPop">切换场景弹层</button>
+  <span class="sim">⚠ 所有数据均为模拟；不连接设备、不读写 config.json</span>
+</div>
+<div class="stage"><div class="win" id="win">
+  <div class="titlebar"><span class="tl r"></span><span class="tl y"></span><span class="tl g"></span><span class="t">MiRemote</span></div>
+  <div class="body">
+    <aside class="side" id="side"></aside>
+    <section class="main" id="main"></section>
+  </div>
+</div></div>
+<script>
+/* ======================= 模拟数据（SIMULATED） ======================= */
+const KEYS = [
+ {id:"power",  n:"电源键", g:"⏻", x:217,y:46, r:17, side:"l", ly:46},
+ {id:"voice",  n:"语音键", g:"🎙", x:283,y:46, r:17, side:"r", ly:46},
+ {id:"up",     n:"上",     g:"▲", x:250,y:116, r:6, side:"l", ly:112},
+ {id:"ok",     n:"OK 确认键", g:"OK", x:250,y:168, r:33, side:"r", ly:112},
+ {id:"left",   n:"左",     g:"◀", x:198,y:168, r:6, side:"l", ly:168},
+ {id:"right",  n:"右",     g:"▶", x:302,y:168, r:6, side:"r", ly:168},
+ {id:"down",   n:"下",     g:"▼", x:250,y:220, r:6, side:"r", ly:222},
+ {id:"back",   n:"返回键", g:"←", x:217,y:271, r:19, side:"l", ly:271},
+ {id:"home",   n:"主页键", g:"⌂", x:217,y:317, r:19, side:"l", ly:317},
+ {id:"menu",   n:"菜单键", g:"≡", x:217,y:363, r:19, side:"l", ly:363},
+ {id:"volUp",  n:"音量+",  g:"+", x:283,y:273, r:22, side:"r", ly:264},
+ {id:"volDown",n:"音量−",  g:"−", x:283,y:315, r:22, side:"r", ly:318},
+ {id:"tv",     n:"TV 键",  g:"▭", x:283,y:363, r:19, side:"r", ly:372},
+];
+const ARROWS=["up","down","left","right"];
+// 全局基础层（取自 README 默认按键表，简化）
+const GLOBAL_BASE = {
+  power:{tap:"显示器睡眠",hold:"鼠标模式"}, voice:{tap:"按住说话（语音输入）"},
+  up:{tap:"↑ 光标"},down:{tap:"↓ 光标"},left:{tap:"← 光标"},right:{tap:"→ 光标"},
+  ok:{tap:"Return 确认",hold:"按住 → 快捷控制模式",double:"Spotlight"},
+  back:{tap:"Delete 删除",hold:"清空输入（已关闭）"},
+  home:{tap:"调度中心",hold:"映射速查浮层"}, menu:{tap:"窗口选择器",hold:"系统功能菜单"},
+  volUp:{tap:"音量 +"},volDown:{tap:"音量 −"}, tv:{tap:"进入 / 退出 App 控制模式",hold:"App 轮盘"},
+};
+const GLOBAL_L1 = {menu:"下一个 App",left:"左一个桌面",right:"右一个桌面",back:"上一个 App",home:"显示桌面",tv:"App Exposé"};
+const GLOBAL_L3 = {up:"上一个窗口",down:"下一个窗口",left:"上一个 App",right:"下一个 App",ok:"聚焦输入框",back:"左一个桌面",home:"右一个桌面",menu:"进 / 出 App 导航模式",power:"显示桌面",tv:"App Exposé"};
+const GLOBAL_APP = {home:"⌃C 中断"};
+const AI_APP = {ok:"⏎ 批准",back:"Esc 拒绝",up:"↑ 选项上移",down:"↓ 选项下移",menu:"⇧Tab 切自动模式",home:"⌃C 中断生成",power:"聚焦输入",volUp:"下一个 Agent",volDown:"上一个 Agent"};
+const SCENES = [
+ {id:"global", name:"全局默认", ic:"🌐", c:"#5b6b82", base:{}, app:{}, live:false},
+ {id:"ghostty",name:"Ghostty", ic:"G", c:"#2b2f8f", base:{home:{tap:"⌃C 中断"},power:{tap:"聚焦输入"}}, app:AI_APP, live:true},
+ {id:"claude", name:"Claude",  ic:"✳", c:"#d97757", base:{ok:{tap:"⌘⏎ 发送"},menu:{tap:"新对话 ⌘N"}}, app:AI_APP},
+ {id:"chrome", name:"Google Chrome", ic:"C", c:"#1a73e8", base:{volUp:{tap:"下一个标签"},volDown:{tap:"上一个标签"},menu:{hold:"标签搜索 ⇧⌘A"}}, app:{left:"上一个标签",right:"下一个标签",ok:"打开链接",back:"后退 ⌘["}},
+ {id:"wechat", name:"微信", ic:"微", c:"#07c160", base:{ok:{tap:"⏎ 发送"},home:{tap:"切换会话 ⌘↓"}}, app:{up:"上一个会话",down:"下一个会话"}},
+ {id:"iina",   name:"IINA", ic:"▶", c:"#3a3a8c", base:{ok:{tap:"播放 / 暂停"},volUp:{tap:"快进 5s"},volDown:{tap:"快退 5s"}}, app:{left:"上一集",right:"下一集"}},
+ {id:"feishu", name:"飞书", ic:"飞", c:"#3370ff", base:{}, app:{}},
+];
+const MODES={base:"基础",app:"App 控制模式",l1:"快捷控制模式",l3:"App 导航模式"};
+const REMOTE_SVG="<svg class=\"rsvg\" width=\"180\" height=\"480\" viewBox=\"0 0 180 480\">\n              <!-- 机身：金属银 -->\n              <rect x=\"6\" y=\"6\" width=\"168\" height=\"448\" rx=\"40\" class=\"rshell\" stroke-width=\"1\"/>\n\n              <!-- 电源 -->\n              <g class=\"remote-key\" data-key=\"power\">\n                <circle class=\"hit\" cx=\"57\" cy=\"46\" r=\"19\"/>\n                <circle class=\"keyface\" cx=\"57\" cy=\"46\" r=\"17\"/>\n                <path d=\"M57 39v6M51.5 42.5a6 6 0 1 0 11 0\" stroke=\"#fff\" stroke-width=\"1.5\" fill=\"none\" stroke-linecap=\"round\"/>\n              </g>\n              <!-- 语音 -->\n              <g class=\"remote-key\" data-key=\"voice\">\n                <circle class=\"hit\" cx=\"123\" cy=\"46\" r=\"19\"/>\n                <circle class=\"keyface\" cx=\"123\" cy=\"46\" r=\"17\"/>\n                <rect x=\"120\" y=\"40\" width=\"6\" height=\"9\" rx=\"3\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1.4\"/>\n                <path d=\"M116 46a7 7 0 0 0 14 0M123 53v3\" stroke=\"#fff\" stroke-width=\"1.3\" fill=\"none\" stroke-linecap=\"round\"/>\n              </g>\n\n              <!-- 方向环大圆盘（共用底盘，不可单独点击） -->\n              <circle cx=\"90\" cy=\"168\" r=\"71\" fill=\"#1c1c1e\"/>\n\n              <!-- 上 -->\n              <g class=\"remote-key\" data-key=\"up\">\n                <path class=\"hit\" d=\"M66.7,144.7 L39.8,117.8 A71,71 0 0 1 140.2,117.8 L113.3,144.7 A33,33 0 0 0 66.7,144.7 Z\"/>\n                <path class=\"arc\" d=\"M39.8,117.8 A71,71 0 0 1 140.2,117.8\"/>\n                <circle class=\"dot\" cx=\"90\" cy=\"116\" r=\"3\"/>\n              </g>\n              <!-- 右 -->\n              <g class=\"remote-key\" data-key=\"right\">\n                <path class=\"hit\" d=\"M113.3,144.7 L140.2,117.8 A71,71 0 0 1 140.2,218.2 L113.3,191.3 A33,33 0 0 0 113.3,144.7 Z\"/>\n                <path class=\"arc\" d=\"M140.2,117.8 A71,71 0 0 1 140.2,218.2\"/>\n                <circle class=\"dot\" cx=\"142\" cy=\"168\" r=\"3\"/>\n              </g>\n              <!-- 下 -->\n              <g class=\"remote-key\" data-key=\"down\">\n                <path class=\"hit\" d=\"M113.3,191.3 L140.2,218.2 A71,71 0 0 1 39.8,218.2 L66.7,191.3 A33,33 0 0 0 113.3,191.3 Z\"/>\n                <path class=\"arc\" d=\"M140.2,218.2 A71,71 0 0 1 39.8,218.2\"/>\n                <circle class=\"dot\" cx=\"90\" cy=\"220\" r=\"3\"/>\n              </g>\n              <!-- 左 -->\n              <g class=\"remote-key\" data-key=\"left\">\n                <path class=\"hit\" d=\"M66.7,191.3 L39.8,218.2 A71,71 0 0 1 39.8,117.8 L66.7,144.7 A33,33 0 0 0 66.7,191.3 Z\"/>\n                <path class=\"arc\" d=\"M39.8,218.2 A71,71 0 0 1 39.8,117.8\"/>\n                <circle class=\"dot\" cx=\"38\" cy=\"168\" r=\"3\"/>\n              </g>\n\n              <!-- OK 中心（更深色内圆，无文字） -->\n              <g class=\"remote-key\" data-key=\"ok\">\n                <circle class=\"hit\" cx=\"90\" cy=\"168\" r=\"33\"/>\n                <circle class=\"keyface\" cx=\"90\" cy=\"168\" r=\"33\" fill=\"#000000\" stroke=\"#3a3a3c\"/>\n              </g>\n\n              <!-- 返回 -->\n              <g class=\"remote-key\" data-key=\"back\">\n                <circle class=\"hit\" cx=\"57\" cy=\"271\" r=\"21\"/>\n                <circle class=\"keyface\" cx=\"57\" cy=\"271\" r=\"19\"/>\n                <path d=\"M64 271h-11m0 0l4-4m-4 4l4 4\" stroke=\"#fff\" stroke-width=\"1.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n              </g>\n              <!-- 主页 -->\n              <g class=\"remote-key\" data-key=\"home\">\n                <circle class=\"hit\" cx=\"57\" cy=\"317\" r=\"21\"/>\n                <circle class=\"keyface\" cx=\"57\" cy=\"317\" r=\"19\"/>\n                <path d=\"M50 320l7-7 7 7v6h-14z\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1.4\" stroke-linejoin=\"round\"/>\n              </g>\n              <!-- 菜单 -->\n              <g class=\"remote-key\" data-key=\"menu\">\n                <circle class=\"hit\" cx=\"57\" cy=\"363\" r=\"21\"/>\n                <circle class=\"keyface\" cx=\"57\" cy=\"363\" r=\"19\"/>\n                <path d=\"M50 358h14M50 363h14M50 368h14\" stroke=\"#fff\" stroke-width=\"1.4\" stroke-linecap=\"round\"/>\n              </g>\n\n              <!-- 音量长胶囊：上半 + / 下半 − -->\n              <g class=\"remote-key\" data-key=\"volUp\">\n                <path class=\"hit\" d=\"M101,294 L101,274 A22,22 0 0 1 123,252 A22,22 0 0 1 145,274 L145,294 Z\"/>\n                <path class=\"keyface\" d=\"M101,294 L101,274 A22,22 0 0 1 123,252 A22,22 0 0 1 145,274 L145,294 Z\"/>\n                <path d=\"M123 266v14M116 273h14\" stroke=\"#fff\" stroke-width=\"1.6\" stroke-linecap=\"round\"/>\n              </g>\n              <g class=\"remote-key\" data-key=\"volDown\">\n                <path class=\"hit\" d=\"M101,294 L101,314 A22,22 0 0 0 123,336 A22,22 0 0 0 145,314 L145,294 Z\"/>\n                <path class=\"keyface\" d=\"M101,294 L101,314 A22,22 0 0 0 123,336 A22,22 0 0 0 145,314 L145,294 Z\"/>\n                <path d=\"M116 315h14\" stroke=\"#fff\" stroke-width=\"1.6\" stroke-linecap=\"round\"/>\n              </g>\n              <line x1=\"103\" y1=\"294\" x2=\"143\" y2=\"294\" stroke=\"#000\" stroke-opacity=\".35\" stroke-width=\"1\"/>\n\n              <!-- TV -->\n              <g class=\"remote-key\" data-key=\"tv\">\n                <circle class=\"hit\" cx=\"123\" cy=\"363\" r=\"21\"/>\n                <circle class=\"keyface\" cx=\"123\" cy=\"363\" r=\"19\"/>\n                <rect x=\"114\" y=\"357\" width=\"18\" height=\"12\" rx=\"2\" fill=\"none\" stroke=\"#fff\" stroke-width=\"1.2\"/>\n                <text x=\"123\" y=\"366\" text-anchor=\"middle\" font-size=\"7\" font-weight=\"600\" fill=\"#fff\" font-family=\"-apple-system,sans-serif\">TV</text>\n              </g>\n\n              <!-- 底部丝印：xiaomi 字样 + NFC 标记 -->\n              <text x=\"90\" y=\"430\" text-anchor=\"middle\" font-size=\"9\" letter-spacing=\"0.5\" fill=\"#96999c\" font-family=\"-apple-system,sans-serif\">xiaomi</text>\n              <rect x=\"136\" y=\"421\" width=\"13\" height=\"13\" rx=\"3\" fill=\"none\" stroke=\"#96999c\" stroke-width=\"1\"/>\n              <text x=\"142.5\" y=\"430.5\" text-anchor=\"middle\" font-size=\"7\" fill=\"#96999c\" font-family=\"-apple-system,sans-serif\">N</text>\n\n              __STATUS__\n</svg>";
+/* ======================= 状态 ======================= */
+const P=new URLSearchParams(location.search);
+const S={screen:P.get("screen")||"mapping",scene:P.get("scene")||"ghostty",mode:P.get("mode")||"base",
+ key:P.get("key")||"ok",state:P.get("state")||"ok",theme:P.get("theme")||"light",width:P.get("width")||"std",pop:P.get("pop")==="1"};
+if(P.get("shot")) document.documentElement.classList.add("shot");
+/* ======================= 解析：继承 / 覆盖 / 固定（对齐 MappingEngine.fireTap 基础层保护） ======================= */
+function scene(){return SCENES.find(s=>s.id===S.scene)}
+function emptyScene(){return S.state==="empty" && S.scene!=="global"}
+function resolve(keyId, slot){ // returns {v, src:'ovr'|'inh'|'lock'|'none'|'mode'}
+  const sc=scene(), isG=sc.id==="global", em=emptyScene();
+  if(S.mode==="base"){
+    if(slot==="tap"){
+      if(ARROWS.includes(keyId)||keyId==="back") return {v:GLOBAL_BASE[keyId].tap,src:"lock",why:"基础层固定为内容操作（光标 / 删除），任何场景都不能改写"};
+      if(keyId==="ok" && isG) return {v:"Return 确认",src:"lock",why:"全局的 OK 短按固定为 Return；只有 App 场景可显式覆盖"};
+    }
+    const o=!isG&&!em&&sc.base[keyId]&&sc.base[keyId][slot];
+    if(o) return {v:o,src:"ovr"};
+    const g=GLOBAL_BASE[keyId]&&GLOBAL_BASE[keyId][slot];
+    if(g) return {v:g,src:isG?"ovr":"inh"};
+    return {v:"未设置",src:"none"};
+  }
+  if(slot!=="tap") return {v:"—",src:"none"};
+  const map = S.mode==="app" ? (isG?GLOBAL_APP:(em?{}:sc.app)) : (S.mode==="l1"?GLOBAL_L1:GLOBAL_L3);
+  if(map[keyId]) return {v:map[keyId],src:(S.mode==="app"&&!isG)?"ovr":(isG||S.mode!=="app")?"ovr":"inh"};
+  if(S.mode==="app"&&!isG&&GLOBAL_APP[keyId]) return {v:GLOBAL_APP[keyId],src:"inh"};
+  if(keyId==="tv"&&S.mode==="app") return {v:"退出 App 控制模式",src:"lock",why:"TV 单击在模式内固定为退出，保证随时可退"};
+  return {v:"回落到基础层",src:"none"};
+}
+function overrideCount(sc){ if(sc.id==="global")return null; if(S.state==="empty")return 0;
+  return new Set([...Object.keys(sc.base),...Object.keys(sc.app)]).size;}
+/* ======================= 渲染 ======================= */
+const $=s=>document.querySelector(s);
+const ICONS={
+ overview:'<svg viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>',
+ mapping:'<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.2"/></svg>',
+ voice:'<svg viewBox="0 0 16 16"><rect x="6" y="2" width="4" height="8" rx="2"/><path d="M3.5 8a4.5 4.5 0 0 0 9 0M8 12.5V14"/></svg>',
+ general:'<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.3"/><path d="M8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2M3.6 3.6l1.4 1.4M11 11l1.4 1.4M3.6 12.4 5 11M11 5l1.4-1.4"/></svg>'};
+function side(){
+  const st=S.state, conn=st!=="disc";
+  const issues = (st==="perm"||st==="disc"?1:0) + 1; // 语音链路 1 项未通过（模拟）
+  const nav=[["overview","概览"],["mapping","按键映射"],["voice","语音"],["general","通用"]];
+  const cur = S.screen==="table"?"mapping":S.screen;
+  return `<div class="dev"><div class="ic"><i></i></div><div><div class="n">MI RC 2 Pro</div>
+    <div class="pill"><span class="dot ${conn?'':'off'}"></span>${conn?'已连接 · 电量 82%':'未连接'}</div></div></div>`+
+   nav.map(([id,t])=>`<div class="nav ${cur===id?'on':''}" data-nav="${id}">${ICONS[id]}${t}${id==='overview'&&issues?`<span class="badge">${issues}</span>`:''}</div>`).join("")+
+   `<div class="foot"><div class="row"><span>暂停遥控</span><span class="sw"></span></div>
+    <div class="row"><span>前台</span><span><b style="color:var(--text)">Ghostty</b> · ${conn?'基础':'—'}</span></div></div>`;
+}
+function banner(){
+  if(S.state==="disc") return `<div class="banner warn">⚠<span class="sp"><b>遥控器未连接。</b>同时长按「主页 + 返回」3 秒进入配对；映射仍可编辑，连接后立即生效。</span><button class="btn">查看配对步骤</button></div>`;
+  if(S.state==="perm") return `<div class="banner bad">⛔<span class="sp"><b>缺少「辅助功能」权限，</b>按键动作当前不会发出。授权后无需重启。</span><button class="btn pri">去授权</button></div>`;
+  return "";
+}
+function toolbar(){
+  const sc=scene(); const oc=overrideCount(sc);
+  const modeSeg = `<div class="seg" id="modeSeg">${["base","app"].map(m=>`<span data-mode="${m}" class="${S.mode===m?'on':''}">${MODES[m]}</span>`).join("")}<span data-mode="${S.mode==='l1'||S.mode==='l3'?S.mode:'l1'}" class="${S.mode==='l1'||S.mode==='l3'?'on':''}">${S.mode==='l3'?'App 导航':'更多模式'} ▾</span></div>`;
+  const viewSeg = `<div class="seg" id="viewSeg"><span data-view="mapping" class="${S.screen==='mapping'?'on':''}">遥控器</span><span data-view="table" class="${S.screen==='table'?'on':''}">表格</span></div>`;
+  return `<div class="toolbar"><h1>按键映射</h1>
+   <div class="scene" id="sceneBtn"><span class="appic" style="background:${sc.c}">${sc.ic}</span>${sc.name}<span class="chev">▾</span></div>
+   ${modeSeg}<span class="grow"></span><span class="saved">✓ 已保存</span>${viewSeg}<button class="btn">◉ 识别按键</button></div>
+   <div class="sub">${sc.id==='global'?'<b>全局默认</b>：所有 App 的起点；App 场景未覆盖的键继承这里。'
+     :`<b>${sc.name}</b> 场景 · 覆盖 ${oc} 个键，其余继承全局${sc.live?' · <span style="color:var(--ok)">● 当前前台 App</span>':''}`}
+     ${S.mode!=='base'?` · <span class="tag mode">${MODES[S.mode]}</span> 仅单击可在模式内改写；未设置的键回落到基础层`:''}</div>`;
+}
+function remoteSvg(){
+  const conn=S.state!=="disc";
+  const v=REMOTE_SVG.replace("__STATUS__",`<circle cx="90" cy="466" r="3" fill="${conn?'var(--accent)':'#8e8e93'}"/><text x="98" y="469" font-size="9" fill="#86868b" font-family="-apple-system,sans-serif">${conn?'已连接':'未连接'}</text>`);
+  return v.replace(`class="remote-key" data-key="${S.key}"`,`class="remote-key selected" data-key="${S.key}"`);
+}
+function remote(){
+  const lines=[], labels=[], keys=[];
+  KEYS.forEach(k=>{
+    const r=resolve(k.id,"tap");
+    const lx = k.side==="l"?158:342;
+    lines.push(`<path d="M${lx} ${k.ly} L${k.side==='l'?lx+8:lx-8} ${k.ly} L${k.x+(k.side==='l'?-k.r:k.r)} ${k.y}" stroke="${k.id===S.key?'var(--accent)':'var(--text3)'}" stroke-width="${k.id===S.key?1.4:.8}" fill="none" ${r.src==='inh'||r.src==='none'?'stroke-dasharray="3 3"':''}/>`);
+    labels.push(`<div class="lbl ${k.side} ${r.src} ${k.id===S.key?'sel':''}" data-key="${k.id}" style="top:${k.ly}px"><div class="kn">${k.n}${r.src==='lock'?' 🔒':''}</div><div class="ac">${r.v}</div></div>`);
+  });
+  return `<div class="rstage"><svg class="lines" width="100%" height="100%">${lines.join("")}</svg>
+   <div class="rbody"><div class="rsvgwrap">${remoteSvg()}</div>${labels.join("")}</div>
+   <div class="legend"><span><i style="background:var(--accent)"></i>本场景设置</span><span><i style="background:var(--text3)"></i>继承全局（虚线）</span><span>🔒 固定</span></div></div>`;
+}
+function slotRow(name, hint, slot){
+  const r=resolve(S.key,slot); const sc=scene();
+  const tag = {ovr:sc.id==='global'?'':'<span class="tag ovr">本场景</span>',inh:'<span class="tag inh">继承全局</span>',lock:'<span class="tag lock">🔒 固定</span>',none:''}[r.src]||'';
+  const right = r.src==='lock'?'':(r.src==='ovr'&&sc.id!=='global'?'<span class="reset">恢复继承</span>':'<span class="chev2">⌄</span>');
+  return `<div class="slot"><div class="nm">${name}<small>${hint}</small></div>
+   <div class="act">${tag}<span class="v ${r.src==='inh'||r.src==='lock'?'dim':''} ${r.src==='none'?'none':''}" title="${r.why||''}">${r.v}</span>${right}</div></div>
+   ${r.src==='lock'?`<div class="note" style="padding:0 12px 8px">${r.why}</div>`:''}`;
+}
+function inspector(){
+  const k=KEYS.find(x=>x.id===S.key); const sc=scene();
+  let body="";
+  if(S.mode==="base"){
+    body=`<div><div class="gt"><span>触发方式</span><span>长按 350 ms · 双击 250 ms</span></div><div class="group">
+      ${slotRow("单击","松开即触发","tap")}${slotRow("长按","按住 350 ms","hold")}${slotRow("双击","连按两次","double")}</div></div>`;
+    if(S.key==="ok") body+=`<div><div class="gt"><span>OK 手势（按住 OK + 方向）</span><span class="reset">编辑</span></div><div class="group">
+      <div class="slot"><div class="nm">OK + ↑</div><div class="act"><span class="tag inh">继承全局</span><span class="v dim">打开 富途牛牛</span></div></div>
+      <div class="slot"><div class="nm">OK + ← / →</div><div class="act"><span class="tag inh">继承全局</span><span class="v dim">上 / 下一个标签页</span></div></div></div></div>`;
+    body+=`<div><div class="gt"><span>在其他模式中</span></div><div class="group">
+      ${["app","l1","l3"].map(m=>{const save=S.mode;S.mode=m;const r=resolve(S.key,"tap");S.mode=save;
+        return `<div class="slot" data-mode="${m}" style="cursor:pointer"><div class="nm" style="width:auto">${MODES[m]}</div><div class="act"><span class="v ${r.src==='none'?'none':''}">${r.v}</span><span class="chev2">›</span></div></div>`}).join("")}</div></div>`;
+  } else {
+    body=`<div><div class="gt"><span>${MODES[S.mode]} · 模式内单击</span><span>${S.mode==='app'?'TV 单击进入 / 退出':S.mode==='l1'?'按住 OK 期间':'菜单键进入 / 退出'}</span></div>
+      <div class="group">${slotRow("单击","模式内","tap")}</div>
+      <div class="note" style="margin-top:6px">模式内只有单击可改写；长按 / 双击沿用基础层。长按菜单 1.5 秒始终是逃生键。</div></div>`;
+  }
+  return `<div class="insp"><div class="khead"><div class="kbadge">${k.g}</div><div><div class="n">${k.n}</div>
+    <div class="u">${sc.name} · ${MODES[S.mode]}</div></div></div>${body}</div>`;
+}
+function table(){
+  const sc=scene(); const cls={ovr:"o",inh:"i",lock:"i",none:"x"};
+  const cell=(k,sl)=>{const r=resolve(k,sl);return `<td class="${cls[r.src]}">${r.src==='lock'?'🔒 ':''}${r.v}</td>`};
+  const rows=KEYS.map(k=>{const save=S.mode;
+     S.mode="base";const t=cell(k.id,"tap"),h=cell(k.id,"hold"),d=cell(k.id,"double");S.mode="app";const a=cell(k.id,"tap");S.mode=save;
+     return `<tr data-key="${k.id}" class="${k.id===S.key?'sel':''}"><td><b>${k.n}</b></td>${t}${h}${d}${a}</tr>`}).join("");
+  return `<div class="insp" style="flex:1"><table class="tbl"><tr><th>遥控键</th><th>单击</th><th>长按</th><th>双击</th><th>App 控制模式</th></tr>${rows}</table>
+    <div class="note"><span style="color:var(--accent);font-weight:600">蓝色</span> = ${sc.id==='global'?'全局设置':'本场景覆盖'}；灰色 = 继承全局；🔒 = 固定。点击行跳转到遥控器视图编辑。此表同时作为「映射速查」浮层的数据源。</div></div>`;
+}
+function mapping(){
+  let inner;
+  if(emptyScene() && S.mode==="app"){
+    inner=`<div class="rstage" style="display:grid;place-items:center"><div class="empty"><div class="e">🎛️</div><b style="color:var(--text)">${scene().name} 还没有 App 控制模式按键</b>
+      未设置的键会回落到基础层。可以先套用预设，或切到「表格」逐键设置。<div style="display:flex;gap:8px;margin-top:6px"><button class="btn pri">套用「${scene().name}」预设</button><button class="btn">从其他场景复制…</button></div></div></div>${inspector()}`;
+  } else inner = S.screen==="table"?table():remote()+inspector();
+  return toolbar()+`<div class="content">${inner}</div>`+(S.pop?popover():"");
+}
+function popover(){
+  const items=SCENES.filter(s=>s.id!=="global").map(s=>`<div class="it ${S.scene===s.id?'on':''}" data-scene="${s.id}"><span class="appic" style="background:${s.c}">${s.ic}</span>${s.name}${s.live?' <span class="live">前台</span>':''}<small>${overrideCount(s)?'覆盖 '+overrideCount(s)+' 键':'无覆盖'}</small></div>`).join("");
+  return `<div class="pop" style="left:110px;top:52px"><input placeholder="搜索 App…">
+   <div class="it ${S.scene==='global'?'on':''}" data-scene="global"><span class="appic" style="background:#5b6b82">🌐</span>全局默认<small>所有 App 的起点</small></div>
+   <div class="sec">App 场景（${SCENES.length-1}）</div>${items}<hr>
+   <div class="it">＋ 从运行中的 App 添加…</div><div class="it">⬇ 套用预设…</div><div class="it">⇅ 导入 / 导出 JSON…</div></div>`;
+}
+function overview(){
+  const disc=S.state==="disc", perm=S.state==="perm";
+  return `<div class="toolbar"><h1>概览</h1><span class="grow"></span><button class="btn">一键体检</button><button class="btn">映射速查</button></div>
+  <div class="sub">遥控器、权限和语音链路的实时状态。有问题时在这里直接修复。</div>
+  <div class="ov">
+   <div class="card"><h3>遥控器<span class="grow"></span><span class="pill"><span class="dot ${disc?'off':''}"></span>${disc?'未连接':'已连接'}</span></h3>
+     ${disc?`<div class="empty" style="padding:10px"><div class="e">📡</div>同时长按「主页 + 返回」3 秒配对<button class="btn">查看配对步骤</button></div>`
+     :`<div class="big">82%</div><div class="note" style="padding:0">电量 · MI RC 2 Pro · BLE HID</div>
+       <div style="margin-top:10px" class="gt"><span>最近按键</span></div><div class="keys"><span class="kc hot">OK 单击 → ⏎ 批准</span><span class="kc">TV 单击 → 进入 App 控制模式</span><span class="kc">↓ 光标</span><span class="kc">音量 +</span></div>`}</div>
+   <div class="card"><h3>当前状态<span class="grow"></span></h3>
+     <div class="chk"><span>前台 App</span><span class="s"><span class="appic" style="background:#2b2f8f;display:inline-grid;width:16px;height:16px;font-size:9px;vertical-align:-3px">G</span> Ghostty</span></div>
+     <div class="chk"><span>生效场景</span><span class="s">Ghostty（覆盖 9 键）</span></div>
+     <div class="chk"><span>当前模式</span><span class="s"><span class="tag mode">App 控制模式</span></span></div>
+     <div class="chk"><span>暂停遥控</span><span class="s"><span class="sw" style="display:inline-block;vertical-align:-4px"></span></span></div>
+     <div style="margin-top:8px"><button class="btn link">编辑 Ghostty 的映射 →</button></div></div>
+   <div class="card"><h3>权限<span class="grow"></span>${perm?'<span style="color:var(--bad);font-size:11px">1 项缺失</span>':'<span style="color:var(--ok);font-size:11px">全部就绪</span>'}</h3>
+     <div class="chk"><span class="ico ok">✓</span>蓝牙<span class="s" style="color:var(--text2)">已授权</span></div>
+     <div class="chk"><span class="ico ok">✓</span>输入监控<span class="s" style="color:var(--text2)">已授权</span></div>
+     <div class="chk"><span class="ico ${perm?'bad':'ok'}">${perm?'!':'✓'}</span>辅助功能<span class="s">${perm?'<button class="btn pri">去授权</button>':'<span style="color:var(--text2)">已授权</span>'}</span></div></div>
+   <div class="card"><h3>语音链路<span class="grow"></span><span style="color:var(--warn);font-size:11px">1 项未通过</span></h3>
+     <div class="chk"><span class="ico ok">✓</span>BlackHole 2ch 已安装</div>
+     <div class="chk"><span class="ico ${disc?'bad':'ok'}">${disc?'!':'✓'}</span>遥控器音频通道<span class="s" style="color:var(--text2)">${disc?'等待连接':'就绪'}</span></div>
+     <div class="chk"><span class="ico pend"></span>按语音键有音频帧<span class="s" style="color:var(--text2)">按住语音键说话以检测</span></div>
+     <div class="chk"><span class="ico bad">!</span>当前输入法是豆包<span class="s"><button class="btn">怎么切换</button></span></div></div>
+  </div><span class="sim-badge">模拟数据</span>`;
+}
+function placeholder(t){return `<div class="toolbar"><h1>${t}</h1></div><div class="sub">本稿不改动该页的信息结构，仅统一术语与空 / 错误状态（见 spec）。</div>`}
+function render(){
+  document.documentElement.dataset.theme=S.theme;
+  $("#win").classList.toggle("narrow",S.width==="narrow");
+  $("#side").innerHTML=side();
+  let m=banner();
+  if(S.screen==="mapping"||S.screen==="table") m+=mapping();
+  else if(S.screen==="overview") m+=overview();
+  else m+=placeholder(S.screen==="voice"?"语音":"通用");
+  $("#main").innerHTML=m;
+  // sync proto controls
+  pScreen.value=["mapping","table","overview"].includes(S.screen)?S.screen:"mapping";
+  pScene.value=S.scene;pMode.value=S.mode;pState.value=S.state;pTheme.value=S.theme;pWidth.value=S.width;
+}
+/* ======================= 交互 ======================= */
+const pScreen=$("#pScreen"),pScene=$("#pScene"),pMode=$("#pMode"),pState=$("#pState"),pTheme=$("#pTheme"),pWidth=$("#pWidth");
+pScene.innerHTML=SCENES.map(s=>`<option value="${s.id}">${s.name}</option>`).join("");
+pScreen.onchange=e=>{S.screen=e.target.value;render()};pScene.onchange=e=>{S.scene=e.target.value;render()};
+pMode.onchange=e=>{S.mode=e.target.value;render()};pState.onchange=e=>{S.state=e.target.value;render()};
+pTheme.onchange=e=>{S.theme=e.target.value;render()};pWidth.onchange=e=>{S.width=e.target.value;render()};
+$("#pPop").onclick=()=>{S.pop=!S.pop;if(S.screen==='overview')S.screen='mapping';render()};
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-key],[data-mode],[data-nav],[data-view],[data-scene],#sceneBtn");
+  if(!t){ if(S.pop&&!e.target.closest(".pop")){S.pop=false;render()} return;}
+  if(t.id==="sceneBtn"){S.pop=!S.pop;render();return}
+  if(t.dataset.scene){S.scene=t.dataset.scene;S.pop=false;render();return}
+  if(t.dataset.nav){S.screen=t.dataset.nav;render();return}
+  if(t.dataset.view){S.screen=t.dataset.view;render();return}
+  if(t.dataset.mode){S.mode=t.dataset.mode;if(S.mode==='l1'&&t.textContent.includes('更多')&&S.mode==='l1'){} render();return}
+  if(t.dataset.key){S.key=t.dataset.key;if(S.screen==="table")S.screen="mapping";render();}
+});
+render();
+</script>
+</body>
+</html>
