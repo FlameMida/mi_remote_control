@@ -372,6 +372,9 @@ final class VoiceBridgeApp: ATVVBridgeDelegate {
     func atvvVoiceStarted() {
         log("语音开始")
         onVoiceActive?(true)
+        // 上一会话的延迟还原尚未执行就被新会话取消：还原责任必须转交本会话，
+        // 否则本会话若零音频帧（不会再 engage）结束时不会还原，默认麦克风永久停在虚拟声卡。
+        let inheritedMicRestore = restoreWork.map { !$0.isCancelled } ?? false
         restoreWork?.cancel()
         restoreWork = nil
         // 会话锁存：本会话按此刻的配置执行并记录实际做过的操作，
@@ -379,7 +382,7 @@ final class VoiceBridgeApp: ATVVBridgeDelegate {
         let (wantSwitch, wantDoubao): (Bool, Bool) = {
             cfgLock.lock(); defer { cfgLock.unlock() }
             sessionActive = true
-            sessionSwitchedMic = false   // 真正切换后才置位，见 atvvAudioFrame 的 pendingMicSwitch 分支
+            sessionSwitchedMic = inheritedMicRestore   // 真正切换或继承未完成的还原才置位，见 atvvAudioFrame 的 pendingMicSwitch 分支
             sessionDoubao = _doubao
             return (_switchInput, _doubao)
         }()
@@ -459,7 +462,8 @@ final class VoiceBridgeApp: ATVVBridgeDelegate {
         if pendingMicSwitch {
             pendingMicSwitch = false
             let engaged = DefaultInput.engage(deviceName: micDeviceName)
-            cfgLock.lock(); sessionSwitchedMic = engaged; cfgLock.unlock()
+            // 只置位不清零：engage 失败时保留从上一会话继承的还原责任。
+            if engaged { cfgLock.lock(); sessionSwitchedMic = true; cfgLock.unlock() }
             log(engaged
                 ? "默认麦克风 → \(micDeviceName)"
                 : "切换默认麦克风失败（未找到 \(micDeviceName)*，未装虚拟声卡？语音出字不可用，按键功能不受影响）")
