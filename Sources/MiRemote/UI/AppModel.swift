@@ -246,6 +246,16 @@ final class AppModel: ObservableObject {
         deviceName ?? RemoteModel.fallbackName(vendorID: RemoteIdentity.vendorID,
                                                productID: RemoteIdentity.productID)
     }
+    /// 遥控器型号（已连接 + 生效 VID/PID）：决定示意图画法。
+    var remoteModel: RemoteModel {
+        RemoteModel.resolve(connected: connected,
+                            vendorID: RemoteIdentity.vendorID, productID: RemoteIdentity.productID)
+    }
+    /// 显示用设备名：连接上报名优先，否则按配置型号回退。
+    var displayDeviceName: String {
+        deviceName ?? RemoteModel.fallbackName(vendorID: RemoteIdentity.vendorID,
+                                               productID: RemoteIdentity.productID)
+    }
     @Published var activeLayer = 0
     @Published var voiceActive = false
     @Published var batteryPercent: Int?
@@ -254,6 +264,8 @@ final class AppModel: ObservableObject {
     @Published var levelBars: [Float] = Array(repeating: 0, count: 12)
     /// 暂停遥控（镜像 services.isRemoteSuspended，供菜单栏面板响应式显示）
     @Published var remoteSuspended = false
+    /// 设置窗侧栏是否收起（不持久化）
+    @Published var sidebarHidden = false
     /// 最近一次按下的遥控键（「按下即亮」回显），nil=无
     @Published var lastPressedKey: RemoteKey?
     /// inline「已保存」微提示（自增触发）
@@ -382,6 +394,12 @@ final class AppModel: ObservableObject {
     func resetVoiceRuleToGlobal(for profile: String) {
         guard profile != "global" else { return }
         config.voiceProfiles?.removeValue(forKey: profile)
+        saveConfig()
+    }
+
+    /// App 场景某槽位「恢复继承」：移除该槽位的显式设置并落盘（触发「已保存」）。
+    func restoreInherited(_ key: RemoteKey, slot: MappingSlot) {
+        config = SlotResolver.removingOverride(config: config, profile: currentProfile, key: key, slot: slot)
         saveConfig()
     }
 

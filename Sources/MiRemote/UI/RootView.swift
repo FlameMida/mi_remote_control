@@ -33,7 +33,9 @@ struct RootView: View {
     @State private var showReauth = false
 
     var body: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: Binding(
+            get: { SidebarToggle.visibility(hidden: model.sidebarHidden) },
+            set: { model.sidebarHidden = SidebarToggle.hidden(from: $0) })) {
             VStack(alignment: .leading, spacing: 0) {
                 // 侧栏头部（固定三行，见 SidebarHeader）
                 SidebarHeader()
@@ -46,6 +48,7 @@ struct RootView: View {
                 .listStyle(.sidebar)
             }
             .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 240)
+            .toolbar(removing: .sidebarToggle)
         } detail: {
             switch selection {
             case .mapping: MappingPage()
@@ -55,6 +58,18 @@ struct RootView: View {
                                        onShowHealthCheck: { showHealthCheck = true })
             }
         }
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                Button {
+                    SidebarToggle.toggle(model)
+                } label: {
+                    Image(systemName: "sidebar.left")
+                }
+                .help(SidebarToggle.menuTitle(hidden: model.sidebarHidden))
+                .accessibilityLabel(SidebarToggle.menuTitle(hidden: model.sidebarHidden))
+            }
+        }
+        .navigationTitle(model.sidebarHidden ? selection.title : "MiRemote 设置")
         .frame(minWidth: 760, minHeight: 560)
         .sheet(isPresented: $showOnboarding) { OnboardingWizard() }
         .sheet(isPresented: $showHealthCheck) { HealthCheckSheet() }

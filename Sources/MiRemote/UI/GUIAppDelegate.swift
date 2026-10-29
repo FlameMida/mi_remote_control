@@ -113,6 +113,18 @@ final class GUIAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         appRoot.submenu = appMenu
         mainMenu.addItem(appRoot)
 
+        // 「显示」菜单：隐藏 / 显示边栏（⌃⌘S），标题随状态切换，仅设置窗为 key window 时可用。
+        let viewRoot = NSMenuItem()
+        let viewMenu = NSMenu(title: "显示")
+        let toggleSidebar = NSMenuItem(title: SidebarToggle.menuTitle(hidden: false),
+                                       action: #selector(toggleSidebarFromMenu(_:)),
+                                       keyEquivalent: "s")
+        toggleSidebar.keyEquivalentModifierMask = [.control, .command]
+        toggleSidebar.target = self
+        viewMenu.addItem(toggleSidebar)
+        viewRoot.submenu = viewMenu
+        mainMenu.addItem(viewRoot)
+
         let windowRoot = NSMenuItem()
         let windowMenu = NSMenu(title: "窗口")
         let close = NSMenuItem(title: "关闭窗口",
@@ -157,10 +169,13 @@ final class GUIAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if window == nil {
             let root = RootView().environmentObject(model!)
             let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 860, height: 620),
-                             styleMask: [.titled, .closable, .miniaturizable, .resizable],
+                             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                              backing: .buffered, defer: false)
             w.title = "MiRemote 设置"
-            w.contentView = NSHostingView(rootView: root)
+            let host = NSHostingView(rootView: root)
+            // 让 SwiftUI 的 toolbar / navigationTitle 桥接到手工创建的 NSWindow。
+            host.sceneBridgingOptions = [.toolbars, .title]
+            w.contentView = host
             w.center()
             w.isReleasedWhenClosed = false
             w.delegate = self
@@ -264,5 +279,23 @@ final class GUIAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 DispatchQueue.main.async { self?.model.noteButton(ev) }
             }
         }
+    }
+}
+
+// MARK: - 「显示」菜单
+
+extension GUIAppDelegate: NSMenuItemValidation {
+    @objc func toggleSidebarFromMenu(_ sender: Any?) {
+        guard let model else { return }
+        SidebarToggle.toggle(model)
+    }
+
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(toggleSidebarFromMenu(_:)) {
+            guard let model else { return false }
+            menuItem.title = SidebarToggle.menuTitle(hidden: model.sidebarHidden)
+            return window?.isKeyWindow == true
+        }
+        return true
     }
 }
