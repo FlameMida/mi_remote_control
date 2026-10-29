@@ -84,6 +84,15 @@ struct GeneralPage: View {
                                 Text("\(model.config.settings.holdMs) ms")
                                     .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
                                     .frame(width: 56, alignment: .trailing)
+                                Text("默认 \(FeelDefaults.holdMs) ms")
+                                    .font(.caption2).foregroundStyle(.tertiary).noWrap()
+                                Button("恢复") {
+                                    model.config.settings = FeelDefaults.restoredHold(model.config.settings)
+                                    model.saveConfig()
+                                }
+                                .controlSize(.small)
+                                .noWrap()
+                                .disabled(model.config.settings.holdMs == FeelDefaults.holdMs)
                             }
                             Divider()
                             HStack {
@@ -96,6 +105,15 @@ struct GeneralPage: View {
                                 Text(model.config.settings.doubleMs > 0 ? "\(model.config.settings.doubleMs) ms" : "关闭")
                                     .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
                                     .frame(width: 56, alignment: .trailing)
+                                Text("默认 \(FeelDefaults.doubleMs) ms")
+                                    .font(.caption2).foregroundStyle(.tertiary).noWrap()
+                                Button("恢复") {
+                                    model.config.settings = FeelDefaults.restoredDouble(model.config.settings)
+                                    model.saveConfig()
+                                }
+                                .controlSize(.small)
+                                .noWrap()
+                                .disabled(model.config.settings.doubleMs == FeelDefaults.doubleMs)
                             }
                             Text("默认 250 ms：只对配了双击动作的键生效（这类键短按需等窗口确认），未配双击的键短按始终零延迟；设为 0 完全关闭双击。")
                                 .font(.footnote).foregroundStyle(.secondary)
@@ -125,10 +143,12 @@ struct GeneralPage: View {
                     SettingsRow(icon: "stethoscope", title: "一键体检与修复", subtitle: nil) {
                         Button("打开") { onShowHealthCheck() }.controlSize(.small)
                     }
-                    RowDivider()
-                    SettingsRow(icon: "escape", title: "退出 MiRemote",
+                    // 危险操作单独一段，与上方普通操作隔开
+                    Divider()
+                        .padding(.top, 8)
+                    SettingsRow(icon: "escape", iconColor: .red, title: "退出 MiRemote",
                                 subtitle: "恢复按键中转后完全退出。点窗口关闭按钮只是转入后台") {
-                        Button("退出") { NSApp.terminate(nil) }.controlSize(.small)
+                        Button("退出", role: .destructive) { NSApp.terminate(nil) }.controlSize(.small)
                     }
                     RowDivider()
                     DisclosureGroup {
@@ -149,8 +169,12 @@ struct GeneralPage: View {
                         .foregroundStyle(.secondary)
                         .padding(.vertical, 6)
                     } label: {
-                        Label("彻底卸载指引", systemImage: "trash")
-                            .font(.body)
+                        Label {
+                            Text("彻底卸载指引").foregroundStyle(.red)
+                        } icon: {
+                            Image(systemName: "trash").foregroundStyle(.red)
+                        }
+                        .font(.body)
                     }
                     .padding(.horizontal, Spacing.rowH)
                     .padding(.vertical, 6)
@@ -161,5 +185,42 @@ struct GeneralPage: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .onAppear { loginItemOn = model.loginItems.isEnabled }
+    }
+}
+
+// MARK: - 按键手感默认值与恢复（T14）
+
+enum FeelDefaults {
+    static let holdMs: Int = MappingConfig.Settings().holdMs
+    static let doubleMs: Int = MappingConfig.Settings().doubleMs
+
+    /// 只把长按阈值恢复为默认，其他设置原样保留。
+    static func restoredHold(_ s: MappingConfig.Settings) -> MappingConfig.Settings {
+        var copy = s
+        copy.holdMs = holdMs
+        return copy
+    }
+
+    /// 只把双击窗口恢复为默认（含「关闭」= 0 的情况），其他设置原样保留。
+    static func restoredDouble(_ s: MappingConfig.Settings) -> MappingConfig.Settings {
+        var copy = s
+        copy.doubleMs = doubleMs
+        return copy
+    }
+
+    static func selfCheck() -> Bool {
+        guard holdMs == MappingConfig.Settings().holdMs, holdMs == 350,
+              doubleMs == MappingConfig.Settings().doubleMs, doubleMs == 250 else { return false }
+        var s = MappingConfig.Settings()
+        s.holdMs = 500
+        s.doubleMs = 100
+        s.deleteAllOnHold = true
+        let h = restoredHold(s)
+        guard h.holdMs == 350, h.doubleMs == 100, h.deleteAllOnHold == true else { return false }
+        let d = restoredDouble(s)
+        guard d.doubleMs == 250, d.holdMs == 500 else { return false }
+        var off = MappingConfig.Settings()
+        off.doubleMs = 0
+        return restoredDouble(off).doubleMs == 250
     }
 }

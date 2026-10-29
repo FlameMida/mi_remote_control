@@ -1331,7 +1331,8 @@ enum SelfTest {
         expect(StatusIssue.selfCheck(), "ui-redesign: 问题优先级与横幅过滤")
         expect(RC2ProGeometry.selfCheck(), "ui-redesign: RC 2 Pro 示意图几何与 13 键命中")
         expect(RemoteAnnotationLayout.selfCheck(), "ui-redesign: 遥控器标注布局与键盘顺序")
-        // ===== UI 重设计 end =====
+        expect(FeelDefaults.selfCheck(), "ui-redesign: 按键手感恢复默认")
+    // ===== UI 重设计 end =====
 
         print(failures == 0 ? "SELF-TEST PASS" : "SELF-TEST FAIL (\(failures))")
         return failures == 0 ? 0 : 1
