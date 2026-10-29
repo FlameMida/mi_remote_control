@@ -1,30 +1,32 @@
 format_version: 1
-current: null
+current: T19
 tasks:
-  T00: { status: completed }
-  T01: { status: pending }
-  T02: { status: pending }
-  T03: { status: pending }
-  T04: { status: pending }
-  T05: { status: pending }
-  T06: { status: pending }
-  T07: { status: pending }
-  T08: { status: pending }
-  T09: { status: pending }
-  T10: { status: pending }
-  T11: { status: pending }
-  T12: { status: pending }
-  T13: { status: pending }
-  T14: { status: pending }
-  T15: { status: pending }
-  T16: { status: pending }
-  T17: { status: pending }
-  T18: { status: pending }
-  T19: { status: pending }
+  T00: { status: completed, commit: 1aaa1a7, tests: pass, ci: "baseline 40853650548" }
+  T01: { status: completed, commit: 6498b14, tests: pass, ci: "no individual run (pushed with T02-T05; first CI on T06 tip 40854538800 red, fixed by 1b2dede, green 40854938715)" }
+  T02: { status: completed, commit: 8c54561, tests: pass, ci: "covered by 40854938715" }
+  T03: { status: completed, commit: c0b345e, tests: pass, ci: "covered by 40854938715" }
+  T04: { status: completed, commit: 7edd919, tests: pass, ci: "fix 1b2dede; green 40854938715" }
+  T05: { status: completed, commit: d69028f, tests: pass, ci: "fix 1b2dede; green 40854938715" }
+  T06: { status: completed, commit: b4a39a8, tests: pass, ci: "red 40854538800; fix 1b2dede green 40854938715" }
+  T07: { status: completed, commit: 80d239b, tests: pass, ci: "green 40855329208" }
+  T08: { status: completed, commit: 528bbb9, tests: pass, ci: "red 40855539572; fix 7d7fe7b green 40855774363" }
+  T09: { status: completed, commit: 7beda8a, tests: pass, ci: "green 40856079363" }
+  T10: { status: completed, commit: 729e7a9, tests: pass, ci: "green 40856273572" }
+  T11: { status: completed, commit: c876134, tests: pass, ci: "green 40856754598" }
+  T12: { status: completed, commit: 2606201, tests: pass, ci: "green 40856967696" }
+  T13: { status: completed, commit: 268d491, tests: pass, ci: "green 40857188547" }
+  T14: { status: completed, commit: 0e475e2, tests: pass, ci: "green 40857404146" }
+  T15: { status: completed, commit: 4d1ab26, tests: pass, ci: "green 40856536682" }
+  T16: { status: completed, commit: 6b54f78, tests: pass, ci: "green 40857596169" }
+  T17: { status: completed, commit: 91bfd78, tests: pass, ci: "green 40857776774" }
+  T18: { status: completed, commit: 9aa9c60, tests: pass, ci: "green 40858022770" }
+  T19: { status: in_progress }
   T20: { status: pending }
   T21: { status: pending }
 resources:
   - "worktree: not created; implemented in place on feat/ui-redesign-spec (CI triggers on feat/**)"
 notes:
   - "T00: source root /workspace/mi_remote_control (Linux box, cannot compile); branch feat/ui-redesign-spec; base HEAD 80b1540; baseline CI run 40853650548 (runner xcode-27, Xcode 27.1, Swift 6.4, macOS 27) SELF-TEST PASS. Glass branch (#if compiler(>=6.2) + macOS 26) compiles on CI."
-  - "Process: red runs are not pushed to CI (branch kept green); green verified on GitHub Actions. Guardrail bind/inspect scripts not run (hooks not installed on this host). Progress recorded in one chore commit per phase."
+  - "Process: red-phase checks run locally as static rg checks, not pushed; two pushed tips went red on CI (b4a39a8 run 40854538800, 528bbb9 run 40855539572) and were fixed forward by 1b2dede and 7d7fe7b; green verified on GitHub Actions. Guardrail bind/inspect scripts not run (hooks not installed on this host). Progress recorded in one chore commit per phase."
+  - "Execution order adjusted for dependencies: T15 before T11/T12 (both consume SheetScaffold); then T13, T14, T16, T17, T18."
+  - "Verification is GitHub Actions CI (workflow 400445702, runner xcode-27): ./build.sh && .build/miremote --self-test, last line SELF-TEST PASS. Push does not trigger CI; each run is dispatched on feat/ui-redesign-spec."
