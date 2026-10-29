@@ -1,5 +1,5 @@
 format_version: 1
-current: null
+current: T20
 tasks:
   T00: { status: completed, commit: 1aaa1a7, tests: pass, ci: "baseline 40853650548" }
   T01: { status: completed, commit: 6498b14, tests: pass, ci: "no individual run (pushed with T02-T05; first CI on T06 tip 40854538800 red, fixed by 1b2dede, green 40854938715)" }
@@ -21,7 +21,7 @@ tasks:
   T17: { status: completed, commit: 91bfd78, tests: pass, ci: "green 40857776774" }
   T18: { status: completed, commit: 9aa9c60, tests: pass, ci: "green 40858022770" }
   T19: { status: completed, commit: a460f53, tests: pass, ci: "final 40858379811", evidence_paths: ["execution/T19-final-ci-40858379811.log"] }
-  T20: { status: pending }
+  T20: { status: in_progress, commit: 3f5da97, tests: "auto pass; manual pending" }
   T21: { status: pending }
 resources:
   - "worktree: not created; implemented in place on feat/ui-redesign-spec (CI triggers on feat/**)"
@@ -31,3 +31,4 @@ notes:
   - "Execution order adjusted for dependencies: T15 before T11/T12 (both consume SheetScaffold); then T13, T14, T16, T17, T18."
   - "Verification is GitHub Actions CI (workflow 400445702, runner xcode-27): ./build.sh && .build/miremote --self-test, last line SELF-TEST PASS. Push does not trigger CI; each run is dispatched on feat/ui-redesign-spec."
   - "T19: final on a460f53, run 40858379811, Xcode 27.1 / Apple Swift 6.4 (swiftlang-6.4.0.34.1) / macOS 27.0.1; SELF-TEST PASS, 11 new selfChecks ok. Glass branch compiled under new SDK (D4). Old SDK (<6.2) build not verified (only xcode-27 image). Evidence log kept untracked in execution/."
+  - "T20: acceptance report committed (3f5da97); automated rows pass, all screenshot/manual/device rows manual-pending for user release acceptance on macOS 26 and 14/15. D5 and D7 need user confirmation. Review was main-thread (non-independent). T21 not started (needs user)."
