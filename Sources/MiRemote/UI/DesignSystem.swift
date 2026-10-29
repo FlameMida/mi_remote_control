@@ -301,3 +301,29 @@ struct StatusBanner: View {
         .accessibilityElement(children: .combine)
     }
 }
+
+// MARK: - 玻璃按钮
+
+/// 原型 glass-on .btn：胶囊玻璃按钮。玻璃开启时用系统 .glass 样式，否则保持 .bordered（原版外观）。
+private struct GlassButtonModifier: ViewModifier {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    func body(content: Content) -> some View {
+        let glass = GlassSurface.appearance(kind: .panel, glassAvailable: GlassSurface.glassAvailable,
+                                            reduceTransparency: reduceTransparency) == .liquidGlass
+        #if compiler(>=6.2)
+        if glass, #available(macOS 26, *) {
+            content.buttonStyle(.glass)
+        } else {
+            content.buttonStyle(.bordered)
+        }
+        #else
+        content.buttonStyle(.bordered)
+        #endif
+    }
+}
+
+extension View {
+    /// 胶囊玻璃按钮，见 GlassButtonModifier。
+    func glassButton() -> some View { modifier(GlassButtonModifier()) }
+}

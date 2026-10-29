@@ -316,7 +316,39 @@ struct SettingsSidebar: View {
         .padding(.horizontal, 10)
         .padding(.bottom, 14)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .modifier(SidebarGlassCard())
         .settingsStatusEnvironment(model: model, nav: nav, permissions: permissions)
+    }
+}
+
+/// 原型 glass-on .side：浮动玻璃卡片（外边距 0 8 8、圆角 16、亮边 + 轻投影）；
+/// 玻璃关闭（旧系统 / 降低透明度）时保持系统侧栏原样（原型 26 glass-off）。
+private struct SidebarGlassCard: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    func body(content: Content) -> some View {
+        let glass = GlassSurface.appearance(kind: .panel, glassAvailable: GlassSurface.glassAvailable,
+                                            reduceTransparency: reduceTransparency) == .liquidGlass
+        if glass {
+            let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
+            let dark = colorScheme == .dark
+            content
+                .background {
+                    shape.fill(LinearGradient(
+                        colors: dark ? [Color(red: 70/255, green: 70/255, blue: 80/255).opacity(0.55),
+                                        Color(red: 30/255, green: 30/255, blue: 36/255).opacity(0.35)]
+                                     : [Color.white.opacity(0.52), Color.white.opacity(0.22)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing))
+                }
+                .glassSurface(.panel, in: shape)
+                .overlay(shape.strokeBorder(Color.white.opacity(dark ? 0.12 : 0.6), lineWidth: 1))
+                .shadow(color: .black.opacity(0.10), radius: 12, y: 6)
+                .padding(.horizontal, 8)
+                .padding(.bottom, 8)
+        } else {
+            content
+        }
     }
 }
 

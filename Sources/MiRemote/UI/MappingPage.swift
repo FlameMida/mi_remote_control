@@ -61,7 +61,13 @@ struct MappingPage: View {
     @State private var showSaved = false
     @State private var annotationLayer: AnnotationLayer = .base
     @State private var contentWidth: CGFloat = 0
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     let onOpenProfiles: () -> Void
+
+    private var glassOn: Bool {
+        GlassSurface.appearance(kind: .panel, glassAvailable: GlassSurface.glassAvailable,
+                                reduceTransparency: reduceTransparency) == .liquidGlass
+    }
 
     private var showsAnnotations: Bool {
         // 面板可用宽 = 内容宽 - 检查器最小宽 - 两栏间距（宽态面板不加左右内边距，标注自带 8pt 留白）
@@ -129,6 +135,7 @@ struct MappingPage: View {
                 Label("识别按键", systemImage: "dot.radiowaves.left.and.right").noWrap()
             }
             .help("按一下遥控器上的键，识别它是哪个键")
+            .glassButton()
         }
     }
 
@@ -142,14 +149,12 @@ struct MappingPage: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .noWrap()
-                Picker("示意图显示", selection: $annotationLayer) {
-                    ForEach(AnnotationLayer.allCases, id: \.self) { layer in
-                        Text(layer.title).tag(layer)
-                    }
-                }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-                .fixedSize()
+                // 原型 .rtop .seg：小号文字分段（白色选中块），窄态也能放进 240 宽面板
+                PanelSegmented(selection: $annotationLayer,
+                               glass: glassOn,
+                               options: AnnotationLayer.allCases.map { ($0, $0.title) })
+                    .fixedSize()
+                    .accessibilityLabel("示意图显示")
             }
             RemoteAnnotationStage(layer: $annotationLayer, showsAnnotations: showsAnnotations)
             Text("深色圆键为遥控器实体按键位置示意，选中的按键以强调色描边高亮")
@@ -165,7 +170,9 @@ struct MappingPage: View {
             }
         }
         .padding(.vertical, 16)
-        .padding(.horizontal, showsAnnotations ? 0 : Spacing.rowH)
+        .padding(.horizontal, showsAnnotations ? 0 : 8)
+        // 原型窄态 .rpanel 定宽 240
+        .frame(width: showsAnnotations ? nil : 240)
         .cardBackground(in: RoundedRectangle(cornerRadius: Radius.hud))
         .overlay(RoundedRectangle(cornerRadius: Radius.hud)
             .stroke(Color(nsColor: .separatorColor).opacity(0.6), lineWidth: 1))
@@ -319,7 +326,10 @@ private struct SlotRow: View {
                             .padding(.top, 2)
                     }
                 }
-                Spacer()
+                // 窄检查器里标题列不让位给动作选择器（否则「短按」被挤没）
+                .fixedSize(horizontal: true, vertical: false)
+                .layoutPriority(1)
+                Spacer(minLength: 4)
                 HStack(spacing: 8) {
                     ActionPicker(action: r.action, onChange: onChange)
                         .foregroundStyle(r.source == .inherited ? .secondary : .primary)

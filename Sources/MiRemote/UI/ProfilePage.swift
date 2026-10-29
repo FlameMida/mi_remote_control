@@ -59,19 +59,21 @@ struct ProfilePage: View {
                     } label: {
                         Label("从运行中的 App 添加", systemImage: "plus").noWrap()
                     }
-                    .buttonStyle(.borderedProminent)
 
                     Button("导入预设") { showPresets = true }.noWrap()
-
-                    Button("导入 JSON 文件") { importJSON() }.noWrap()
-                    Button("导出 JSON") { exportJSON() }.noWrap()
 
                     if model.presetUndoSnapshot != nil {
                         Button("撤销本次套用") { model.undoPresetApply() }
                             .foregroundStyle(.orange)
                             .noWrap()
                     }
+
+                    // 原型：添加 / 预设靠左，JSON 导入导出靠右
+                    Spacer(minLength: 10)
+                    Button("导入 JSON 文件") { importJSON() }.noWrap()
+                    Button("导出 JSON") { exportJSON() }.noWrap()
                 }
+                .glassButton()
             }
             .padding(.horizontal, Spacing.page)
             .padding(.vertical, 20)
@@ -113,7 +115,7 @@ struct ProfilePage: View {
                 selection = .mapping
             }
             .foregroundStyle(Color.accentColor)
-            .buttonStyle(.bordered)
+            .glassButton()
             .controlSize(.small)
             .noWrap()
             if id != "global", hoveredProfile == id {
