@@ -162,7 +162,7 @@ struct RemoteDiagram: View {
     }
 
     /// 引线锚点（逻辑坐标）：按型号取专用坐标。
-    static func anchor(of key: RemoteKey, model: RemoteModel) -> CGPoint {
+    nonisolated static func anchor(of key: RemoteKey, model: RemoteModel) -> CGPoint {
         if model == .rc2Pro { return RC2ProGeometry.anchor(of: key) }
         typealias G = RemoteDiagramGeometry
         if let c = G.circles[key] { return c.center }
