@@ -10,6 +10,7 @@ final class GUIAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var services: AppServices?
     private var model: AppModel!
     private var window: NSWindow?
+    private var settingsAssembly: SettingsWindowAssembly?
     private var statusController: StatusItemController?
     private var badgeController: FloatingBadgeController?
     private var overlayCenter: OverlayCenter?
@@ -167,22 +168,25 @@ final class GUIAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private func showWindow() {
         if window == nil {
-            let root = RootView().environmentObject(model!)
-            let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 860, height: 620),
-                             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
-                             backing: .buffered, defer: false)
-            w.title = "MiRemote 设置"
-            let host = NSHostingView(rootView: root)
-            // 让 SwiftUI 的 toolbar / navigationTitle 桥接到手工创建的 NSWindow。
-            host.sceneBridgingOptions = [.toolbars, .title]
-            w.contentView = host
+            // NSSplitViewController 外壳：macOS 26 起侧栏为系统浮动液态玻璃（SettingsWindow.swift）
+            let assembly = SettingsWindowAssembly(model: model!, size: Self.initialWindowSize())
+            let w = assembly.window
             w.center()
-            w.isReleasedWhenClosed = false
             w.delegate = self
+            settingsAssembly = assembly
             window = w
         }
         window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    /// 原型尺寸 1120×700，屏幕放不下时按可见区收缩（不小于最小尺寸）。
+    private static func initialWindowSize() -> CGSize {
+        let target = SettingsWindowLayout.defaultSize
+        guard let visible = NSScreen.main?.visibleFrame.size else { return target }
+        let minS = SettingsWindowLayout.minSize
+        return CGSize(width: max(minS.width, min(target.width, visible.width - 40)),
+                      height: max(minS.height, min(target.height, visible.height - 40)))
     }
 
     func windowShouldClose(_ sender: NSWindow) -> Bool {

@@ -13,7 +13,7 @@ struct SettingsGroup<Content: View>: View {
                 .foregroundStyle(.secondary)
                 .padding(.leading, 4)
             VStack(spacing: 0) { content }
-                .background(Color(nsColor: .controlBackgroundColor))
+                .cardBackground(in: RoundedRectangle(cornerRadius: Radius.card))
                 .clipShape(RoundedRectangle(cornerRadius: Radius.card))
                 .overlay(RoundedRectangle(cornerRadius: Radius.card)
                     .stroke(Color(nsColor: .separatorColor).opacity(0.6), lineWidth: 1))
@@ -167,7 +167,9 @@ struct MappingPage: View {
         }
         .padding(.vertical, 16)
         .padding(.horizontal, showsAnnotations ? 0 : Spacing.rowH)
-        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: Radius.hud))
+        .cardBackground(in: RoundedRectangle(cornerRadius: Radius.hud))
+        .overlay(RoundedRectangle(cornerRadius: Radius.hud)
+            .stroke(Color(nsColor: .separatorColor).opacity(0.6), lineWidth: 1))
     }
 
     private func legendItem(_ text: String, color: Color) -> some View {

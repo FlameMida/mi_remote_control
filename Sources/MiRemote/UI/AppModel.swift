@@ -231,10 +231,10 @@ final class AppModel: ObservableObject {
         RemoteModel.resolve(connected: connected,
                             vendorID: RemoteIdentity.vendorID, productID: RemoteIdentity.productID)
     }
-    /// 显示用设备名：连接上报名优先，否则按配置型号回退。
+    /// 显示用型号名：RC 2 Pro 恒显示「MI RC 2 Pro」，其他型号用上报名（见 RemoteModel.displayName）。
     var displayDeviceName: String {
-        deviceName ?? RemoteModel.fallbackName(vendorID: RemoteIdentity.vendorID,
-                                               productID: RemoteIdentity.productID)
+        RemoteModel.displayName(reported: deviceName, vendorID: RemoteIdentity.vendorID,
+                                productID: RemoteIdentity.productID)
     }
     @Published var activeLayer = 0
     @Published var voiceActive = false

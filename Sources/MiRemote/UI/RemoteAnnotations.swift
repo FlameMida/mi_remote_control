@@ -205,6 +205,7 @@ struct RemoteAnnotationStage: View {
     var body: some View {
         content
             .focusable()
+            .focusEffectDisabled()   // 键盘方向键选键保留；不画系统蓝色焦点框（验收问题 3）
             .onMoveCommand { dir in
                 let next = L.next(after: model.selectedKey, direction: dir)
                 if reduceMotion {

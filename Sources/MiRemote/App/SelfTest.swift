@@ -1328,6 +1328,8 @@ enum SelfTest {
         expect(RemoteModel.selfCheck(), "ui-redesign: RemoteModel 型号判定")
         expect(SidebarHeaderLayout.selfCheck(), "ui-redesign: 侧栏头三行与电量")
         expect(SidebarToggle.selfCheck(), "ui-redesign: 侧栏收起状态映射")
+        expect(SettingsWindowLayout.selfCheck(), "ui-redesign: 设置窗尺寸与标题")
+        expect(StatusItemController.selfCheck(), "ui-redesign: 菜单栏玻璃面板定位")
         expect(StatusIssue.selfCheck(), "ui-redesign: 问题优先级与横幅过滤")
         expect(RC2ProGeometry.selfCheck(), "ui-redesign: RC 2 Pro 示意图几何与 13 键命中")
         expect(RemoteAnnotationLayout.selfCheck(), "ui-redesign: 遥控器标注布局与键盘顺序")

@@ -189,7 +189,29 @@ private struct GlassSheetBackgroundModifier: ViewModifier {
     }
 }
 
+/// 窗内卡片底（原型 .group / .rpanel）：玻璃开启时为半透明白（浅 62% / 深 5%），透出半透明窗底；
+/// 否则为系统控件底色（原版不透明外观）。
+private struct CardBackgroundModifier<S: Shape>: ViewModifier {
+    let shape: S
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    func body(content: Content) -> some View {
+        let glass = GlassSurface.appearance(kind: .panel, glassAvailable: GlassSurface.glassAvailable,
+                                            reduceTransparency: reduceTransparency) == .liquidGlass
+        content.background(glass
+                           ? Color.white.opacity(colorScheme == .dark ? 0.05 : 0.62)
+                           : Color(nsColor: .controlBackgroundColor),
+                           in: shape)
+    }
+}
+
 extension View {
+    /// 窗内卡片底，见 CardBackgroundModifier。
+    func cardBackground<S: Shape>(in shape: S) -> some View {
+        modifier(CardBackgroundModifier(shape: shape))
+    }
+
     /// 按 GlassSurface 规则给表面上玻璃 / 材质 / 不透明背景。
     func glassSurface<S: Shape>(_ kind: GlassKind, in shape: S) -> some View {
         modifier(GlassSurfaceModifier(kind: kind, shape: shape))

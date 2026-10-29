@@ -246,7 +246,13 @@ final class PermissionStatus: ObservableObject {
         if let observer { NotificationCenter.default.removeObserver(observer) }
     }
 
+    /// 仅隐藏的 --snapshot 渲染模式：固定权限状态，不读系统 TCC。
+    nonisolated(unsafe) static var snapshotMode = false
+
+    func setSnapshotMissing(_ value: String?) { missing = value }
+
     func refresh() {
+        guard !Self.snapshotMode else { return }
         let value: String?
         if EnvironmentCheck.inputMonitoring().state != .granted {
             value = "输入监控"

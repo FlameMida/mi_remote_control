@@ -17,6 +17,8 @@ if startupArgs == ["--self-test"] { exit(SelfTest.run()) }
 var opts = AppServices.Options()
 var cliServiceMode = false
 var uiPreview = false
+/// 隐藏的开发 / CI 视觉核对模式（不列入 --help）：渲染各窗口状态并截图到目录后退出。
+var snapshotDir: String?
 
 var args = startupArgs
 while let argument = args.first {
@@ -89,6 +91,13 @@ while let argument = args.first {
         cliServiceMode = true
         opts.keys = true
     case "--ui-preview":
+        uiPreview = true
+    case "--snapshot":
+        guard !args.isEmpty else {
+            FileHandle.standardError.write("--snapshot 需要输出目录\n".data(using: .utf8)!)
+            exit(2)
+        }
+        snapshotDir = args.removeFirst()
         uiPreview = true
     case "--config":
         if !args.isEmpty { opts.configPath = args.removeFirst() }
@@ -238,7 +247,10 @@ if cliServiceMode && !uiPreview {
     RunLoop.main.run()
 } else {
     let app = NSApplication.shared
-    let delegate = MainActor.assumeIsolated { GUIAppDelegate(uiPreview: uiPreview) }
+    let delegate: NSApplicationDelegate = MainActor.assumeIsolated {
+        if let snapshotDir { return SnapshotRunner(outDir: snapshotDir) }
+        return GUIAppDelegate(uiPreview: uiPreview)
+    }
     app.delegate = delegate
     // 激活策略由 GUIAppDelegate 管理（菜单栏优先形态常驻 .accessory）。
     app.run()

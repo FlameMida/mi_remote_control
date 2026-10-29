@@ -32,3 +32,16 @@ jobs:
           fi
           exit "${code}"
         shell: bash
+      - name: 界面快照（隐藏 --snapshot，开发核对用）
+        # 真实 NSWindow 渲染各窗口状态并截图；不影响构建结论
+        continue-on-error: true
+        timeout-minutes: 6
+        run: .build/miremote --snapshot snapshots 2>&1 | tail -80
+        shell: bash
+      - name: 上传界面快照
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-snapshots
+          path: snapshots/
+          if-no-files-found: warn

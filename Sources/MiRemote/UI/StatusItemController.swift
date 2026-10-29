@@ -122,12 +122,60 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         }
     }
 
+    /// 玻璃面板（macOS 26 液态玻璃可用时）：无箭头、圆角 18、状态栏下方 8pt（原型 glass-on .mpop）。
+    private var glassPanel: StatusGlassPanel?
+    private var panelMonitors: [Any] = []
+    private var panelResignObserver: NSObjectProtocol?
+    private var lastPanelClose = Date.distantPast
+
+    /// 当前面板外观：液态玻璃 → 自绘玻璃浮窗；否则（旧系统 / 降低透明度）→ 原版 NSPopover（带箭头）。
+    static func panelUsesGlass() -> Bool {
+        GlassSurface.appearance(kind: .panel, glassAvailable: GlassSurface.glassAvailable,
+                                reduceTransparency: NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency)
+            == .liquidGlass
+    }
+
     func togglePanel() {
+        if let glassPanel, glassPanel.isVisible {
+            closeGlassPanel()
+            return
+        }
+        // 点状态栏图标关闭面板时，失去 key 的关闭先于本次点击到达：避免「关了又开」
+        if Date().timeIntervalSince(lastPanelClose) < 0.25 { return }
         if let popover, popover.isShown {
             popover.performClose(nil)
             return
         }
         guard let button = statusItem?.button else { return }
+        if Self.panelUsesGlass() {
+            showGlassPanel(below: button)
+        } else {
+            showPopover(relativeTo: button)
+        }
+    }
+
+    private func makePanelView(glass: Bool) -> some View {
+        StatusPanelView(
+            glass: glass,
+            onOpenWindow: { [weak self] in
+                self?.closeAnyPanel()
+                self?.onOpenWindow?()
+            },
+            onHealthCheck: { [weak self] in
+                self?.closeAnyPanel()
+                self?.onOpenWindow?()
+                NotificationCenter.default.post(name: .miremoteShowHealthCheck, object: nil)
+            },
+            onQuit: { [weak self] in self?.onQuit?() })
+            .environmentObject(model)
+    }
+
+    private func closeAnyPanel() {
+        popover?.performClose(nil)
+        closeGlassPanel()
+    }
+
+    private func showPopover(relativeTo button: NSStatusBarButton) {
         let p = NSPopover()
         p.behavior = .transient
         p.delegate = self
@@ -135,27 +183,114 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         // 不一定等于 App 外观，显式下发到 popover 与内容视图两层，浅色下必须是浅色面板。
         let appearance = NSApp.appearance ?? NSApp.effectiveAppearance
         p.appearance = appearance
-        let hosting = NSHostingController(
-            rootView: StatusPanelView(
-                onOpenWindow: { [weak self] in
-                    self?.popover?.performClose(nil)
-                    self?.onOpenWindow?()
-                },
-                onHealthCheck: { [weak self] in
-                    self?.popover?.performClose(nil)
-                    self?.onOpenWindow?()
-                    NotificationCenter.default.post(name: .miremoteShowHealthCheck, object: nil)
-                },
-                onQuit: { [weak self] in self?.onQuit?() })
-                .environmentObject(model))
+        let hosting = NSHostingController(rootView: makePanelView(glass: false))
         hosting.view.appearance = appearance
+        // 内容固定宽 300，高度按内容：popover 尺寸取 SwiftUI 理想尺寸，避免内容比 popover 宽被裁
+        hosting.sizingOptions = [.preferredContentSize]
         p.contentViewController = hosting
         popover = p
         p.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
     }
 
+    /// 面板在屏幕上的位置：水平居中于状态栏图标、贴屏幕可见区边缘夹紧；顶边在菜单栏下方 8pt。
+    nonisolated static func glassPanelFrame(size: CGSize, anchor: CGRect, visible: CGRect) -> CGRect {
+        let gap: CGFloat = 8, margin: CGFloat = 8
+        var x = anchor.midX - size.width / 2
+        x = min(max(x, visible.minX + margin), visible.maxX - margin - size.width)
+        let top = min(anchor.minY, visible.maxY) - gap
+        return CGRect(x: x.rounded(), y: (top - size.height).rounded(), width: size.width, height: size.height)
+    }
+
+    nonisolated static func selfCheck() -> Bool {
+        let visible = CGRect(x: 0, y: 0, width: 1440, height: 875)
+        let mid = glassPanelFrame(size: CGSize(width: 300, height: 200),
+                                  anchor: CGRect(x: 1000, y: 875, width: 30, height: 25), visible: visible)
+        let edge = glassPanelFrame(size: CGSize(width: 300, height: 200),
+                                   anchor: CGRect(x: 1420, y: 875, width: 20, height: 25), visible: visible)
+        return mid.midX == 1015 && mid.maxY == 867 && edge.maxX == 1432 && edge.width == 300
+    }
+
+    private func showGlassPanel(below button: NSStatusBarButton) {
+        guard let buttonWindow = button.window else { return }
+        let anchor = buttonWindow.convertToScreen(button.convert(button.bounds, to: nil))
+        let screen = buttonWindow.screen ?? NSScreen.main
+        let visible = screen?.visibleFrame ?? anchor
+        let host = NSHostingView(rootView: makePanelView(glass: true))
+        host.appearance = NSApp.appearance ?? NSApp.effectiveAppearance
+        let size = host.fittingSize
+        host.frame = NSRect(origin: .zero, size: size)
+        let panel = StatusGlassPanel(contentRect: NSRect(origin: .zero, size: size),
+                                     styleMask: [.borderless, .nonactivatingPanel],
+                                     backing: .buffered, defer: false)
+        panel.level = .popUpMenu
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = true
+        panel.isReleasedWhenClosed = false
+        panel.collectionBehavior = [.transient, .ignoresCycle, .moveToActiveSpace]
+        panel.contentView = host
+        panel.onCancel = { [weak self] in self?.closeGlassPanel() }
+        panel.setFrame(Self.glassPanelFrame(size: size, anchor: anchor, visible: visible), display: true)
+        glassPanel = panel
+
+        let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        panel.alphaValue = reduceMotion ? 1 : 0
+        panel.makeKeyAndOrderFront(nil)
+        panel.invalidateShadow()
+        if !reduceMotion {
+            NSAnimationContext.runAnimationGroup { ctx in
+                ctx.duration = 0.12
+                panel.animator().alphaValue = 1
+            }
+        }
+        // 与 .transient popover 一致：点面板外任意处 / 失去 key / Esc 关闭
+        if let m = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown],
+                                                     handler: { [weak self] _ in
+            MainActor.assumeIsolated { self?.closeGlassPanel() }
+        }) {
+            panelMonitors.append(m)
+        }
+        panelResignObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didResignKeyNotification, object: panel, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.closeGlassPanel() }
+        }
+    }
+
+    private func closeGlassPanel() {
+        guard let panel = glassPanel else { return }
+        glassPanel = nil
+        panelMonitors.forEach { NSEvent.removeMonitor($0) }
+        panelMonitors.removeAll()
+        if let o = panelResignObserver { NotificationCenter.default.removeObserver(o) }
+        panelResignObserver = nil
+        lastPanelClose = Date()
+        panel.orderOut(nil)
+    }
+
     nonisolated func popoverDidClose(_ notification: Notification) {
-        Task { @MainActor in self.popover = nil }
+        Task { @MainActor in
+            self.popover = nil
+            self.lastPanelClose = Date()
+        }
+    }
+
+    // MARK: 快照模式（隐藏 --snapshot）用：在指定锚点下方摆出面板，返回窗口
+    func snapshotPanel(anchor: CGRect, glass: Bool) -> NSWindow {
+        let host = NSHostingView(rootView: makePanelView(glass: glass))
+        let size = host.fittingSize
+        host.frame = NSRect(origin: .zero, size: size)
+        let panel = StatusGlassPanel(contentRect: NSRect(origin: .zero, size: size),
+                                     styleMask: [.borderless, .nonactivatingPanel],
+                                     backing: .buffered, defer: false)
+        panel.level = .popUpMenu
+        panel.isOpaque = false
+        panel.backgroundColor = glass ? .clear : .windowBackgroundColor
+        panel.hasShadow = true
+        panel.contentView = host
+        let visible = NSScreen.main?.visibleFrame ?? anchor
+        panel.setFrame(Self.glassPanelFrame(size: size, anchor: anchor, visible: visible), display: true)
+        panel.orderFrontRegardless()
+        return panel
     }
 
     /// 传统 NSMenu 兜底（statusItem.menu 常态必须为 nil，否则会吞掉左键面板）。
@@ -193,60 +328,70 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
 struct StatusPanelView: View {
     @EnvironmentObject var model: AppModel
+    /// true = 自绘液态玻璃浮窗（圆角 18）；false = NSPopover 内容（popover 自带背景与箭头）
+    var glass: Bool = false
     var onOpenWindow: () -> Void
     var onHealthCheck: () -> Void
     var onQuit: () -> Void
 
+    static let width: CGFloat = 300
+    static let cornerRadius: CGFloat = 18
+
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.intra) {
+        VStack(alignment: .leading, spacing: 0) {
             statusCard
-            Divider()
-            Toggle(isOn: Binding(
-                get: { model.remoteSuspended },
-                set: { model.setRemoteSuspended($0) })) {
+            PanelSeparator()
+            HStack(spacing: 8) {
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("暂停遥控").font(.body)
+                    Text("暂停遥控").font(.system(size: 12.5))
                     Text("按键与手势暂不生效，真实键盘不受影响")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Toggle("暂停遥控", isOn: Binding(
+                    get: { model.remoteSuspended },
+                    set: { model.setRemoteSuspended($0) }))
+                    .toggleStyle(.switch)
+                    .controlSize(.mini)
+                    .labelsHidden()
             }
-            .toggleStyle(.switch)
-            .controlSize(.small)
-            Divider()
-            VStack(alignment: .leading, spacing: 6) {
-                Text("语音输入").font(.caption).foregroundStyle(.secondary)
-                Picker("", selection: $model.voiceMode) {
-                    Text("遥控器麦克风").tag(VoiceMode.remoteMic)
-                    Text("Mac 麦克风").tag(VoiceMode.macMic)
-                    Text("关闭").tag(VoiceMode.off)
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-            }
-            Divider()
-            HStack(spacing: Spacing.intra) {
+            PanelSeparator()
+            Text("语音输入")
+                .font(.system(size: 11)).foregroundStyle(.secondary)
+                .padding(.bottom, 6)
+            PanelSegmented(selection: $model.voiceMode, glass: glass, options: [
+                (VoiceMode.remoteMic, "遥控器麦克风"),
+                (VoiceMode.macMic, "Mac 麦克风"),
+                (VoiceMode.off, "关闭"),
+            ])
+            .accessibilityLabel("语音输入")
+            PanelSeparator()
+            HStack(spacing: 8) {
                 Button("打开设置", action: onOpenWindow).noWrap()
                 Button("一键体检", action: onHealthCheck).noWrap()
-                Spacer()
+                Spacer(minLength: 0)
                 Button(role: .destructive, action: onQuit) {
-                    Image(systemName: "power")
+                    Image(systemName: "power").foregroundStyle(.red)
                 }
                 .help("退出 MiRemote（恢复真实键盘）")
+                .accessibilityLabel("退出 MiRemote")
             }
             .controlSize(.small)
+            .modifier(PanelButtonShape(glass: glass))
         }
-        .padding(Spacing.rowH)
-        .frame(width: 300)
-        // macOS 26 液态玻璃；旧系统与降低透明度时回退为原版不透明系统底色（T01 `.panel` → `.opaque`）
-        .glassSurface(.panel, in: Rectangle())
+        .font(.system(size: 12.5))
+        .padding(12)
+        .frame(width: Self.width, alignment: .leading)
+        .modifier(PanelChrome(glass: glass))
         .onAppear { model.syncRemoteSuspended() }
     }
 
     // 顶部状态卡：设备名 + 连接/模式行 + 电量环 + 健康点
     private var statusCard: some View {
-        HStack(spacing: Spacing.intra) {
+        HStack(spacing: 8) {
             ZStack {
-                RoundedRectangle(cornerRadius: Radius.badge)
+                RoundedRectangle(cornerRadius: 8)
                     .fill(LinearGradient(colors: [Color(white: 0.28), Color(white: 0.12)],
                                          startPoint: .top, endPoint: .bottom))
                 Image(systemName: "av.remote")
@@ -256,7 +401,7 @@ struct StatusPanelView: View {
             .frame(width: 32, height: 32)
             VStack(alignment: .leading, spacing: 1) {
                 Text(model.displayDeviceName)
-                    .font(.body.weight(.semibold))
+                    .font(.system(size: 13, weight: .semibold))
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
                 // 窄时整段换到第二行，不拆开「已连接」等短语
@@ -267,7 +412,7 @@ struct StatusPanelView: View {
                         Text(statusParts.dropFirst().joined(separator: " · ")).noWrap()
                     }
                 }
-                .font(.caption)
+                .font(.system(size: 11))
                 .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -301,6 +446,109 @@ struct StatusPanelView: View {
         }
         return parts
     }
+}
+
+/// 面板分隔线（原型 .msep：1px、上下 8）。
+private struct PanelSeparator: View {
+    var body: some View {
+        Rectangle()
+            .fill(Color(nsColor: .separatorColor))
+            .frame(height: 1)
+            .padding(.vertical, 8)
+    }
+}
+
+/// 面板外观：玻璃 = 液态玻璃圆角 18（无箭头）；popover = 不加背景（NSPopover 自绘）。
+private struct PanelChrome: ViewModifier {
+    let glass: Bool
+
+    func body(content: Content) -> some View {
+        if glass {
+            content.glassSurface(.panel, in: RoundedRectangle(cornerRadius: StatusPanelView.cornerRadius,
+                                                              style: .continuous))
+        } else {
+            content
+        }
+    }
+}
+
+/// 玻璃时按钮为胶囊（原型 glass-on .btn）。
+private struct PanelButtonShape: ViewModifier {
+    let glass: Bool
+
+    func body(content: Content) -> some View {
+        if glass {
+            content.buttonStyle(.bordered).buttonBorderShape(.capsule)
+        } else {
+            content
+        }
+    }
+}
+
+/// 等宽三段选择（原型 .seg.full）：段宽均分整行，不随文字撑宽面板；玻璃时为胶囊。
+struct PanelSegmented<Value: Hashable>: View {
+    @Binding var selection: Value
+    let glass: Bool
+    let options: [(Value, String)]
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        let shapeRadius: CGFloat = glass ? 999 : 7
+        HStack(spacing: 2) {
+            ForEach(options.indices, id: \.self) { i in
+                let (value, title) = options[i]
+                let on = value == selection
+                Button {
+                    selection = value
+                } label: {
+                    Text(title)
+                        .font(.system(size: 12, weight: on ? .semibold : .regular))
+                        .foregroundStyle(on ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 3)
+                        .padding(.horizontal, 4)
+                        .background {
+                            if on {
+                                RoundedRectangle(cornerRadius: glass ? 999 : 5, style: .continuous)
+                                    .fill(selectedFill)
+                                    .shadow(color: .black.opacity(glass ? 0 : 0.12), radius: 1, y: 1)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(on ? [.isSelected] : [])
+            }
+        }
+        .padding(2)
+        .background(RoundedRectangle(cornerRadius: shapeRadius, style: .continuous).fill(trackFill))
+        .overlay {
+            if glass {
+                RoundedRectangle(cornerRadius: shapeRadius, style: .continuous)
+                    .stroke(Color.white.opacity(colorScheme == .dark ? 0.18 : 0.65), lineWidth: 1)
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private var selectedFill: Color {
+        if glass { return Color.white.opacity(colorScheme == .dark ? 0.2 : 0.85) }
+        return Color(nsColor: .controlBackgroundColor)
+    }
+
+    private var trackFill: Color {
+        if glass { return Color.white.opacity(colorScheme == .dark ? 0.10 : 0.35) }
+        return Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.08)
+    }
+}
+
+/// 自绘玻璃面板窗：可成为 key（接收 Esc 与控件键盘操作），不激活 App。
+final class StatusGlassPanel: NSPanel {
+    var onCancel: (() -> Void)?
+    override var canBecomeKey: Bool { true }
+    override func cancelOperation(_ sender: Any?) { onCancel?() }
 }
 
 /// 小电量环：accent 弧线 + 百分比数字，低电量转红。
