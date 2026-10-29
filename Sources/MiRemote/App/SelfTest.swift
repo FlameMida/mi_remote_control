@@ -1144,6 +1144,17 @@ enum SelfTest {
                    "uninstall 只删自己的条目，还原为原始配置")
             expect(!FileManager.default.fileExists(atPath: script.path), "uninstall 移除发信脚本")
             expect(!ClaudeHooks.installed(settings: settings), "uninstall 后 status=未安装")
+
+            // 部分安装（旧版本只注入了部分条目 / 用户手删过一条）：uninstall 仍须清掉残留条目。
+            let partial = #"{"hooks":{"Stop":[{"hooks":[{"type":"command","command":"/bin/bash \"/x/miremote-notify.sh\" agent_done"}]}]}}"#
+            try? Data(partial.utf8).write(to: settings)
+            try? Data("#!/bin/bash\n".utf8).write(to: script)
+            let partialRoot = read()
+            expect(!ClaudeHooks.isInstalled(partialRoot) && ClaudeHooks.hasAnyEntry(partialRoot),
+                   "部分安装：isInstalled=false 但 hasAnyEntry=true")
+            expect(ClaudeHooks.uninstall(settings: settings, script: script).code == 0, "部分安装 uninstall 成功")
+            expect(!ClaudeHooks.hasAnyEntry(read()), "部分安装 uninstall 后不残留本工具 hook")
+            expect(!FileManager.default.fileExists(atPath: script.path), "部分安装 uninstall 移除发信脚本")
         }
 
         // ===== 体验修复批次（persona 报告 N-29/P2/P4/P6/P7）=====
