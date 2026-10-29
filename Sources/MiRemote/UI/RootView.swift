@@ -78,7 +78,7 @@ struct RootView: View {
             switch selection {
             case .mapping: MappingPage(onOpenProfiles: { selection = .profile })
             case .profile: ProfilePage(selection: $selection)
-            case .voice:   VoicePage()
+            case .voice:   VoicePage(onOpenOnboarding: { step in onboardingStep = step; showOnboarding = true })
             case .general: GeneralPage(onShowOnboarding: { onboardingStep = 0; showOnboarding = true },
                                        onShowHealthCheck: { showHealthCheck = true })
             }
