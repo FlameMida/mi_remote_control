@@ -1,7 +1,7 @@
 format_version: 1
 current: null
 tasks:
-  T00: { status: pending }
+  T00: { status: completed }
   T01: { status: pending }
   T02: { status: pending }
   T03: { status: pending }
@@ -24,5 +24,7 @@ tasks:
   T20: { status: pending }
   T21: { status: pending }
 resources:
-  - "worktree: .worktrees/plan/2026-10-29-01-settings-ui-redesign —— git worktree remove .worktrees/plan/2026-10-29-01-settings-ui-redesign"
-notes: []
+  - "worktree: not created; implemented in place on feat/ui-redesign-spec (CI triggers on feat/**)"
+notes:
+  - "T00: source root /workspace/mi_remote_control (Linux box, cannot compile); branch feat/ui-redesign-spec; base HEAD 80b1540; baseline CI run 40853650548 (runner xcode-27, Xcode 27.1, Swift 6.4, macOS 27) SELF-TEST PASS. Glass branch (#if compiler(>=6.2) + macOS 26) compiles on CI."
+  - "Process: red runs are not pushed to CI (branch kept green); green verified on GitHub Actions. Guardrail bind/inspect scripts not run (hooks not installed on this host). Progress recorded in one chore commit per phase."

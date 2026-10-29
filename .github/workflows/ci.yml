@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-test:
-    # GitHub 的 macOS 27 镜像标签为 xcode-27（预览版，默认 Xcode 27 beta / macOS 27 SDK）
+    # GitHub 的 macOS 27 镜像标签为 xcode-27（默认 Xcode 27.1 正式版 / macOS 27 SDK）
     runs-on: xcode-27
     steps:
       - uses: actions/checkout@v4
