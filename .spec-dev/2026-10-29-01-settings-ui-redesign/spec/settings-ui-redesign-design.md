@@ -478,6 +478,36 @@ MiRemote 的界面由三类窗体组成：主设置窗（4 个侧栏页和若干
 - **WHEN** 正在编辑 Ghostty 并选中 OK
 - **THEN** 不显示手势组；详情表「更多」列仍显示合并后生效的手势
 
+### Requirement: 电量图标连续填充（重设计改动）
+
+原版侧栏头按电量区间从 5 个 SF Symbol 中选一个：0–14% `battery.0percent`、15–39% `battery.25percent`、40–64% `battery.50percent`、65–89% `battery.75percent`、≥90% `battery.100percent`，颜色 `.secondary`（`RootView.swift:112-119`、`:53-55`）。电量未知时分两种：已连接显示 `ProgressView` 加「正在读取电量…」，未连接显示 `battery.0percent` 加「电量待连接」，颜色 `.tertiary`（`:56-62`）。
+
+重设计 SHALL 把侧栏头的电池改为连续填充：内芯宽度 = 电量百分比（如 82% 填满 82%），外形按 SF Symbol battery 的比例（圆角机身 + 正极帽），描边和内芯跟随文字颜色（`.secondary`）。电量 ≤15% 时内芯 SHALL 改为系统红（`Color.red`），作为轻提示；阈值与菜单栏电量环一致（`StatusItemController.swift:298` 为 `percent <= 15`）。电量未知时 SHALL 保持原行为：未连接显示空描边（`.tertiary`）加「电量待连接」，已连接则显示「正在读取电量…」。文字「n%」与原版相同。菜单栏状态卡的电量环（`BatteryRingView`，`StatusItemController.swift:290-307`）本来就按百分比连续绘制，保持不变。
+
+实现提示（不属于本 spec 的实施计划）：SF Symbol 的 battery 只有 5 档，无法连续显示，所以改用一个自定义 SwiftUI 视图：`RoundedRectangle` 描边做机身，右侧小圆角矩形做正极帽，内部填充 `RoundedRectangle`，宽度 = 内宽 × pct / 100（`GeometryReader` 或固定尺寸），尺寸跟随 `.caption2` 字号（`@ScaledMetric`），并给出 `accessibilityLabel("电量 n%")`。
+
+原型用 `bat=0…100 | none` 参数和开发栏「电量」滑块（附「未知」勾选）预览，默认 82。
+
+#### Scenario: 电量 82% 时的侧栏头
+- **GIVEN** 遥控器已连接，电量 82%
+- **WHEN** 设置窗显示侧栏
+- **THEN** 「MI RC 2 Pro」后的电池内芯填满约 82%，颜色同文字（二级色），后接「82%」；原版此时显示 `battery.75percent`（截图 37 对照列）
+
+#### Scenario: 低电量变红
+- **GIVEN** 遥控器已连接，电量 12%
+- **WHEN** 设置窗显示侧栏，或打开菜单栏状态面板
+- **THEN** 侧栏电池内芯约 12% 宽且为系统红；菜单栏电量环同样为红色（原版行为）（截图 39、40）
+
+#### Scenario: 电量未知
+- **GIVEN** 遥控器未连接
+- **WHEN** 设置窗显示侧栏
+- **THEN** 显示空描边电池（三级色）加「电量待连接」，不画内芯；若已连接但还没读到电量，则显示「正在读取电量…」（截图 37 最后两行、28）
+
+#### Scenario: 电量变化时连续更新
+- **GIVEN** 侧栏正在显示
+- **WHEN** `batteryPercent` 从 41 变为 39
+- **THEN** 内芯宽度连续缩短 2%，不出现原版 50% 到 25% 档位那样的跳变
+
 ### Requirement: 短标签不断行与标题区排版（视觉刷新）
 
 所有页面标题区、工具栏、行、标签、徽标、按钮、分段与 sheet 中的短标签 SHALL 不在词中断行（如「已保存」「识别按键」「电量 82%」）。页面标题区 SHALL 让副标题占满整行宽度：「已保存」提示放在标题同一行，副标题单独一行，不被右侧按钮挤压，避免只剩 1–2 个字落到下一行。换行的文字 SHALL 与该文字列的起始左缘对齐，不对齐到前面的圆点或图标下方。侧栏头与菜单栏状态卡中，设备名过长时侧栏截断并给出完整名提示、面板内换行，电量作为一个整体换行。窗口宽度不足时 SHALL 自动进入窄窗布局。
@@ -544,10 +574,10 @@ MiRemote 的界面由三类窗体组成：主设置窗（4 个侧栏页和若干
 | 项 | 内容 |
 |---|---|
 | 文件 | `spec/assets/prototype-v2.html`（= `index.html`，单文件、离线可开）。`prototype-v1.html` 为第 1 版（含用户改过的遥控器画法），只作参照，**已被 v2 取代** |
-| URL 参数 | `screen=<见窗体清单>&scene=global\|ghostty\|claude\|chrome\|wechat\|iina\|feishu&key=<键 id：power/voice/up/down/left/right/ok/back/home/menu/tv>&state=ok\|disc\|perm\|degraded\|layer\|empty\|loading\|paused&lbl=base\|1\|2\|3&adv=0\|1&gest=0\|1&side=open\|hidden&glass=on\|off\|rt&theme=light\|dark&width=wide\|narrow`；加 `shot=1` 隐藏开发栏 |
-| 开发栏 | 窗体、场景、状态、示意图显示、第二功能模式展开、手势绑定（无 / 模拟已绑定，对应 `gest`）、侧栏、玻璃（on = macOS 26 / off = 14–15 / rt = 降低透明度）、主题、宽度；按 ⌃⌘S 切换侧栏 |
+| URL 参数 | `screen=<见窗体清单>&scene=global\|ghostty\|claude\|chrome\|wechat\|iina\|feishu&key=<键 id：power/voice/up/down/left/right/ok/back/home/menu/tv>&state=ok\|disc\|perm\|degraded\|layer\|empty\|loading\|paused&lbl=base\|1\|2\|3&adv=0\|1&gest=0\|1&bat=0…100\|none&side=open\|hidden&glass=on\|off\|rt&theme=light\|dark&width=wide\|narrow`；加 `shot=1` 隐藏开发栏 |
+| 开发栏 | 窗体、场景、状态、示意图显示、第二功能模式展开、手势绑定（无 / 模拟已绑定，对应 `gest`）、电量滑块（附「未知」，对应 `bat`，默认 82）、侧栏、玻璃（on = macOS 26 / off = 14–15 / rt = 降低透明度）、主题、宽度；按 ⌃⌘S 切换侧栏 |
 | 模拟边界 | 所有数据为假数据：遥控器状态、场景、覆盖数、体检结果、电量、前台 App。玻璃用 CSS `backdrop-filter` 与高光模拟，不代表 macOS 26 的真实折射。原型中的设置窗宽度（1120）只为截图清晰，不规定窗口尺寸；视口宽度 < 1140 时自动按窄窗布局渲染 |
-| 截图 | `spec/assets/screenshots/` 共 36 张：各窗体浅色图（01–21，其中 12 为场景行右键菜单、16 为菜单栏状态面板）+ 深色图（22–24）+ 侧栏隐藏（25）+ 玻璃关闭 / 降低透明度（26–27）+ 未连接 / 空状态 / 窄窗（28–30）+ 返回键短按说明（31）+ OK 已绑定手势（32）+ 菜单栏面板未连接 / 已暂停 / 故障（33–35）+ 菜单栏右键兜底菜单（36） |
+| 截图 | `spec/assets/screenshots/` 共 40 张：各窗体浅色图（01–21，其中 12 为场景行右键菜单、16 为菜单栏状态面板）+ 深色图（22–24）+ 侧栏隐藏（25）+ 玻璃关闭 / 降低透明度（26–27）+ 未连接 / 空状态 / 窄窗（28–30）+ 返回键短按说明（31）+ OK 已绑定手势（32）+ 菜单栏面板未连接 / 已暂停 / 故障（33–35）+ 菜单栏右键兜底菜单（36）+ 电量图标各档样张浅色 / 深色（37–38，`screen=spec-battery`，样张页不是 App 窗体）+ 低电量 12% 的侧栏与菜单栏（39–40） |
 | 未在原型中展示 | VoiceOver 朗读、减少动态效果 |
 | 未确认 | 见 open-questions.md 的 N1–N3 |
 
@@ -599,6 +629,10 @@ MiRemote 的界面由三类窗体组成：主设置窗（4 个侧栏页和若干
 | 已绑定手势时显示 4 行 | 行为 | 截图 32 | 是 | 设置窗 | 截图 |
 | 清空全部手势后组消失 | 行为（回归） | 人工 | 是 | 设置窗 | 录屏 |
 | App 场景不继承显示 | 行为（回归） | 人工（`scene=ghostty&key=ok&gest=1`） | 是 | 设置窗 | 截图 |
+| 电量 82% 时的侧栏头 | 视觉 | 截图 37 / 01 | 是 | 设置窗 | 截图 |
+| 低电量变红 | 视觉 | 截图 39 / 40 | 是 | 设置窗 / 菜单栏 | 截图 |
+| 电量未知 | 状态（回归） | 截图 37 / 28 | 是 | 设置窗 | 截图 |
+| 电量变化时连续更新 | 行为 | 人工（拖动开发栏电量滑块） | 是 | 设置窗 | 录屏 |
 | 窄窗口下的映射页标题 | 布局 | 截图 30 + 900 px 视口人工检查 | 是 | 设置窗 | 截图 |
 | 仅用键盘编辑一个键 | a11y | 人工 | 是 | a11y | 录屏 |
 | 启动后正在编辑的是全局默认 | 回归 | 人工 | 是 | 回归 | 录屏 |
@@ -616,6 +650,7 @@ MiRemote 的界面由三类窗体组成：主设置窗（4 个侧栏页和若干
 - 识别按键 sheet 与引导第 3 步中的 `REMOTE_SVG` 示意
 - 可收起侧栏（⌃⌘S）、macOS 26 液态玻璃与回退、整体视觉刷新
 - 菜单栏面板使用液态玻璃（原版刻意不透明，`StatusItemController.swift:240`）
+- 侧栏头电池改为连续填充（原版为 5 档 SF Symbol，`RootView.swift:112-119`），≤15% 内芯变红
 - 短标签不断行、标题区「已保存」移到标题行等排版规则
 
 ## 风险
