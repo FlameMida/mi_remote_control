@@ -7,6 +7,12 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  # fork 上推 tag 不一定触发 push 事件，可手动指定已存在的 tag 发布
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "要发布的已存在 tag，如 v0.3.0"
+        required: true
 
 permissions:
   contents: write
@@ -17,6 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.tag || github.ref }}
           fetch-depth: 0   # git describe 需要完整历史与 tag
       - name: 构建 + 自检
         run: |
@@ -29,8 +36,9 @@ jobs:
       - name: 发布 Release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || github.ref_name }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" \
-            --title "MiRemote ${GITHUB_REF_NAME}" \
+          gh release create "${TAG}" \
+            --title "MiRemote ${TAG}" \
             --generate-notes \
             dist/*.dmg dist/*.zip
