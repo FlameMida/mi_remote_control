@@ -71,6 +71,24 @@ final class MacroEngine: @unchecked Sendable {
     }
 }
 
+extension MacroEngine {
+    /// 把文本切成不超过 size 个 UTF-16 单元的分段，且绝不把代理对（emoji、CJK 扩展 B 等
+    /// BMP 外字符）拆到两段：拆开后每段各含一个孤立代理单元，目标 App 收到的是乱码/替换符。
+    static func utf16Chunks(_ text: String, size: Int) -> [[UInt16]] {
+        let units = Array(text.utf16)
+        let size = max(size, 2)
+        var chunks: [[UInt16]] = []
+        var i = 0
+        while i < units.count {
+            var end = min(i + size, units.count)
+            if end < units.count, UTF16.isLeadSurrogate(units[end - 1]) { end -= 1 }
+            chunks.append(Array(units[i..<end]))
+            i = end
+        }
+        return chunks
+    }
+}
+
 /// 生产原语：action 回主线程交给 ActionRunner；text 用 keyboardSetUnicodeString 分段发。
 private struct LiveMacroPrimitives: MacroPrimitives {
     let runner: ActionRunning
@@ -82,11 +100,8 @@ private struct LiveMacroPrimitives: MacroPrimitives {
 
     func typeText(_ text: String) {
         let src = CGEventSource(stateID: .combinedSessionState)
-        let utf16 = Array(text.utf16)
-        let chunkSize = 20
-        var i = 0
-        while i < utf16.count {
-            let chunk = Array(utf16[i..<min(i + chunkSize, utf16.count)])
+        let chunks = MacroEngine.utf16Chunks(text, size: 20)
+        for (index, chunk) in chunks.enumerated() {
             guard let down = CGEvent(keyboardEventSource: src, virtualKey: 0, keyDown: true),
                   let up = CGEvent(keyboardEventSource: src, virtualKey: 0, keyDown: false) else { return }
             chunk.withUnsafeBufferPointer { buf in
@@ -95,8 +110,7 @@ private struct LiveMacroPrimitives: MacroPrimitives {
             }
             down.post(tap: .cghidEventTap)
             up.post(tap: .cghidEventTap)
-            i += chunkSize
-            if i < utf16.count { usleep(8_000) } // 分段间隙，防长文本丢字
+            if index < chunks.count - 1 { usleep(8_000) } // 分段间隙，防长文本丢字
         }
     }
 

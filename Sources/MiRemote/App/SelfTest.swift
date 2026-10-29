@@ -316,6 +316,20 @@ enum SelfTest {
                    "Macro 步骤顺序/间隔/嵌套限深", "\(rec.log)")
         }
 
+        // M4-4b. 宏 text 分段不拆 UTF-16 代理对（第 20 个单元恰为 emoji 前半时整对顺延到下一段）
+        do {
+            let text = String(repeating: "a", count: 19) + "\u{1F600}" + "bc"
+            let chunks = MacroEngine.utf16Chunks(text, size: 20)
+            expect(chunks.map(\.count) == [19, 4]
+                   && chunks.allSatisfy { String(decoding: $0, as: UTF16.self).unicodeScalars
+                       .allSatisfy { $0 != "\u{FFFD}" } }
+                   && chunks.flatMap { $0 } == Array(text.utf16),
+                   "宏 text 分段不拆代理对", "\(chunks.map(\.count))")
+            expect(MacroEngine.utf16Chunks("", size: 20).isEmpty
+                   && MacroEngine.utf16Chunks(String(repeating: "x", count: 40), size: 20).map(\.count) == [20, 20],
+                   "宏 text 分段边界")
+        }
+
         // M4-5. MouseMode 加速曲线纯函数
         expect(MouseMode.speed(afterSeconds: 0) == 4.0, "MouseMode 初速 4px/tick")
         expect(abs(MouseMode.speed(afterSeconds: 0.75) - 22.0) < 0.001, "MouseMode 中点 22px/tick")
