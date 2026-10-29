@@ -367,6 +367,8 @@ final class AppModel: ObservableObject {
 
     /// 写回 config.json → 引擎热加载 → inline「已保存」提示。
     func saveConfig() {
+        // 启动时若 config.json 解析失败，config 是回退的默认值：先备份原文件，绝不静默覆盖。
+        ConfigStore.backupIfUnreadable(at: configURL)
         if ConfigStore.save(config, to: configURL) {
             services?.applyConfig(config)
             savedTick += 1

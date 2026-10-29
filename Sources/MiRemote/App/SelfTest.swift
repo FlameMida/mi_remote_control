@@ -821,6 +821,30 @@ enum SelfTest {
             expect(ConfigStore.load(from: tmp) == nil, "ConfigStore 损坏文件返回 nil")
         }
 
+        // M5-1b. 无法解析的配置在写回前被备份而非覆盖；可解析/不存在时不动
+        do {
+            let dir = FileManager.default.temporaryDirectory
+                .appendingPathComponent("miremote-cfgbak-\(ProcessInfo.processInfo.processIdentifier)")
+            defer { try? FileManager.default.removeItem(at: dir) }
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            let url = dir.appendingPathComponent("config.json")
+            expect(ConfigStore.backupIfUnreadable(at: url) == nil, "配置备份：文件不存在不动作")
+            expect(ConfigStore.save(MappingConfig(), to: url)
+                   && ConfigStore.backupIfUnreadable(at: url) == nil
+                   && FileManager.default.fileExists(atPath: url.path),
+                   "配置备份：可解析文件保留原地")
+            try? Data("{ broken".utf8).write(to: url)
+            let bak = ConfigStore.backupIfUnreadable(at: url)
+            expect(bak.flatMap { try? String(contentsOf: $0, encoding: .utf8) } == "{ broken"
+                   && !FileManager.default.fileExists(atPath: url.path),
+                   "配置备份：损坏文件移到 config.broken.json")
+            try? Data("{ broken2".utf8).write(to: url)
+            let bak2 = ConfigStore.backupIfUnreadable(at: url)
+            expect(bak2 != nil && bak2 != bak
+                   && bak.flatMap { try? String(contentsOf: $0, encoding: .utf8) } == "{ broken",
+                   "配置备份：已有备份不被覆盖")
+        }
+
         // M5-2. Action 人类可读摘要（ActionPicker 关闭态 / 预设预览共用的纯函数）
         expect(ActionSummary.selfCheck(), "ActionSummary 摘要渲染")
 

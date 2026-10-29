@@ -37,6 +37,31 @@ enum ConfigStore {
         load(from: path.map { URL(fileURLWithPath: $0) } ?? defaultURL())
     }
 
+    /// 目标文件存在但无法解析时把它挪到同目录备份（config.broken.json，已存在则加时间戳），
+    /// 返回备份 URL；文件不存在或可正常解析返回 nil。UI 写回前调用：启动时解析失败会回退
+    /// 默认配置，此后任何一次界面修改若直接覆盖，就会静默抹掉用户手写的问题文件。
+    @discardableResult
+    static func backupIfUnreadable(at url: URL) -> URL? {
+        let fm = FileManager.default
+        guard fm.fileExists(atPath: url.path), load(from: url) == nil else { return nil }
+        let dir = url.deletingLastPathComponent()
+        var backup = dir.appendingPathComponent("config.broken.json")
+        let stamp = Int(Date().timeIntervalSince1970)
+        var n = 0
+        while fm.fileExists(atPath: backup.path) {
+            n += 1
+            backup = dir.appendingPathComponent("config.broken-\(stamp)-\(n).json")
+        }
+        do {
+            try fm.moveItem(at: url, to: backup)
+            log("配置文件无法解析，已备份到 \(backup.path) 后再写入")
+            return backup
+        } catch {
+            log("无法解析的配置文件备份失败: \(error)")
+            return nil
+        }
+    }
+
     /// 写配置（pretty + sortedKeys，便于用户手改与 diff）。
     @discardableResult
     static func save(_ config: MappingConfig, to url: URL) -> Bool {
