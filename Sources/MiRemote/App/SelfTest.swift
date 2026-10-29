@@ -316,6 +316,20 @@ enum SelfTest {
                    "Macro 步骤顺序/间隔/嵌套限深", "\(rec.log)")
         }
 
+        // M4-4b. 宏 text 分段不拆 UTF-16 代理对（第 20 个单元恰为 emoji 前半时整对顺延到下一段）
+        do {
+            let text = String(repeating: "a", count: 19) + "\u{1F600}" + "bc"
+            let chunks = MacroEngine.utf16Chunks(text, size: 20)
+            expect(chunks.map(\.count) == [19, 4]
+                   && chunks.allSatisfy { String(decoding: $0, as: UTF16.self).unicodeScalars
+                       .allSatisfy { $0 != "\u{FFFD}" } }
+                   && chunks.flatMap { $0 } == Array(text.utf16),
+                   "宏 text 分段不拆代理对", "\(chunks.map(\.count))")
+            expect(MacroEngine.utf16Chunks("", size: 20).isEmpty
+                   && MacroEngine.utf16Chunks(String(repeating: "x", count: 40), size: 20).map(\.count) == [20, 20],
+                   "宏 text 分段边界")
+        }
+
         // M4-5. MouseMode 加速曲线纯函数
         expect(MouseMode.speed(afterSeconds: 0) == 4.0, "MouseMode 初速 4px/tick")
         expect(abs(MouseMode.speed(afterSeconds: 0.75) - 22.0) < 0.001, "MouseMode 中点 22px/tick")
@@ -807,6 +821,30 @@ enum SelfTest {
             expect(ConfigStore.load(from: tmp) == nil, "ConfigStore 损坏文件返回 nil")
         }
 
+        // M5-1b. 无法解析的配置在写回前被备份而非覆盖；可解析/不存在时不动
+        do {
+            let dir = FileManager.default.temporaryDirectory
+                .appendingPathComponent("miremote-cfgbak-\(ProcessInfo.processInfo.processIdentifier)")
+            defer { try? FileManager.default.removeItem(at: dir) }
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            let url = dir.appendingPathComponent("config.json")
+            expect(ConfigStore.backupIfUnreadable(at: url) == nil, "配置备份：文件不存在不动作")
+            expect(ConfigStore.save(MappingConfig(), to: url)
+                   && ConfigStore.backupIfUnreadable(at: url) == nil
+                   && FileManager.default.fileExists(atPath: url.path),
+                   "配置备份：可解析文件保留原地")
+            try? Data("{ broken".utf8).write(to: url)
+            let bak = ConfigStore.backupIfUnreadable(at: url)
+            expect(bak.flatMap { try? String(contentsOf: $0, encoding: .utf8) } == "{ broken"
+                   && !FileManager.default.fileExists(atPath: url.path),
+                   "配置备份：损坏文件移到 config.broken.json")
+            try? Data("{ broken2".utf8).write(to: url)
+            let bak2 = ConfigStore.backupIfUnreadable(at: url)
+            expect(bak2 != nil && bak2 != bak
+                   && bak.flatMap { try? String(contentsOf: $0, encoding: .utf8) } == "{ broken",
+                   "配置备份：已有备份不被覆盖")
+        }
+
         // M5-2. Action 人类可读摘要（ActionPicker 关闭态 / 预设预览共用的纯函数）
         expect(ActionSummary.selfCheck(), "ActionSummary 摘要渲染")
 
@@ -1144,6 +1182,17 @@ enum SelfTest {
                    "uninstall 只删自己的条目，还原为原始配置")
             expect(!FileManager.default.fileExists(atPath: script.path), "uninstall 移除发信脚本")
             expect(!ClaudeHooks.installed(settings: settings), "uninstall 后 status=未安装")
+
+            // 部分安装（旧版本只注入了部分条目 / 用户手删过一条）：uninstall 仍须清掉残留条目。
+            let partial = #"{"hooks":{"Stop":[{"hooks":[{"type":"command","command":"/bin/bash \"/x/miremote-notify.sh\" agent_done"}]}]}}"#
+            try? Data(partial.utf8).write(to: settings)
+            try? Data("#!/bin/bash\n".utf8).write(to: script)
+            let partialRoot = read()
+            expect(!ClaudeHooks.isInstalled(partialRoot) && ClaudeHooks.hasAnyEntry(partialRoot),
+                   "部分安装：isInstalled=false 但 hasAnyEntry=true")
+            expect(ClaudeHooks.uninstall(settings: settings, script: script).code == 0, "部分安装 uninstall 成功")
+            expect(!ClaudeHooks.hasAnyEntry(read()), "部分安装 uninstall 后不残留本工具 hook")
+            expect(!FileManager.default.fileExists(atPath: script.path), "部分安装 uninstall 移除发信脚本")
         }
 
         // ===== 体验修复批次（persona 报告 N-29/P2/P4/P6/P7）=====

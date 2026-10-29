@@ -37,6 +37,31 @@ enum ConfigStore {
         load(from: path.map { URL(fileURLWithPath: $0) } ?? defaultURL())
     }
 
+    /// 目标文件存在但无法解析时把它挪到同目录备份（config.broken.json，已存在则加时间戳），
+    /// 返回备份 URL；文件不存在或可正常解析返回 nil。UI 写回前调用：启动时解析失败会回退
+    /// 默认配置，此后任何一次界面修改若直接覆盖，就会静默抹掉用户手写的问题文件。
+    @discardableResult
+    static func backupIfUnreadable(at url: URL) -> URL? {
+        let fm = FileManager.default
+        guard fm.fileExists(atPath: url.path), load(from: url) == nil else { return nil }
+        let dir = url.deletingLastPathComponent()
+        var backup = dir.appendingPathComponent("config.broken.json")
+        let stamp = Int(Date().timeIntervalSince1970)
+        var n = 0
+        while fm.fileExists(atPath: backup.path) {
+            n += 1
+            backup = dir.appendingPathComponent("config.broken-\(stamp)-\(n).json")
+        }
+        do {
+            try fm.moveItem(at: url, to: backup)
+            log("配置文件无法解析，已备份到 \(backup.path) 后再写入")
+            return backup
+        } catch {
+            log("无法解析的配置文件备份失败: \(error)")
+            return nil
+        }
+    }
+
     /// 写配置（pretty + sortedKeys，便于用户手改与 diff）。
     @discardableResult
     static func save(_ config: MappingConfig, to url: URL) -> Bool {
@@ -372,6 +397,9 @@ final class VoiceBridgeApp: ATVVBridgeDelegate {
     func atvvVoiceStarted() {
         log("语音开始")
         onVoiceActive?(true)
+        // 上一会话的延迟还原尚未执行就被新会话取消：还原责任必须转交本会话，
+        // 否则本会话若零音频帧（不会再 engage）结束时不会还原，默认麦克风永久停在虚拟声卡。
+        let inheritedMicRestore = restoreWork.map { !$0.isCancelled } ?? false
         restoreWork?.cancel()
         restoreWork = nil
         // 会话锁存：本会话按此刻的配置执行并记录实际做过的操作，
@@ -379,7 +407,7 @@ final class VoiceBridgeApp: ATVVBridgeDelegate {
         let (wantSwitch, wantDoubao): (Bool, Bool) = {
             cfgLock.lock(); defer { cfgLock.unlock() }
             sessionActive = true
-            sessionSwitchedMic = false   // 真正切换后才置位，见 atvvAudioFrame 的 pendingMicSwitch 分支
+            sessionSwitchedMic = inheritedMicRestore   // 真正切换或继承未完成的还原才置位，见 atvvAudioFrame 的 pendingMicSwitch 分支
             sessionDoubao = _doubao
             return (_switchInput, _doubao)
         }()
@@ -459,7 +487,8 @@ final class VoiceBridgeApp: ATVVBridgeDelegate {
         if pendingMicSwitch {
             pendingMicSwitch = false
             let engaged = DefaultInput.engage(deviceName: micDeviceName)
-            cfgLock.lock(); sessionSwitchedMic = engaged; cfgLock.unlock()
+            // 只置位不清零：engage 失败时保留从上一会话继承的还原责任。
+            if engaged { cfgLock.lock(); sessionSwitchedMic = true; cfgLock.unlock() }
             log(engaged
                 ? "默认麦克风 → \(micDeviceName)"
                 : "切换默认麦克风失败（未找到 \(micDeviceName)*，未装虚拟声卡？语音出字不可用，按键功能不受影响）")

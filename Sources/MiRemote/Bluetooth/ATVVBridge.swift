@@ -219,6 +219,14 @@ final class ATVVBridge: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     }
 
     private func resetSessionState() {
+        // 链路中断（断连/连接失败/蓝牙关闭/stop）时若语音流仍在进行，遥控器不会再发 0x00，
+        // handleStreamStop 永远等不到：必须在此补发结束回调，否则触发键保持按下、
+        // 默认麦克风停在虚拟声卡、界面停在语音中。链路已断，不再发 MIC_CLOSE。
+        if streaming {
+            streaming = false
+            log("AUDIO_STOP (link lost)")
+            delegate?.atvvVoiceStopped()
+        }
         batteryRefreshWork?.cancel()
         batteryRefreshWork = nil
         batteryChar = nil

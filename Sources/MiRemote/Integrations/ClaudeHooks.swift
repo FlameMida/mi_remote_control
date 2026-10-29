@@ -69,6 +69,20 @@ enum ClaudeHooks {
         }
     }
 
+    /// 是否残留任意一条本工具注入的 hook（不要求三条齐全）。
+    /// 卸载判定必须用它：旧版本只注入了部分条目、或用户手删过一条时 `isInstalled` 为 false，
+    /// 若据此跳过清理却删掉发信脚本，剩余 hook 每次触发都会执行一个不存在的脚本。
+    static func hasAnyEntry(_ root: [String: Any]) -> Bool {
+        let hooks = root["hooks"] as? [String: Any] ?? [:]
+        return hooks.values.contains { value in
+            (value as? [[String: Any]] ?? []).contains { group in
+                (group["hooks"] as? [[String: Any]] ?? []).contains {
+                    ($0["command"] as? String)?.contains(marker) == true
+                }
+            }
+        }
+    }
+
     /// 注入（幂等：同 event+matcher 下已有含标记的条目则跳过）。
     static func inject(into root: [String: Any], scriptPath: String) -> [String: Any] {
         var root = root
@@ -167,7 +181,7 @@ enum ClaudeHooks {
         guard let root = load(settings) else {
             return ("卸载失败：\(settings.path) 不是合法 JSON，请手动检查。", 1)
         }
-        guard isInstalled(root) else {
+        guard hasAnyEntry(root) else {
             try? FileManager.default.removeItem(at: script)
             return ("Claude Code hooks 未安装，无需卸载。", 0)
         }
