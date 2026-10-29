@@ -181,7 +181,7 @@ final class GUIAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     /// 原型尺寸 1120×700，屏幕放不下时按可见区收缩（不小于最小尺寸）。
-    private static func initialWindowSize() -> CGSize {
+    static func initialWindowSize() -> CGSize {
         let target = SettingsWindowLayout.defaultSize
         guard let visible = NSScreen.main?.visibleFrame.size else { return target }
         let minS = SettingsWindowLayout.minSize

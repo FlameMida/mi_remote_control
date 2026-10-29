@@ -65,18 +65,18 @@ struct VoicePage: View {
 
                 SettingsGroup(title: "按 App 的语音快捷键") {
                     VStack(alignment: .leading, spacing: 12) {
-                        // 三列稳定网格：标签 / 控件（等宽 250）/ 附件位，右缘对齐如系统 Form
+                        // 三列网格：标签（定宽）/ 控件（等宽 220）/ 附件位，整体左对齐（原型 .vform）
                         Grid(alignment: .leading, horizontalSpacing: Spacing.intra, verticalSpacing: 12) {
                             GridRow {
                                 Text("适用 App").font(.body)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .frame(width: 64, alignment: .leading)
                                 Picker("", selection: $selectedProfile) {
                                     ForEach(selectableProfiles, id: \.self) { profile in
                                         Text(profileDisplayName(profile)).tag(profile)
                                     }
                                 }
                                 .labelsHidden()
-                                .frame(width: 250, alignment: .leading)
+                                .frame(width: 220, alignment: .leading)
                                 Button { showAddApp = true } label: {
                                     Image(systemName: "plus")
                                 }
@@ -85,35 +85,35 @@ struct VoicePage: View {
                             }
                             GridRow {
                                 Text("触发按键").font(.body)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .frame(width: 64, alignment: .leading)
                                 Picker("", selection: triggerKeyBinding) {
                                     ForEach(triggerKeys, id: \.0) { item in Text(item.1).tag(item.0) }
                                 }
                                 .labelsHidden()
-                                .frame(width: 250, alignment: .leading)
+                                .frame(width: 220, alignment: .leading)
                                 Color.clear.frame(width: 16, height: 1)
                             }
                             GridRow {
                                 Text("触发方式").font(.body)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .frame(width: 64, alignment: .leading)
                                 Picker("", selection: triggerModeBinding) {
                                     Text("按住说话").tag("hold")
                                     Text("单击开始 / 再击结束").tag("tap")
                                     Text("双击开始 / 单击结束").tag("double")
                                 }
                                 .labelsHidden()
-                                .frame(width: 250, alignment: .leading)
+                                .frame(width: 220, alignment: .leading)
                                 Color.clear.frame(width: 16, height: 1)
                             }
                             GridRow {
                                 Text("语音工具").font(.body)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .frame(width: 64, alignment: .leading)
                                 Picker("", selection: imeModeBinding) {
                                     Text("豆包输入法（自动切换）").tag("doubao")
                                     Text("独立语音 App（不切输入法）").tag("standalone")
                                 }
                                 .labelsHidden()
-                                .frame(width: 250, alignment: .leading)
+                                .frame(width: 220, alignment: .leading)
                                 Color.clear.frame(width: 16, height: 1)
                             }
                         }
@@ -175,8 +175,9 @@ struct VoicePage: View {
                     .padding(Spacing.cardPadding)
                 }
             }
-            .padding(Spacing.page)
-            .frame(maxWidth: 660, alignment: .leading)
+            .padding(.horizontal, Spacing.page)
+            .padding(.vertical, 20)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .sheet(isPresented: $showAddApp) { AddRunningAppSheet() }

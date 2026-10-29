@@ -352,7 +352,7 @@ struct StatusPanelView: View {
                 Toggle("暂停遥控", isOn: Binding(
                     get: { model.remoteSuspended },
                     set: { model.setRemoteSuspended($0) }))
-                    .toggleStyle(.switch)
+                    .toggleStyle(.switch).tint(.green)
                     .controlSize(.mini)
                     .labelsHidden()
             }

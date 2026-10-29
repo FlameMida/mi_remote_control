@@ -29,12 +29,16 @@ final class SnapshotRunner: NSObject, NSApplicationDelegate {
         let delay: TimeInterval
         let setup: () -> Void
         let capture: () -> CGRect?
+        /// 截图完成后执行（关面板 / 浮层）；不能放在 capture 里，否则截图前就已关闭
+        var teardown: (() -> Void)? = nil
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         try? FileManager.default.createDirectory(at: outDir, withIntermediateDirectories: true)
         PermissionGate.suppressLaunchGate = true
         PermissionStatus.snapshotMode = true
+        // runner 开着「降低透明度」；环境变量 MIREMOTE_SNAPSHOT_RT=1 时保留系统设置（截不透明回退外观）
+        GlassSurface.snapshotIgnoresReduceTransparency = ProcessInfo.processInfo.environment["MIREMOTE_SNAPSHOT_RT"] != "1"
         NSApp.setActivationPolicy(.regular)
         Prefs.registerDefaults()
 
@@ -71,8 +75,10 @@ final class SnapshotRunner: NSObject, NSApplicationDelegate {
         backdrop?.contentView?.needsDisplay = true
     }
 
-    private func openSettings(size: CGSize = SettingsWindowLayout.defaultSize, sidebarHidden: Bool = false,
+    private func openSettings(size requested: CGSize? = nil, sidebarHidden: Bool = false,
                               page: SidebarItem) {
+        // 与正式启动一致：默认尺寸按屏幕可见区收窄（runner 屏幕仅 1024×768）
+        let size = requested ?? GUIAppDelegate.initialWindowSize()
         model.sidebarHidden = sidebarHidden
         nav.page = page
         if assembly == nil {
@@ -180,10 +186,11 @@ final class SnapshotRunner: NSObject, NSApplicationDelegate {
                         apply()
                         panel = statusController?.snapshotPanel(anchor: menubarAnchor(), glass: glass)
                     }, capture: {
-                        defer { panel?.orderOut(nil); panel = nil }
                         guard let f = panel?.frame, let screen = NSScreen.main?.frame else { return nil }
                         return CGRect(x: f.minX - 60, y: f.minY - 40, width: f.width + 120,
                                       height: screen.maxY - (f.minY - 40))
+                    }, teardown: {
+                        panel?.orderOut(nil); panel = nil
                     }))
                 }
             }
@@ -196,9 +203,10 @@ final class SnapshotRunner: NSObject, NSApplicationDelegate {
                     setTheme(dark: dark); setConnected()
                     assembly?.window.orderOut(nil)
                     overlayCenter?.open(kind)
-                }, capture: { [weak self] in
-                    defer { self?.overlayCenter?.close() }
-                    return NSScreen.main?.frame
+                }, capture: {
+                    NSScreen.main?.frame
+                }, teardown: { [self] in
+                    overlayCenter?.close()
                 }))
             }
         }
@@ -223,6 +231,7 @@ final class SnapshotRunner: NSObject, NSApplicationDelegate {
             } else {
                 self.note("\(step.name): 无可截图区域")
             }
+            step.teardown?()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 self.run(steps: steps, index: index + 1)
             }

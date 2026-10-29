@@ -17,7 +17,7 @@ struct GeneralPage: View {
                 SettingsGroup(title: "启动与显示") {
                     SettingsRow(icon: "power.circle", title: "登录时启动", subtitle: nil) {
                         Toggle("", isOn: $loginItemOn)
-                            .toggleStyle(.switch)
+                            .toggleStyle(.switch).controlSize(.small).tint(.green)
                             .labelsHidden()
                             .onChange(of: loginItemOn) { _, new in
                                 _ = model.loginItems.setEnabled(new)
@@ -27,35 +27,35 @@ struct GeneralPage: View {
                     SettingsRow(icon: "menubar.rectangle", title: "显示菜单栏图标",
                                 subtitle: "开启后每次启动都会恢复图标；无需单独系统授权") {
                         Toggle("", isOn: $model.showStatusItem)
-                            .toggleStyle(.switch)
+                            .toggleStyle(.switch).controlSize(.small).tint(.green)
                             .labelsHidden()
                     }
                     RowDivider()
                     SettingsRow(icon: "circle.grid.2x1", title: "菜单栏精简模式",
                                 subtitle: "仅显示图标，不显示模式角标文字") {
                         Toggle("", isOn: $model.statusItemCompact)
-                            .toggleStyle(.switch)
+                            .toggleStyle(.switch).controlSize(.small).tint(.green)
                             .labelsHidden()
                             .disabled(!model.showStatusItem)
                     }
                     RowDivider()
                     SettingsRow(icon: "speaker.wave.2", title: "功能模式切换提示音", subtitle: "进入或退出第二功能时播放提示") {
-                        Toggle("", isOn: $model.feedbackSound).toggleStyle(.switch).labelsHidden()
+                        Toggle("", isOn: $model.feedbackSound).toggleStyle(.switch).controlSize(.small).tint(.green).labelsHidden()
                     }
                     RowDivider()
                     SettingsRow(icon: "rectangle.bottomthird.inset.filled", title: "按键提示条",
                                 subtitle: "模式或浮层激活时，屏幕底部实时显示每个键的当前作用") {
-                        Toggle("", isOn: $model.showHintBar).toggleStyle(.switch).labelsHidden()
+                        Toggle("", isOn: $model.showHintBar).toggleStyle(.switch).controlSize(.small).tint(.green).labelsHidden()
                     }
                     RowDivider()
                     SettingsRow(icon: "lock.shield", title: "独占按键（Seize）",
                                 subtitle: "失败时自动降级为监听 + 事件抑制") {
-                        Toggle("", isOn: $model.seizeDevice).toggleStyle(.switch).labelsHidden()
+                        Toggle("", isOn: $model.seizeDevice).toggleStyle(.switch).controlSize(.small).tint(.green).labelsHidden()
                     }
                     RowDivider()
                     SettingsRow(icon: "questionmark.circle", title: "退出确认",
                                 subtitle: "退出前提示「已恢复真实键盘」") {
-                        Toggle("", isOn: $model.exitConfirm).toggleStyle(.switch).labelsHidden()
+                        Toggle("", isOn: $model.exitConfirm).toggleStyle(.switch).controlSize(.small).tint(.green).labelsHidden()
                     }
                     RowDivider()
                     SettingsRow(icon: "delete.left", title: "长按删除：清空输入",
@@ -66,7 +66,7 @@ struct GeneralPage: View {
                                 model.config.settings.deleteAllOnHold = enabled ? true : nil
                                 model.saveConfig()
                             }))
-                            .toggleStyle(.switch)
+                            .toggleStyle(.switch).controlSize(.small).tint(.green)
                             .labelsHidden()
                     }
                 }
@@ -180,8 +180,9 @@ struct GeneralPage: View {
                     .padding(.vertical, 6)
                 }
             }
-            .padding(Spacing.page)
-            .frame(maxWidth: 660, alignment: .leading)
+            .padding(.horizontal, Spacing.page)
+            .padding(.vertical, 20)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .onAppear { loginItemOn = model.loginItems.isEnabled }

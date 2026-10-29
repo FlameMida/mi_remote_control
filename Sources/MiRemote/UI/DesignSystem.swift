@@ -97,10 +97,14 @@ enum GlassAppearance: Equatable {
 }
 
 enum GlassSurface {
+    /// 仅隐藏的 --snapshot 模式使用：CI runner 默认开启「降低透明度」，
+    /// 置 true 后按未开启处理，以便截到玻璃外观。产品路径永不设置。
+    nonisolated(unsafe) static var snapshotIgnoresReduceTransparency = false
+
     /// 外观选择规则（纯函数）：降低透明度一律不透明；有玻璃 API 用液态玻璃；
     /// 否则菜单栏面板保持原版不透明，其余用 material。
     static func appearance(kind: GlassKind, glassAvailable: Bool, reduceTransparency: Bool) -> GlassAppearance {
-        if reduceTransparency { return .opaque }
+        if reduceTransparency && !snapshotIgnoresReduceTransparency { return .opaque }
         if glassAvailable { return .liquidGlass }
         return kind == .panel ? .opaque : .material
     }

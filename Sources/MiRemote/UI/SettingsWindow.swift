@@ -204,8 +204,13 @@ final class SettingsToolbarController: NSObject, NSToolbarDelegate {
         return t
     }
 
-    func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] { [Self.toggleID] }
-    func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] { [Self.toggleID] }
+    // 切换按钮放在侧栏区（紧跟红绿灯，原型 titlebar 布局），侧栏追踪分隔之后才是详情区
+    func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+        [Self.toggleID, .sidebarTrackingSeparator]
+    }
+    func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+        [Self.toggleID, .sidebarTrackingSeparator]
+    }
 
     func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier,
                  willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
@@ -215,7 +220,6 @@ final class SettingsToolbarController: NSObject, NSToolbarDelegate {
         item.isBordered = true
         item.target = self
         item.action = #selector(toggle(_:))
-        item.isNavigational = true
         toggleItem = item
         refresh()
         return item
@@ -318,7 +322,7 @@ struct SettingsSidebar: View {
 
 enum SidebarMetrics {
     /// 侧栏顶部避让红绿灯 + 工具栏（全高侧栏，原型 titlebar 38 + .side padding 14）
-    static let topInset: CGFloat = 44
+    static let topInset: CGFloat = 4
 }
 
 /// 原型 .nav：padding 7×10、圆角 7、图标列 18、间距 9；选中 = 强调色文字 + 半透明白底（玻璃）/ 强调色淡底（回退）。

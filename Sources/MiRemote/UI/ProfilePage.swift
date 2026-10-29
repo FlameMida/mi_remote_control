@@ -73,8 +73,9 @@ struct ProfilePage: View {
                     }
                 }
             }
-            .padding(Spacing.page)
-            .frame(maxWidth: 660, alignment: .leading)
+            .padding(.horizontal, Spacing.page)
+            .padding(.vertical, 20)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .sheet(isPresented: $showAddApp) { AddRunningAppSheet() }
@@ -111,6 +112,7 @@ struct ProfilePage: View {
                 model.currentProfile = id
                 selection = .mapping
             }
+            .foregroundStyle(Color.accentColor)
             .buttonStyle(.bordered)
             .controlSize(.small)
             .noWrap()
@@ -231,13 +233,14 @@ private struct RowTag: View {
                 Text("前台").font(.caption2).foregroundStyle(.secondary).noWrap()
             }
         case .editing:
+            // 原型 .tag.edit：实心强调色、白字、圆角 5
             Text("正在编辑")
-                .font(.caption2.weight(.medium))
-                .foregroundStyle(Color.accentColor)
+                .font(.system(size: 10.5, weight: .medium))
+                .foregroundStyle(.white)
                 .noWrap()
                 .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(Color.accentColor.opacity(0.15), in: Capsule())
+                .padding(.vertical, 1)
+                .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 5))
         }
     }
 }

@@ -29,10 +29,8 @@ struct SettingsRow<Trailing: View>: View {
     @ViewBuilder var trailing: Trailing
 
     var body: some View {
+        // 原型行无前置图标（icon 参数保留给调用方，不再绘制）
         HStack(spacing: Spacing.intra) {
-            Image(systemName: icon)
-                .foregroundStyle(iconColor)
-                .frame(width: 20)
             VStack(alignment: .leading, spacing: 1) {
                 Text(title).font(.body)
                 if let subtitle {
@@ -50,7 +48,7 @@ struct SettingsRow<Trailing: View>: View {
 
 struct RowDivider: View {
     var body: some View {
-        Divider().padding(.leading, 44)
+        Divider().padding(.leading, Spacing.rowH)
     }
 }
 
@@ -94,8 +92,9 @@ struct MappingPage: View {
                         .frame(minWidth: showsAnnotations ? RemoteAnnotationLayout.inspectorMinWidth : nil)
                 }
             }
-            .padding(Spacing.page)
-            .frame(maxWidth: 960, alignment: .leading)
+            .padding(.horizontal, Spacing.page)
+            .padding(.vertical, 20)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(GeometryReader { geo in
                 Color.clear.preference(key: MappingWidthKey.self, value: geo.size.width)
             })
@@ -310,9 +309,6 @@ private struct SlotRow: View {
         VStack(alignment: .leading, spacing: 0) {
             // 与 SettingsRow 同布局，标题列下方加来源标签
             HStack(spacing: Spacing.intra) {
-                Image(systemName: icon)
-                    .foregroundStyle(iconColor)
-                    .frame(width: 20)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(title).font(.body)
                     if let subtitle {
@@ -344,7 +340,7 @@ private struct SlotRow: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.leading, Spacing.rowH + 20 + Spacing.intra)
+                    .padding(.leading, Spacing.rowH)
                     .padding(.trailing, Spacing.rowH)
                     .padding(.bottom, Spacing.rowV)
             }
