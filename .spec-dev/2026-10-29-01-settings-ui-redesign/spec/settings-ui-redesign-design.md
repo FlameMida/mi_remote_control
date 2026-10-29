@@ -3,7 +3,7 @@
 spec_dev:
   version: 1
   feature: settings-ui-redesign
-  status: approved         # 已定稿（2026-10-29）：原型定稿；本交付不含实施计划、不改 app 代码
+  status: active           # 已激活（2026-10-29）：原型定稿不变，进入实施计划阶段（plan/）；漂移守卫生效
   covers:
     - "Sources/MiRemote/UI/RootView.swift"
     - "Sources/MiRemote/UI/MappingPage.swift"
@@ -18,6 +18,16 @@ spec_dev:
     - "Sources/MiRemote/UI/HealthCheckSheet.swift"
     - "Sources/MiRemote/UI/StatusItemController.swift"
     - "Sources/MiRemote/UI/OverlayCenter.swift"
+    - "Sources/MiRemote/Mapping/BaseTapNote.swift"
+    - "Sources/MiRemote/Mapping/SlotResolver.swift"
+    - "Sources/MiRemote/UI/SourceTag.swift"
+    - "Sources/MiRemote/UI/RemoteModel.swift"
+    - "Sources/MiRemote/UI/SidebarHeader.swift"
+    - "Sources/MiRemote/UI/SidebarToggle.swift"
+    - "Sources/MiRemote/UI/StatusIssue.swift"
+    - "Sources/MiRemote/UI/RC2ProDiagram.swift"
+    - "Sources/MiRemote/UI/RemoteAnnotations.swift"
+    - "Sources/MiRemote/UI/SheetScaffold.swift"
   sync_commit: null
   supersedes: []
   superseded_by: null
