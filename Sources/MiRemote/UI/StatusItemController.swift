@@ -225,8 +225,8 @@ struct StatusPanelView: View {
             }
             Divider()
             HStack(spacing: Spacing.intra) {
-                Button("打开设置", action: onOpenWindow)
-                Button("一键体检", action: onHealthCheck)
+                Button("打开设置", action: onOpenWindow).noWrap()
+                Button("一键体检", action: onHealthCheck).noWrap()
                 Spacer()
                 Button(role: .destructive, action: onQuit) {
                     Image(systemName: "power")
@@ -237,8 +237,8 @@ struct StatusPanelView: View {
         }
         .padding(Spacing.rowH)
         .frame(width: 300)
-        // 不透明系统底色：外观明确分离浅/深（vibrant 材质会采样身后桌面，浅色下可能显脏）
-        .background(Color(nsColor: .windowBackgroundColor))
+        // macOS 26 液态玻璃；旧系统与降低透明度时回退为原版不透明系统底色（T01 `.panel` → `.opaque`）
+        .glassSurface(.panel, in: Rectangle())
         .onAppear { model.syncRemoteSuspended() }
     }
 
@@ -255,10 +255,22 @@ struct StatusPanelView: View {
             }
             .frame(width: 32, height: 32)
             VStack(alignment: .leading, spacing: 1) {
-                Text(model.deviceName ?? "MI RC 2 Pro").font(.body.weight(.semibold))
-                Text(statusLine).font(.caption).foregroundStyle(.secondary)
+                Text(model.displayDeviceName)
+                    .font(.body.weight(.semibold))
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                // 窄时整段换到第二行，不拆开「已连接」等短语
+                ViewThatFits(in: .horizontal) {
+                    Text(statusLine).noWrap()
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(statusParts[0] + " ·").noWrap()
+                        Text(statusParts.dropFirst().joined(separator: " · ")).noWrap()
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
-            Spacer()
+            .frame(maxWidth: .infinity, alignment: .leading)
             if let pct = model.batteryPercent {
                 BatteryRingView(percent: pct)
             }
@@ -270,8 +282,13 @@ struct StatusPanelView: View {
     }
 
     private var statusLine: String {
-        if !model.connected { return "未连接 · 长按 主页+返回 配对" }
-        if model.remoteSuspended { return "已连接 · 已暂停遥控" }
+        statusParts.joined(separator: " · ")
+    }
+
+    private var statusParts: [String] {
+        // 拼接结果与原文案逐字相同：「未连接 · 长按 主页+返回 配对」「已连接 · 已暂停遥控」
+        if !model.connected { return ["未连接", "长按 主页+返回 配对"] }
+        if model.remoteSuspended { return ["已连接", "已暂停遥控"] }
         var parts = ["已连接"]
         if model.activeLayer != 0 {
             parts.append(layerBadgeText(model.activeLayer, frontAppName: model.frontAppNameForBadge))
@@ -282,7 +299,7 @@ struct StatusPanelView: View {
         } else {
             parts.append("空闲")
         }
-        return parts.joined(separator: " · ")
+        return parts
     }
 }
 
@@ -374,10 +391,11 @@ final class FloatingBadgeController {
         let content = NSHostingView(rootView:
             Text(text)
                 .font(.callout.weight(.semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(.primary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(Capsule().fill(Color.black.opacity(0.72)))
+                .glassSurface(.overlay, in: Capsule())
+                .overlay(Capsule().stroke(Color(nsColor: .separatorColor), lineWidth: 1))
         )
         content.frame.size = content.fittingSize
 
