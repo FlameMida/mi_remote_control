@@ -80,7 +80,10 @@ struct MappingPage: View {
     }
 
     private func content(contentWidth: CGFloat) -> some View {
-        ScrollView {
+        let pl = RemoteAnnotationLayout.panelLayout(contentWidth: contentWidth)
+        let pad: CGFloat = pl.annotated ? 0 : (Spacing.page - 16) * 2
+        let inspectorWidth = contentWidth + pad - RemoteAnnotationLayout.columnGap - pl.panelWidth
+        return ScrollView {
             VStack(alignment: .leading, spacing: Spacing.section) {
                 header
                 PageStatusBanner(page: .mapping)
@@ -93,12 +96,14 @@ struct MappingPage: View {
                         .foregroundStyle(Color.accentColor)
                 }
                 HStack(alignment: .top, spacing: RemoteAnnotationLayout.columnGap) {
-                    remotePanel(RemoteAnnotationLayout.panelLayout(contentWidth: contentWidth))
+                    remotePanel(pl)
                     keyEditor
                         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+                        .environment(\.compactSlotRows, inspectorWidth < RemoteAnnotationLayout.inspectorMinWidth)
                 }
             }
-            .padding(.horizontal, Spacing.page)
+            // 原型 .win.narrow .main padding 16（宽态 24）
+            .padding(.horizontal, pl.annotated ? Spacing.page : 16)
             .padding(.vertical, 20)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -294,6 +299,7 @@ private struct SlotRow: View {
     let subtitle: String?
     let note: String?
     let onChange: (Action?) -> Void
+    @Environment(\.compactSlotRows) private var compact
 
     init(key: RemoteKey, slot: MappingSlot, icon: String, iconColor: Color, title: String,
          subtitle: String?, note: String?, onChange: @escaping (Action?) -> Void) {
@@ -323,12 +329,12 @@ private struct SlotRow: View {
                     }
                 }
                 // 窄检查器里标题不让位给动作选择器（否则「短按」被挤没）；副标题可换行。
-                // 原型 .slot .nm 有固定列宽，「松开时立即触发」一行放得下，不被挤成一字一行
-                .frame(minWidth: 96, alignment: .leading)
+                // 原型 .slot .nm 有固定列宽；窄态检查器用 64 列宽，选择器可截断而不是挤出卡片
+                .frame(minWidth: compact ? 64 : 96, maxWidth: compact ? 64 : nil, alignment: .leading)
                 .layoutPriority(1)
                 Spacer(minLength: 4)
                 HStack(spacing: 8) {
-                    ActionPicker(action: r.action, onChange: onChange)
+                    ActionPicker(action: r.action, compact: compact, onChange: onChange)
                         .foregroundStyle(r.source == .inherited ? .secondary : .primary)
                     if r.source == .appOverride && model.currentProfile != "global" {
                         Button("↺ 恢复") { model.restoreInherited(key, slot: slot) }
@@ -456,5 +462,17 @@ struct KeyLearnSheet: View {
         .onChange(of: model.lastPressedKey) { _, new in
             if let new, learned == nil { learned = new }
         }
+    }
+}
+
+private struct CompactSlotRowsKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// 窄态检查器（窄于 inspectorMinWidth）：槽位标题列固定 64，动作选择器可截断
+    var compactSlotRows: Bool {
+        get { self[CompactSlotRowsKey.self] }
+        set { self[CompactSlotRowsKey.self] = newValue }
     }
 }

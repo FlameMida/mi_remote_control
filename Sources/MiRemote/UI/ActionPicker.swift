@@ -115,6 +115,8 @@ struct ShortcutRecorderSheet: View {
 @MainActor
 struct ActionPicker: View {
     var action: Action?
+    /// 窄检查器里允许截断标签（默认保持原有定宽）
+    var compact: Bool = false
     var onChange: (Action?) -> Void
 
     @State private var showRecorder = false
@@ -183,10 +185,11 @@ struct ActionPicker: View {
         } label: {
             Text(ActionSummary.describe(action))
                 .lineLimit(1)
-                .frame(minWidth: 130, alignment: .leading)
+                .truncationMode(.tail)
+                .frame(minWidth: compact ? 0 : 130, alignment: .leading)
         }
         .menuStyle(.borderlessButton)
-        .fixedSize()
+        .fixedSize(horizontal: !compact, vertical: true)
         .sheet(isPresented: $showRecorder) {
             ShortcutRecorderSheet { onChange($0) }
         }
