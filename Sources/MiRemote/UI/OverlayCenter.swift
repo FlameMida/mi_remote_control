@@ -863,6 +863,8 @@ private struct WindowPickerView: View {
                         .padding(.horizontal, 4)
                         .padding(.vertical, 6)
                     }
+                    // 面板随卡片数收缩（原型 .ovl 按内容定宽），上限 1000
+                    .frame(width: Self.stripWidth(count: entries.count))
                     .onAppear { proxy.scrollTo(selected, anchor: .center) }
                     .onChange(of: selected) { _, value in
                         withAnimation(Motion.select) {
@@ -884,12 +886,18 @@ private struct WindowPickerView: View {
                 }
             }
         }
+        .fixedSize(horizontal: true, vertical: false)
         .padding(Spacing.sheetPadding)
-        .frame(maxWidth: 1000)
         .glassSurface(.overlay, in: RoundedRectangle(cornerRadius: Radius.overlay))
         .overlay(RoundedRectangle(cornerRadius: Radius.overlay)
             .stroke(Color(nsColor: .separatorColor), lineWidth: 1))
         .shadow(radius: 24, y: 8)
+    }
+
+    /// 卡片 176（156 + 内边距 20）、间距 16、两侧 4；放大选中卡留 12 余量。
+    static func stripWidth(count: Int) -> CGFloat {
+        let n = CGFloat(max(count, 1))
+        return min(n * 176 + (n - 1) * 16 + 8 + 12, 1000 - Spacing.sheetPadding * 2)
     }
 
     private func card(_ entry: WindowSwitcher.PickerEntry, isSelected: Bool) -> some View {
@@ -907,8 +915,8 @@ private struct WindowPickerView: View {
                 .lineLimit(1)
         }
         .padding(10)
-        .background(Color(nsColor: .controlBackgroundColor).opacity(isSelected ? 1 : 0.55),
-                    in: RoundedRectangle(cornerRadius: Radius.hud))
+        .cardBackground(in: RoundedRectangle(cornerRadius: Radius.hud))
+        .opacity(isSelected ? 1 : 0.85)
         .overlay(RoundedRectangle(cornerRadius: Radius.hud)
             .stroke(isSelected ? Color.accentColor : .clear, lineWidth: 2.5))
         .shadow(color: isSelected ? Color.accentColor.opacity(0.5) : .clear, radius: 6)
@@ -940,7 +948,7 @@ private struct SystemMenuView: View {
             }
             let normal = SystemMenuCatalog.items.enumerated().filter { !$0.element.dangerous }
             let dangerous = SystemMenuCatalog.items.enumerated().filter { $0.element.dangerous }
-            let columns = Array(repeating: GridItem(.fixed(188), spacing: 12),
+            let columns = Array(repeating: GridItem(.fixed(180), spacing: 12),
                                 count: SystemMenuCatalog.columns)
             LazyVGrid(columns: columns, spacing: 12) {
                 ForEach(normal, id: \.offset) { index, item in
@@ -954,7 +962,9 @@ private struct SystemMenuView: View {
                 }
             }
         }
-        .padding(24)
+        .fixedSize(horizontal: true, vertical: false)
+        .padding(.vertical, 16)
+        .padding(.horizontal, 18)
         .glassSurface(.overlay, in: RoundedRectangle(cornerRadius: Radius.overlay))
         .overlay(RoundedRectangle(cornerRadius: Radius.overlay)
             .stroke(Color(nsColor: .separatorColor), lineWidth: 1))
@@ -965,18 +975,17 @@ private struct SystemMenuView: View {
     private func tile(_ item: SystemMenuItem, index: Int) -> some View {
         let isSelected = index == selected
         VStack(spacing: 6) {
-            Image(systemName: item.symbol).font(.system(size: 28))
-            Text(item.title).font(.callout)
+            Image(systemName: item.symbol).font(.system(size: 24))
+            Text(item.title).font(.system(size: 12.5))
             if item.dangerous {
-                Text("按住 OK 确认").font(.caption).foregroundStyle(.secondary)
+                Text("按住 OK 确认").font(.system(size: 10.5)).foregroundStyle(.secondary)
             }
         }
         .foregroundStyle(item.dangerous ? Color.red : Color.primary)
         .frame(width: 180, height: 96)
-        .background(Color(nsColor: .controlBackgroundColor)
-            .opacity(isSelected ? 1 : 0.55),
-            in: RoundedRectangle(cornerRadius: Radius.card))
-        .overlay(RoundedRectangle(cornerRadius: Radius.card)
+        .cardBackground(in: RoundedRectangle(cornerRadius: Radius.hud))
+        .opacity(isSelected ? 1 : 0.85)
+        .overlay(RoundedRectangle(cornerRadius: Radius.hud)
             .stroke(isSelected ? (item.dangerous ? Color.red : Color.accentColor) : .clear, lineWidth: 2.5))
         .overlay(alignment: .topTrailing) {
             if isSelected, confirming {

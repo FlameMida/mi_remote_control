@@ -39,7 +39,7 @@ enum AnnotationLayer: Hashable, CaseIterable {
 enum RemoteAnnotationLayout {
     static let stage = CGSize(width: 500, height: 490)
     static let diagramOrigin = CGPoint(x: 160, y: 0)
-    static let inspectorMinWidth: CGFloat = 300
+    static let inspectorMinWidth: CGFloat = 280
     static let narrowScale: CGFloat = 0.86
 
     enum Side { case left, right }

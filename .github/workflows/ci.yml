@@ -36,7 +36,11 @@ jobs:
         # 真实 NSWindow 渲染各窗口状态并截图；不影响构建结论
         continue-on-error: true
         timeout-minutes: 6
-        run: .build/miremote --snapshot snapshots 2>&1 | tail -80
+        run: |
+          # runner 默认开启「降低透明度」，系统级材质会画成不透明；尝试关闭（失败不影响）
+          defaults write com.apple.universalaccess reduceTransparency -bool false || true
+          defaults read com.apple.universalaccess reduceTransparency || true
+          .build/miremote --snapshot snapshots 2>&1 | tail -80
         shell: bash
       - name: 上传界面快照
         if: always()

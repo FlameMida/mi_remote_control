@@ -66,7 +66,7 @@ struct MappingPage: View {
     private var showsAnnotations: Bool {
         // 面板可用宽 = 内容宽 - 检查器最小宽 - 两栏间距（宽态面板不加左右内边距，标注自带 8pt 留白）
         RemoteAnnotationLayout.showsAnnotations(
-            panelWidth: contentWidth - RemoteAnnotationLayout.inspectorMinWidth - 28)
+            panelWidth: contentWidth - RemoteAnnotationLayout.inspectorMinWidth - 24)
     }
 
     init(onOpenProfiles: @escaping () -> Void) {
@@ -86,7 +86,7 @@ struct MappingPage: View {
                         .font(.caption)
                         .foregroundStyle(Color.accentColor)
                 }
-                HStack(alignment: .top, spacing: 28) {
+                HStack(alignment: .top, spacing: 24) {
                     remotePanel
                     keyEditor
                         .frame(minWidth: showsAnnotations ? RemoteAnnotationLayout.inspectorMinWidth : nil)
