@@ -52,6 +52,7 @@ struct OnboardingWizard: View {
     @EnvironmentObject var model: AppModel
     @Environment(\.dismiss) private var dismiss
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var step: Int
 
     init(initialStep: Int = 0) {
@@ -88,7 +89,9 @@ struct OnboardingWizard: View {
                         if i < 2 { Rectangle().fill(Color.secondary.opacity(0.2)).frame(width: 32, height: 1) }
                     }
                 }
-                .animation(Motion.focus, value: step)
+                .animation(reduceMotion ? nil : Motion.focus, value: step)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("第 \(step + 1) 步，共 3 步")
                 Spacer()
                 Button {
                     dismiss()
@@ -113,10 +116,11 @@ struct OnboardingWizard: View {
             Spacer(minLength: 0)
 
             HStack {
-                if step > 0 { Button("上一步") { step -= 1 } }
+                if step > 0 { Button("上一步") { step -= 1 }.noWrap() }
                 Button("退出 App") {
                     terminateApp(relaunch: false)
                 }
+                .noWrap()
                 Spacer()
                 if step == 0 {
                     if ax != .granted || im != .granted || axRequestOpened || imRequestOpened {
@@ -125,25 +129,30 @@ struct OnboardingWizard: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .help("macOS 需要重启 App 才会把新权限应用到输入通道")
+                        .noWrap()
                     }
                     Button("下一步") { step = 1 }
                         .buttonStyle(.borderedProminent)
+                        .noWrap()
                         .disabled(!(ax == .granted && im == .granted && bt == .granted))
                         .help(ax == .granted && im == .granted && bt == .granted ? "" : "授权全部完成后继续")
                 } else if step == 1 {
                     Button(blackhole == .granted ? "下一步" : "跳过") { step = 2 }
                         .buttonStyle(.borderedProminent)
+                        .noWrap()
                 } else {
                     Button(remote == .granted ? "完成" : "稍后配对，直接完成") {
                         model.hasCompletedOnboarding = true
                         dismiss()
                     }
                     .buttonStyle(.borderedProminent)
+                    .noWrap()
                 }
             }
         }
         .padding(24)
         .frame(width: 460, height: 470)
+        .glassSheetBackground()
         .onAppear { startPolling() }
         .onDisappear {
             pollTimer?.invalidate(); pollTimer = nil
@@ -264,7 +273,7 @@ struct OnboardingWizard: View {
                     RemoteDiagram(selected: .constant(.ok),
                                   flashing: nil,
                                   connected: false,
-                                  emphasized: pairingPulse ? [.home, .back] : [],
+                                  emphasized: (reduceMotion || pairingPulse) ? [.home, .back] : [],
                                   interactive: false,
                                   model: model.remoteModel)
                         .frame(width: 84)
@@ -305,8 +314,11 @@ struct OnboardingWizard: View {
         pollTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
             Task { @MainActor in refresh() }
         }
-        pulseTimer = Timer.scheduledTimer(withTimeInterval: 0.7, repeats: true) { _ in
-            Task { @MainActor in pairingPulse.toggle() }
+        // 减弱动态效果时不脉动（两键常亮），不启动脉动计时器
+        if !reduceMotion {
+            pulseTimer = Timer.scheduledTimer(withTimeInterval: 0.7, repeats: true) { _ in
+                Task { @MainActor in pairingPulse.toggle() }
+            }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 30) { scanTooLong = true }
     }
