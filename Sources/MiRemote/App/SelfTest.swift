@@ -1324,6 +1324,12 @@ enum SelfTest {
         expect(GlassSurface.selfCheck(), "ui-redesign: GlassSurface 外观选择")
         // ===== UI 重设计 end =====
 
+        // ===== UI 重设计（settings-ui-redesign）=====
+        expect(GlassSurface.selfCheck(), "ui-redesign: GlassSurface 外观选择")
+        expect(BaseTapNote.selfCheck(), "ui-redesign: BaseTapNote 文案")
+        expect(MappingEngine.baseTapNoteParityCheck(), "ui-redesign: BaseTapNote 与 fireTap 对拍")
+        // ===== UI 重设计 end =====
+
         print(failures == 0 ? "SELF-TEST PASS" : "SELF-TEST FAIL (\(failures))")
         return failures == 0 ? 0 : 1
     }

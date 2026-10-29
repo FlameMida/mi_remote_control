@@ -1283,3 +1283,55 @@ extension MappingEngine {
         return ok
     }
 }
+
+// MARK: - BaseTapNote 对拍（UI 说明与 fireTap 同源）
+
+extension MappingEngine {
+
+    /// 用真实引擎（同步调度 + 虚拟时钟）逐键核对：基础状态短按的实际产出
+    /// 必须等于 `BaseTapNote.baseAction` 的推导。fireTap 改动而说明未改时此处变红。
+    static func baseTapNoteParityCheck() -> Bool {
+        var ok = true
+        func check(_ cond: Bool, _ msg: String) {
+            if !cond { ok = false; print("[MappingEngine.baseTapNoteParityCheck] FAIL: \(msg)") }
+        }
+        var cfg = MappingConfig()
+        cfg.settings.holdMs = 100
+        cfg.settings.doubleMs = 80
+        cfg.profiles["global"] = [
+            "ok": KeyBinding(tap: .system("spotlight")),
+            "back": KeyBinding(tap: .keyStroke(key: "escape", mods: [])),
+            "up": KeyBinding(tap: .keyStroke(key: "x", mods: [])),
+        ]
+        cfg.profiles["com.test.app"] = [
+            "ok": KeyBinding(tap: .keyStroke(key: "return", mods: ["command"])),
+        ]
+        let fixture = cfg
+        let keys: [RemoteKey] = [.up, .down, .left, .right, .back, .ok]
+        for profile in ["global", "com.test.app"] {
+            for key in keys {
+                let clock = ManualClock()
+                let runner = RecordingRunner()
+                let engine = MappingEngine(config: fixture,
+                                           runner: runner,
+                                           delegate: RecordingDelegate(),
+                                           dispatch: { $0() },
+                                           scheduleAfter: { ms, work in clock.schedule(ms, work) })
+                engine.setActiveProfile(profile == "global" ? nil : profile)
+                engine.handle(ButtonEvent(key: key, isDown: true, timeNs: 0))
+                clock.advance(10)
+                engine.handle(ButtonEvent(key: key, isDown: false, timeNs: 0))
+                clock.advance(300)
+                let ownTap = fixture.profiles[profile]?[key.rawValue]?.tap
+                guard let expected = BaseTapNote.baseAction(key: key, profile: profile, ownTap: ownTap) else {
+                    check(false, "baseAction nil for \(profile)/\(key)")
+                    continue
+                }
+                check(runner.actions == [expected],
+                      "\(profile)/\(key): engine=\(runner.actions) note=\(expected)")
+            }
+        }
+        check(fixture.profiles["global"]?["ok"]?.tap == .system("spotlight"), "fixture unchanged")
+        return ok
+    }
+}
