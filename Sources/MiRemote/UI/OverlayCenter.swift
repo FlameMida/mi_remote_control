@@ -781,10 +781,11 @@ struct HintBarView: View {
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                 HStack(spacing: 5) {
                     ForEach(item.keys, id: \.self) { key in KeyCapView(key: key) }
-                    Text(item.text).font(.callout)
+                    Text(item.text).font(.callout).noWrap()
                 }
             }
         }
+        .fixedSize()
         .padding(.horizontal, 18)
         .padding(.vertical, 9)
         .glassSurface(.overlay, in: Capsule())
