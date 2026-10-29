@@ -226,6 +226,16 @@ final class AppModel: ObservableObject {
     // 运行时状态（服务回调镜像，主线程更新）
     @Published var connected = false
     @Published var deviceName: String?
+    /// 遥控器型号（已连接 + 生效 VID/PID）：决定示意图画法。
+    var remoteModel: RemoteModel {
+        RemoteModel.resolve(connected: connected,
+                            vendorID: RemoteIdentity.vendorID, productID: RemoteIdentity.productID)
+    }
+    /// 显示用设备名：连接上报名优先，否则按配置型号回退。
+    var displayDeviceName: String {
+        deviceName ?? RemoteModel.fallbackName(vendorID: RemoteIdentity.vendorID,
+                                               productID: RemoteIdentity.productID)
+    }
     @Published var activeLayer = 0
     @Published var voiceActive = false
     @Published var batteryPercent: Int?
@@ -362,6 +372,12 @@ final class AppModel: ObservableObject {
     func resetVoiceRuleToGlobal(for profile: String) {
         guard profile != "global" else { return }
         config.voiceProfiles?.removeValue(forKey: profile)
+        saveConfig()
+    }
+
+    /// App 场景某槽位「恢复继承」：移除该槽位的显式设置并落盘（触发「已保存」）。
+    func restoreInherited(_ key: RemoteKey, slot: MappingSlot) {
+        config = SlotResolver.removingOverride(config: config, profile: currentProfile, key: key, slot: slot)
         saveConfig()
     }
 
