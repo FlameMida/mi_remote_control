@@ -60,7 +60,6 @@ struct MappingPage: View {
     @State private var showKeyLearn = false
     @State private var showSaved = false
     @State private var annotationLayer: AnnotationLayer = .base
-    @State private var contentWidth: CGFloat = 0
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     let onOpenProfiles: () -> Void
 
@@ -69,17 +68,18 @@ struct MappingPage: View {
                                 reduceTransparency: reduceTransparency) == .liquidGlass
     }
 
-    /// 原型 .mwrap：宽态遥控器面板 520（标注两侧 + 引线）为主栏，检查器取剩余宽；
-    /// 面板不够 520 时等比缩小标注舞台，再窄才退回 240 窄态（只留缩小的示意图）
-    private var panelLayout: RemoteAnnotationLayout.PanelLayout {
-        RemoteAnnotationLayout.panelLayout(contentWidth: contentWidth)
-    }
-
     init(onOpenProfiles: @escaping () -> Void) {
         self.onOpenProfiles = onOpenProfiles
     }
 
     var body: some View {
+        // 直接按详情栏实宽排版（减页边距与可能出现的常驻滚动条），不走 preference 回传，避免首帧停在窄态
+        GeometryReader { geo in
+            content(contentWidth: geo.size.width - Spacing.page * 2 - 16)
+        }
+    }
+
+    private func content(contentWidth: CGFloat) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.section) {
                 header
@@ -93,18 +93,13 @@ struct MappingPage: View {
                         .foregroundStyle(Color.accentColor)
                 }
                 HStack(alignment: .top, spacing: RemoteAnnotationLayout.columnGap) {
-                    remotePanel
+                    remotePanel(RemoteAnnotationLayout.panelLayout(contentWidth: contentWidth))
                     keyEditor
                         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                 }
             }
             .padding(.horizontal, Spacing.page)
             .padding(.vertical, 20)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(GeometryReader { geo in
-                Color.clear.preference(key: MappingWidthKey.self, value: geo.size.width)
-            })
-            .onPreferenceChange(MappingWidthKey.self) { contentWidth = $0 - Spacing.page * 2 }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .sheet(isPresented: $showKeyLearn) { KeyLearnSheet() }
@@ -139,8 +134,9 @@ struct MappingPage: View {
         }
     }
 
-    private var remotePanel: some View {
-        let pl = panelLayout
+    /// 原型 .mwrap：宽态遥控器面板 520（标注两侧 + 引线）为主栏，检查器取剩余宽；
+    /// 面板不够 520 时等比缩小标注舞台，再窄才退回 240 窄态（只留缩小的示意图）
+    private func remotePanel(_ pl: RemoteAnnotationLayout.PanelLayout) -> some View {
         let annotated = pl.annotated
         return VStack(alignment: annotated ? .leading : .center, spacing: Spacing.intra) {
             // 原型 .rtop：「示意图显示」在分段左侧同行；窄态 240 面板放不下时换到下一行（flex-wrap）
@@ -283,11 +279,6 @@ struct MappingPage: View {
     private func gestureTitle(_ dir: String) -> String {
         ["up": "上", "down": "下", "left": "左", "right": "右"][dir].map { "OK + \($0)" } ?? dir
     }
-}
-
-private struct MappingWidthKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }
 
 // MARK: - 检查器槽位行（来源标签 / 恢复继承 / 基础状态说明）
