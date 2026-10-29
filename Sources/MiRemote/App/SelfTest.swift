@@ -1322,40 +1322,6 @@ enum SelfTest {
 
         // ===== UI 重设计（settings-ui-redesign）=====
         expect(GlassSurface.selfCheck(), "ui-redesign: GlassSurface 外观选择")
-        // ===== UI 重设计 end =====
-
-        // ===== UI 重设计（settings-ui-redesign）=====
-        expect(GlassSurface.selfCheck(), "ui-redesign: GlassSurface 外观选择")
-        expect(BaseTapNote.selfCheck(), "ui-redesign: BaseTapNote 文案")
-        expect(MappingEngine.baseTapNoteParityCheck(), "ui-redesign: BaseTapNote 与 fireTap 对拍")
-        // ===== UI 重设计 end =====
-
-        // ===== UI 重设计（settings-ui-redesign）=====
-        expect(GlassSurface.selfCheck(), "ui-redesign: GlassSurface 外观选择")
-        expect(BaseTapNote.selfCheck(), "ui-redesign: BaseTapNote 文案")
-        expect(MappingEngine.baseTapNoteParityCheck(), "ui-redesign: BaseTapNote 与 fireTap 对拍")
-        expect(SlotResolver.selfCheck(), "ui-redesign: SlotResolver 来源与恢复继承")
-        // ===== UI 重设计 end =====
-
-        // ===== UI 重设计（settings-ui-redesign）=====
-        expect(GlassSurface.selfCheck(), "ui-redesign: GlassSurface 外观选择")
-        expect(BaseTapNote.selfCheck(), "ui-redesign: BaseTapNote 文案")
-        expect(MappingEngine.baseTapNoteParityCheck(), "ui-redesign: BaseTapNote 与 fireTap 对拍")
-        expect(SlotResolver.selfCheck(), "ui-redesign: SlotResolver 来源与恢复继承")
-        expect(RemoteModel.selfCheck(), "ui-redesign: RemoteModel 型号判定")
-        // ===== UI 重设计 end =====
-
-        // ===== UI 重设计（settings-ui-redesign）=====
-        expect(GlassSurface.selfCheck(), "ui-redesign: GlassSurface 外观选择")
-        expect(BaseTapNote.selfCheck(), "ui-redesign: BaseTapNote 文案")
-        expect(MappingEngine.baseTapNoteParityCheck(), "ui-redesign: BaseTapNote 与 fireTap 对拍")
-        expect(SlotResolver.selfCheck(), "ui-redesign: SlotResolver 来源与恢复继承")
-        expect(RemoteModel.selfCheck(), "ui-redesign: RemoteModel 型号判定")
-        expect(SidebarHeaderLayout.selfCheck(), "ui-redesign: 侧栏头三行与电量")
-        // ===== UI 重设计 end =====
-
-        // ===== UI 重设计（settings-ui-redesign）=====
-        expect(GlassSurface.selfCheck(), "ui-redesign: GlassSurface 外观选择")
         expect(BaseTapNote.selfCheck(), "ui-redesign: BaseTapNote 文案")
         expect(MappingEngine.baseTapNoteParityCheck(), "ui-redesign: BaseTapNote 与 fireTap 对拍")
         expect(SlotResolver.selfCheck(), "ui-redesign: SlotResolver 来源与恢复继承")
