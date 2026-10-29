@@ -406,16 +406,8 @@ struct KeyLearnSheet: View {
     @State private var learned: RemoteKey?
 
     var body: some View {
-        VStack(spacing: 14) {
-            HStack {
-                Text("识别按键").font(.headline)
-                Spacer()
-                Button { dismiss() } label: {
-                    Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .keyboardShortcut(.cancelAction)
-            }
+        SheetScaffold(title: "识别按键", subtitle: nil, onClose: { dismiss() }) {
+          VStack(spacing: 14) {
             if let key = learned {
                 RemoteDiagram(selected: .constant(key), flashing: key, connected: model.connected,
                               interactive: false, model: model.remoteModel)
@@ -430,14 +422,6 @@ struct KeyLearnSheet: View {
                     Text(KeyDisplay.name(key)).font(.title3.weight(.semibold))
                     Text(KeyDisplay.usage(key)).font(.caption).foregroundStyle(.secondary)
                 }
-                HStack {
-                    Button("再识别一个") { learned = nil }
-                    Button("编辑此键") {
-                        model.selectedKey = key
-                        dismiss()
-                    }
-                    .keyboardShortcut(.defaultAction)
-                }
             } else if model.connected || model.services?.started == true {
                 ProgressView().controlSize(.small)
                 Text("请按一下遥控器上的任意键…")
@@ -450,8 +434,19 @@ struct KeyLearnSheet: View {
                     .foregroundStyle(.secondary)
                 Text("引擎未运行（预览模式或遥控器未连接），无法识别").font(.callout)
             }
+          }
+          .frame(maxWidth: .infinity)
+        } footer: {
+            if let key = learned {
+                Spacer()
+                Button("再识别一个") { learned = nil }
+                Button("编辑此键") {
+                    model.selectedKey = key
+                    dismiss()
+                }
+                .keyboardShortcut(.defaultAction)
+            }
         }
-        .padding(20)
         .frame(width: 320)
         .onChange(of: model.lastPressedKey) { _, new in
             if let new, learned == nil { learned = new }

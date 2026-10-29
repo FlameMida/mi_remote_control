@@ -43,41 +43,15 @@ struct ShortcutRecorderSheet: View {
     @State private var monitor: Any?
 
     var body: some View {
-        VStack(spacing: 14) {
-            HStack {
-                Text("录制快捷键").font(.headline)
-                Spacer()
-                Button {
-                    stopMonitor()
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .keyboardShortcut(.cancelAction)
-                .help("取消录制")
-            }
-
+        SheetScaffold(title: "录制快捷键", subtitle: nil,
+                      onClose: { stopMonitor(); dismiss() }, closeHelp: "取消录制") {
+          VStack(spacing: 14) {
             if let cap = captured {
                 Text(ActionSummary.keyStrokeSummary(key: cap.key, mods: cap.mods))
                     .font(.title.weight(.semibold))
                     .padding(.vertical, 6)
                 if let warn = shortcutWarning(key: cap.key, mods: cap.mods) {
                     Text(warn).font(.caption).foregroundStyle(.yellow)
-                }
-                HStack {
-                    Spacer()
-                    Button("重录") {
-                        captured = nil
-                        startMonitor()
-                    }
-                    Button("确认") {
-                        stopMonitor()
-                        onConfirm(.keyStroke(key: cap.key, mods: cap.mods))
-                        dismiss()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .keyboardShortcut(.defaultAction)
                 }
             } else if recording {
                 Text("按下快捷键…")
@@ -91,8 +65,24 @@ struct ShortcutRecorderSheet: View {
                 Button("点此录制快捷键") { startMonitor() }
                     .controlSize(.large)
             }
+          }
+          .frame(maxWidth: .infinity)
+        } footer: {
+            if let cap = captured {
+                Spacer()
+                Button("重录") {
+                    captured = nil
+                    startMonitor()
+                }
+                Button("确认") {
+                    stopMonitor()
+                    onConfirm(.keyStroke(key: cap.key, mods: cap.mods))
+                    dismiss()
+                }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.defaultAction)
+            }
         }
-        .padding(Spacing.sheetPadding)
         .frame(width: 340)
         .onAppear { startMonitor() }
         .onDisappear { stopMonitor() }
@@ -236,8 +226,7 @@ struct ActionPicker: View {
         @State private var existingSteps = 0
 
         var body: some View {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("宏 · 输入一段文本").font(.headline)
+            SheetScaffold(title: "宏 · 输入一段文本", subtitle: nil, onClose: nil) {
                 TextField("要输入的文字（如常用回复、命令）", text: $text)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 340)
@@ -247,7 +236,7 @@ struct ActionPicker: View {
                         .font(.caption).foregroundStyle(.orange)
                         .frame(width: 340, alignment: .leading)
                 }
-                HStack {
+            } footer: {
                     Spacer()
                     Button("取消") { dismiss() }
                     Button("确定") {
@@ -258,9 +247,7 @@ struct ActionPicker: View {
                     }
                     .keyboardShortcut(.defaultAction)
                     .disabled(text.isEmpty)
-                }
             }
-            .padding(Spacing.sheetPadding)
             .onAppear {
                 if case .macro(let steps)? = current {
                     existingSteps = steps.count

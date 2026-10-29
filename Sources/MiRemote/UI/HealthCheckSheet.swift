@@ -27,17 +27,7 @@ struct HealthCheckSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                Text("一键体检与修复").font(.headline)
-                Spacer()
-                Button { dismiss() } label: {
-                    Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .keyboardShortcut(.cancelAction)
-            }
-
+        SheetScaffold(title: "一键体检与修复", subtitle: nil, onClose: { dismiss() }) {
             // 总结横幅
             if checked {
                 if problems == 0 {
@@ -72,8 +62,7 @@ struct HealthCheckSheet: View {
             .background(Color(nsColor: .controlBackgroundColor))
             .clipShape(RoundedRectangle(cornerRadius: Radius.card))
             .overlay(RoundedRectangle(cornerRadius: Radius.card).stroke(Color(nsColor: .separatorColor), lineWidth: 1))
-
-            HStack {
+        } footer: {
                 Button("重新体检") { runChecks() }
                 Spacer()
                 if permissionsNeedRestart {
@@ -86,9 +75,7 @@ struct HealthCheckSheet: View {
                     log("体检修复: \(msg)")
                     runChecks()
                 }
-            }
         }
-        .padding(20)
         .frame(width: 480)
         .onAppear { runChecks() }
     }

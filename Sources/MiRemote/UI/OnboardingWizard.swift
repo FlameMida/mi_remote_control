@@ -395,10 +395,9 @@ struct ReauthSheet: View {
     private var allGranted: Bool { ax == .granted && im == .granted }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("检测到你更新了版本，需要重新授权一次").font(.title3.bold())
-            Text("这是 macOS 的安全机制：测试版每次更新都要重新点一下授权，30 秒搞定。你的所有按键设置都还在（配置文件不受升级影响）。")
-                .font(.caption).foregroundStyle(.secondary)
+        SheetScaffold(title: "检测到你更新了版本，需要重新授权一次",
+                      subtitle: "这是 macOS 的安全机制：测试版每次更新都要重新点一下授权，30 秒搞定。你的所有按键设置都还在（配置文件不受升级影响）。",
+                      onClose: nil) {
 
             PermissionCheckRow(icon: "keyboard", title: "输入监控",
                                explain: "读取遥控器按键事件",
@@ -414,7 +413,7 @@ struct ReauthSheet: View {
             }
 
             Spacer(minLength: 0)
-            HStack {
+        } footer: {
                 Button("稍后再说") { dismiss() }
                 Spacer()
                 if allGranted {
@@ -426,9 +425,7 @@ struct ReauthSheet: View {
                 } else {
                     Text("授权后此处自动亮绿灯").font(.caption).foregroundStyle(.secondary)
                 }
-            }
         }
-        .padding(20)
         .frame(width: 430, height: 260)
         .onAppear {
             refresh()
