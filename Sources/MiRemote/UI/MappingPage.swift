@@ -61,7 +61,15 @@ struct MappingPage: View {
     @EnvironmentObject var model: AppModel
     @State private var showKeyLearn = false
     @State private var showSaved = false
+    @State private var annotationLayer: AnnotationLayer = .base
+    @State private var contentWidth: CGFloat = 0
     let onOpenProfiles: () -> Void
+
+    private var showsAnnotations: Bool {
+        // 面板可用宽 = 内容宽 - 检查器最小宽 - 两栏间距（宽态面板不加左右内边距，标注自带 8pt 留白）
+        RemoteAnnotationLayout.showsAnnotations(
+            panelWidth: contentWidth - RemoteAnnotationLayout.inspectorMinWidth - 28)
+    }
 
     init(onOpenProfiles: @escaping () -> Void) {
         self.onOpenProfiles = onOpenProfiles
@@ -83,10 +91,15 @@ struct MappingPage: View {
                 HStack(alignment: .top, spacing: 28) {
                     remotePanel
                     keyEditor
+                        .frame(minWidth: showsAnnotations ? RemoteAnnotationLayout.inspectorMinWidth : nil)
                 }
             }
             .padding(Spacing.page)
-            .frame(maxWidth: 860, alignment: .leading)
+            .frame(maxWidth: 960, alignment: .leading)
+            .background(GeometryReader { geo in
+                Color.clear.preference(key: MappingWidthKey.self, value: geo.size.width)
+            })
+            .onPreferenceChange(MappingWidthKey.self) { contentWidth = $0 - Spacing.page * 2 }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .sheet(isPresented: $showKeyLearn) { KeyLearnSheet() }
@@ -122,20 +135,46 @@ struct MappingPage: View {
 
     private var remotePanel: some View {
         VStack(spacing: Spacing.intra) {
-            RemoteDiagram(selected: $model.selectedKey,
-                          flashing: model.lastPressedKey,
-                          connected: model.connected,
-                          model: model.remoteModel)
-                .frame(width: 190)
+            // 窄态分段换到标签下一行（原型 .rtop flex-wrap）
+            let layout = showsAnnotations
+                ? AnyLayout(HStackLayout(spacing: 8)) : AnyLayout(VStackLayout(spacing: 4))
+            layout {
+                Text("示意图显示")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .noWrap()
+                Picker("示意图显示", selection: $annotationLayer) {
+                    ForEach(AnnotationLayer.allCases, id: \.self) { layer in
+                        Text(layer.title).tag(layer)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.segmented)
+                .fixedSize()
+            }
+            RemoteAnnotationStage(layer: $annotationLayer, showsAnnotations: showsAnnotations)
             Text("深色圆键为遥控器实体按键位置示意，选中的按键以强调色描边高亮")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-                .frame(width: 190)
+                .frame(maxWidth: showsAnnotations ? RemoteAnnotationLayout.stage.width : 190)
+            HStack(spacing: 12) {
+                legendItem(model.currentProfile == "global" ? "已设置" : "App 覆盖", color: .accentColor)
+                if showsAnnotations {
+                    legendItem("继承全局（虚线）", color: Color(nsColor: .tertiaryLabelColor))
+                }
+            }
         }
         .padding(.vertical, 16)
-        .padding(.horizontal, Spacing.rowH)
+        .padding(.horizontal, showsAnnotations ? 0 : Spacing.rowH)
         .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: Radius.hud))
+    }
+
+    private func legendItem(_ text: String, color: Color) -> some View {
+        HStack(spacing: 4) {
+            RoundedRectangle(cornerRadius: 2).fill(color).frame(width: 8, height: 8)
+            Text(text).font(.caption2).foregroundStyle(.secondary).noWrap()
+        }
     }
 
     // MARK: KeyEditor
@@ -231,6 +270,11 @@ struct MappingPage: View {
     private func gestureTitle(_ dir: String) -> String {
         ["up": "上", "down": "下", "left": "左", "right": "右"][dir].map { "OK + \($0)" } ?? dir
     }
+}
+
+private struct MappingWidthKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }
 
 // MARK: - 检查器槽位行（来源标签 / 恢复继承 / 基础状态说明）
