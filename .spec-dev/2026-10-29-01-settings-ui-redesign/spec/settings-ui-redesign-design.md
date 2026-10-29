@@ -514,7 +514,7 @@ MiRemote 的界面由三类窗体组成：主设置窗（4 个侧栏页和若干
 
 重设计 SHALL 让侧栏头固定为三行，三行均为固定行高（原型：18 / 14 / 14 px，头部总高 62 px）：
 1. 第 1 行：「遥控器控制台」，不换行，超长省略
-2. 第 2 行：设备名（`model.deviceName`，默认「MI RC 2 Pro」），单行，超长尾部省略并以 tooltip（`.help`）给出全名
+2. 第 2 行：设备名（`model.deviceName`，回退值按型号：RC 2 Pro 为「MI RC 2 Pro」，其他为「MI RC」，见「MI RC 2 Pro 专用遥控器示意图」），单行，超长尾部省略并以 tooltip（`.help`）给出全名
 3. 第 3 行：始终是电量行，由「定宽图标槽 + 文字」组成。图标槽宽度固定（原型 20 px，对应 SwiftUI `.frame(width:)`），连续填充电池、读取中的 `ProgressView`、未知时的空描边电池三者都放在同一个槽里并居中，因此文字起点在各状态下保持不变；文字为「n%」/「正在读取电量…」/「电量待连接」，不换行，超长省略
 
 各状态（已连接显示百分比、读取中、未连接 / 未知、低电量、长设备名、窄窗口、侧栏问题行出现与否、浅色 / 深色）之间 SHALL 只有第 3 行的内容变化：头部高度、三行位置与文字左缘都不变，电量不会移到其他行。
@@ -528,6 +528,41 @@ MiRemote 的界面由三类窗体组成：主设置窗（4 个侧栏页和若干
 - **GIVEN** 设备名为「Xiaomi Bluetooth Remote Control 2 Pro (Living Room)」
 - **WHEN** 侧栏渲染（含窄窗口）
 - **THEN** 第 2 行尾部省略并可悬停查看全名；电量仍在第 3 行，头部高度不变
+
+### Requirement: MI RC 2 Pro 专用遥控器示意图（重设计新增，按型号切换）
+
+**原版现状（只读核对）**：原版没有向 UI 暴露「型号」，识别依据只有两处：
+- HID 层只匹配一个 VID/PID：`RemoteIdentity.defaultVendorID = 0x2717`、`defaultProductID = 0x32B8`，注释写明「默认 = 小米蓝牙遥控器 2 Pro」（`Contracts.swift:5-10`）；`HIDEngine` 用它做 `IOHIDManagerSetDeviceMatching`（`HIDEngine.swift:6`、`:21-22`、`:47-51`）；可被 config 的 `settings.remoteVendorID / remoteProductID` 覆盖以支持其他型号（`Contracts.swift:213-216`，`AppServices.swift:695-696`、`main.swift:35` 调 `RemoteIdentity.configure`）。
+- BLE 层只给出外设名：`ATVVBridge.swift:546` `atvvConnected(deviceName: peripheral?.name ?? "MI RC")` → `AppServices.swift:361-364` `onConnection` → `GUIAppDelegate.swift:184-186` → `AppModel.noteConnection`（`AppModel.swift:424-427`，断开时保留上次名称）→ `@Published var deviceName`（`AppModel.swift:228`）。外设名可由用户改名，不作为型号依据。
+- 侧栏头把「MI RC 2 Pro」写死（`RootView.swift:52`）；菜单栏面板用 `model.deviceName ?? "MI RC 2 Pro"`（`StatusItemController.swift:258`）。
+
+**判定规则**：示意图型号 SHALL 取「已连接 且 生效的 `RemoteIdentity.vendorID == 0x2717 && RemoteIdentity.productID == 0x32B8`」为 RC 2 Pro；其他 VID/PID（用户在 config 里换了型号）、未连接、或未识别时 SHALL 使用现有通用示意图 `REMOTE_SVG`（不改）。实施提示：在 `AppModel` 增加只读的 `remoteModel`（`.rc2Pro / .generic`），由 `noteConnection` 与 `RemoteIdentity` 计算；如需以实际设备为准，可在 `HIDEngine.handleDeviceMatched` 里用 `IOHIDDeviceGetProperty(kIOHIDVendorIDKey / kIOHIDProductIDKey)` 读匹配到的设备并上报。设备名（第 2 行）沿用 `model.deviceName`，回退值按型号：RC 2 Pro 为「MI RC 2 Pro」，其他为「MI RC」（同 `ATVVBridge.swift:546` 的回退）。
+
+**画法**：RC 2 Pro 专用示意图按实物照片实测比例绘制（单位 = 机身宽 W；照片做了梯形透视校正，纵向按官方尺寸 158 x 35 mm 标定）：
+- 机身 高:宽 = 4.51:1（照片校正后实测 4.35:1），圆角约 0.05 W；拉丝铝银色渐变 + 细纵向拉丝纹理 + 边缘高光 + 柔和投影
+- 顶排两个小圆键（电源左、语音右）直径 0.25 W，中心横向 0.22 / 0.78 W、距顶 0.30 W；照片中为银色键面 + 细黑描边 + 深色线条图标
+- 方向环直径 0.91 W、中心距顶 1.02 W，无箭头标记；OK 凸起黑盘直径 0.48 W（= 环的 0.52），外圈细凹槽
+- 左列三个圆键（返回「<」/ 主页房子轮廓 / 菜单三横线）直径 0.36 W，列中心 0.28 W，行中心距顶 1.69 / 2.10 / 2.51 W（行距 0.41 W）
+- 右侧音量竖胶囊宽 0.37 W、高 0.77 W，跨返回与主页两行（顶 1.50 W、底 2.28 W），上「+」下「−」，实物无分隔线；TV 圆键（圆角矩形 TV 徽标）与菜单同一行，列中心 0.73 W
+- 下部留空；NFC「N」标记距顶 3.28 W（机身约 75%），「xiaomi」字样距顶 4.04 W（约 93%），字宽约 0.40 W
+- 黑键为哑光黑，顶部轻微高光，图标为浅色细线
+
+**交互契约**（与 `REMOTE_SVG` 完全一致）：同一 180 x 480 画框与 viewBox；同 13 个 `data-key`（power / voice / up / down / left / right / ok / back / home / menu / volUp / volDown / tv），均可点击命中；选中、悬停、按下、识别中（脉冲）四种状态；映射页引线锚点按专用坐标；浅色 / 深色主题；所有使用尺寸（映射页 1.0、窄窗 0.86、引导第 3 步 0.4667、识别按键 0.42）。浮层（ov-*）原版与原型都不绘制遥控器示意图，无需切换。实施时 `RemoteDiagram.swift` 新增一套专用绘制（仍为代码绘制的矢量 `Path` / `Shape`，不用位图），与通用绘制共享按键 id、命中区与状态样式。
+
+#### Scenario: 连接的是 RC 2 Pro
+- **GIVEN** 生效的 VID/PID 为 0x2717 / 0x32B8
+- **WHEN** 遥控器连上（ATVV 能力协商完成）
+- **THEN** 映射页、识别按键 sheet 使用 RC 2 Pro 专用示意图，设备名显示「MI RC 2 Pro」（截图 01、08、43）
+
+#### Scenario: 其他型号或未识别
+- **GIVEN** config 中 `remoteVendorID / remoteProductID` 改为其他型号，或型号无法识别
+- **WHEN** 遥控器连上
+- **THEN** 继续使用现有通用示意图 `REMOTE_SVG`，设备名回退为「MI RC」（截图 45、47）
+
+#### Scenario: 连接 / 断开时实时切换且不位移
+- **GIVEN** 映射页正在显示 RC 2 Pro 专用示意图，选中某个键
+- **WHEN** 遥控器断开（或重新连上）
+- **THEN** 示意图在同一 180 x 480 画框内切换为通用示意图（或切回），画框位置与尺寸不变，引线随锚点更新，选中键保持；13 个键都可命中（程序测量：两种型号 svg 均为 180 x 480，13/13 锚点命中）
 
 ### Requirement: 短标签不断行与标题区排版（视觉刷新）
 
@@ -595,12 +630,12 @@ MiRemote 的界面由三类窗体组成：主设置窗（4 个侧栏页和若干
 | 项 | 内容 |
 |---|---|
 | 文件 | `spec/assets/prototype-v2.html`（= `index.html`，单文件、离线可开）。`prototype-v1.html` 为第 1 版（含用户改过的遥控器画法），只作参照，**已被 v2 取代** |
-| URL 参数 | `screen=<见窗体清单>&scene=global\|ghostty\|claude\|chrome\|wechat\|iina\|feishu&key=<键 id：power/voice/up/down/left/right/ok/back/home/menu/tv>&state=ok\|disc\|perm\|degraded\|layer\|empty\|loading\|paused&lbl=base\|1\|2\|3&adv=0\|1&gest=0\|1&bat=0…100\|none&dname=<设备名>&side=open\|hidden&glass=on\|off\|rt&theme=light\|dark&width=wide\|narrow`；加 `shot=1` 隐藏开发栏 |
-| 开发栏 | 窗体、场景、状态、示意图显示、第二功能模式展开、手势绑定（无 / 模拟已绑定，对应 `gest`）、电量滑块（附「未知」，对应 `bat`，默认 82）、侧栏、玻璃（on = macOS 26 / off = 14–15 / rt = 降低透明度）、主题、宽度；按 ⌃⌘S 切换侧栏 |
+| URL 参数 | `screen=<见窗体清单>&scene=global\|ghostty\|claude\|chrome\|wechat\|iina\|feishu&key=<键 id：power/voice/up/down/left/right/ok/back/home/menu/tv>&state=ok\|disc\|perm\|degraded\|layer\|empty\|loading\|paused&lbl=base\|1\|2\|3&adv=0\|1&gest=0\|1&bat=0…100\|none&dname=<设备名>&device=rc2pro\|other\|none&side=open\|hidden&glass=on\|off\|rt&theme=light\|dark&width=wide\|narrow`；加 `shot=1` 隐藏开发栏 |
+| 开发栏 | 窗体、场景、状态、示意图显示、第二功能模式展开、手势绑定（无 / 模拟已绑定，对应 `gest`）、电量滑块（附「未知」，对应 `bat`，默认 82）、设备型号（MI RC 2 Pro / 其他遥控器 / 未识别，对应 `device`；默认已连接时为 rc2pro、`state=disc` 时为 none；未连接时一律用通用示意图）、侧栏、玻璃（on = macOS 26 / off = 14–15 / rt = 降低透明度）、主题、宽度；按 ⌃⌘S 切换侧栏 |
 | 模拟边界 | 所有数据为假数据：遥控器状态、场景、覆盖数、体检结果、电量、前台 App。玻璃用 CSS `backdrop-filter` 与高光模拟，不代表 macOS 26 的真实折射。原型中的设置窗宽度（1120）只为截图清晰，不规定窗口尺寸；视口宽度 < 1140 时自动按窄窗布局渲染 |
-| 截图 | `spec/assets/screenshots/` 共 42 张：各窗体浅色图（01–21，其中 12 为场景行右键菜单、16 为菜单栏状态面板）+ 深色图（22–24）+ 侧栏隐藏（25）+ 玻璃关闭 / 降低透明度（26–27）+ 未连接 / 空状态 / 窄窗（28–30）+ 返回键短按说明（31）+ OK 已绑定手势（32）+ 菜单栏面板未连接 / 已暂停 / 故障（33–35）+ 菜单栏右键兜底菜单（36）+ 电量图标各档样张浅色 / 深色（37–38，`screen=spec-battery`，样张页不是 App 窗体）+ 低电量 12% 的侧栏与菜单栏（39–40）+ 侧栏头各状态拼图浅色 / 深色（41–42，由 `build/header_states.py` 用同一裁切框拼出，红线为三行底边参考线） |
+| 截图 | `spec/assets/screenshots/` 共 49 张：各窗体浅色图（01–21，其中 12 为场景行右键菜单、16 为菜单栏状态面板）+ 深色图（22–24）+ 侧栏隐藏（25）+ 玻璃关闭 / 降低透明度（26–27）+ 未连接 / 空状态 / 窄窗（28–30）+ 返回键短按说明（31）+ OK 已绑定手势（32）+ 菜单栏面板未连接 / 已暂停 / 故障（33–35）+ 菜单栏右键兜底菜单（36）+ 电量图标各档样张浅色 / 深色（37–38，`screen=spec-battery`，样张页不是 App 窗体）+ 低电量 12% 的侧栏与菜单栏（39–40）+ 侧栏头各状态拼图浅色 / 深色（41–42，由 `build/header_states.py` 用同一裁切框拼出，红线为三行底边参考线）+ 遥控器示意图样张浅色 / 深色（43–44，`screen=spec-remote`，两种型号 x 各尺寸 / 交互态）+ 其他型号的映射页（45，`device=other`）+ 识别按键 sheet RC 2 Pro / 其他型号（46–47）+ 窄窗 RC 2 Pro（48）+ 实物照片与专用示意图对照（49，`build/compare_rc2pro.py`） |
 | 未在原型中展示 | VoiceOver 朗读、减少动态效果 |
-| 未确认 | 见 open-questions.md 的 N1–N3 |
+| 未确认 | 见 open-questions.md 的 N1–N5 |
 
 ## 测试放置声明
 
@@ -653,6 +688,9 @@ MiRemote 的界面由三类窗体组成：主设置窗（4 个侧栏页和若干
 | 电量 82% 时的侧栏头 | 视觉 | 截图 37 / 01 | 是 | 设置窗 | 截图 |
 | 连接过程中头部不跳变 | 布局 | 截图 41 / 42 + 程序测量 `.dev` 高度（14 种状态均为 62 px） | 是 | 设置窗 | 截图 |
 | 长设备名 | 布局 | 截图 41（`dname=`） | 是 | 设置窗 | 截图 |
+| 连接的是 RC 2 Pro | 行为 | 截图 01 / 08 / 43 / 49 | 是 | 示意图 | 截图 |
+| 其他型号或未识别 | 行为 | 截图 45 / 47 + `device=none` 人工 | 是 | 示意图 | 截图 |
+| 连接 / 断开时实时切换且不位移 | 布局 | 程序测量（两型号 svg 180 x 480、同位置，13/13 锚点命中）+ 截图 28 | 是 | 示意图 | 测量值 + 录屏 |
 | 低电量变红 | 视觉 | 截图 39 / 40 | 是 | 设置窗 / 菜单栏 | 截图 |
 | 电量未知 | 状态（回归） | 截图 37 / 28 | 是 | 设置窗 | 截图 |
 | 电量变化时连续更新 | 行为 | 人工（拖动开发栏电量滑块） | 是 | 设置窗 | 录屏 |
@@ -670,7 +708,8 @@ MiRemote 的界面由三类窗体组成：主设置窗（4 个侧栏页和若干
 - App 场景槽位的「App 覆盖 / 继承全局」来源标签与「↺ 恢复」
 - 方向键 / 返回键 / OK 短按下方的基础状态说明文字
 - 场景配置页的「前台 / 正在编辑」标签与行内「编辑映射」按钮
-- 识别按键 sheet 与引导第 3 步中的 `REMOTE_SVG` 示意
+- 识别按键 sheet 与引导第 3 步中的遥控器示意（按型号选择 `REMOTE_SVG` 或 RC 2 Pro 专用示意图）
+- 识别为 MI RC 2 Pro（VID 0x2717 / PID 0x32B8）时使用按实物比例绘制的专用示意图（原版只有一套 `RemoteDiagram`）；其他型号 / 未识别 / 未连接沿用原画法
 - 可收起侧栏（⌃⌘S）、macOS 26 液态玻璃与回退、整体视觉刷新
 - 菜单栏面板使用液态玻璃（原版刻意不透明，`StatusItemController.swift:240`）
 - 侧栏头改为固定三行（标题 / 设备名 / 电量），电量行定宽图标槽，状态切换无跳变（原版设备名与电量同一行，`RootView.swift:49-63`）
@@ -686,7 +725,7 @@ MiRemote 的界面由三类窗体组成：主设置窗（4 个侧栏页和若干
 - **⌃⌘S 冲突**：系统与常见 App 的「显示边栏」都用 ⌃⌘S，与 MiRemote 自己的全局快捷键不冲突。只有设置窗为 key window 时才生效。
 
 <HARD-GATE>
-本 spec 为 DRAFT。在用户确认 open-questions.md 的 N1–N3（或接受默认值）并将 status 改为 approved 之前，不得编写实施计划或修改 app 代码。
+本 spec 为 DRAFT。在用户确认 open-questions.md 的 N1–N5（或接受默认值）并将 status 改为 approved 之前，不得编写实施计划或修改 app 代码。
 </HARD-GATE>
 
 待确认问题见 `open-questions.md`。
