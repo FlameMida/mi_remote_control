@@ -98,25 +98,50 @@ enum RC2ProGeometry {
         return p
     }
 
-    /// 音量上 / 下半（各带一端半圆）
-    static func volumeHalf(_ key: RemoteKey) -> Path {
+    /// 音量上 / 下半（各带一端半圆）。r 默认为原型几何；绘制时传像素对齐后的矩形。
+    static func volumeHalf(_ key: RemoteKey, in r: CGRect = volRect, splitY: CGFloat = volSplitY) -> Path {
         var p = Path()
-        let cx = volRect.midX
+        let cx = r.midX
+        let radius = r.width / 2
         if key == .volUp {
-            p.move(to: CGPoint(x: volRect.minX, y: volSplitY))
-            p.addLine(to: CGPoint(x: volRect.minX, y: volRect.minY + volRadius))
-            p.addArc(center: CGPoint(x: cx, y: volRect.minY + volRadius), radius: volRadius,
+            p.move(to: CGPoint(x: r.minX, y: splitY))
+            p.addLine(to: CGPoint(x: r.minX, y: r.minY + radius))
+            p.addArc(center: CGPoint(x: cx, y: r.minY + radius), radius: radius,
                      startAngle: .degrees(180), endAngle: .degrees(360), clockwise: false)
-            p.addLine(to: CGPoint(x: volRect.maxX, y: volSplitY))
+            p.addLine(to: CGPoint(x: r.maxX, y: splitY))
         } else {
-            p.move(to: CGPoint(x: volRect.minX, y: volSplitY))
-            p.addLine(to: CGPoint(x: volRect.minX, y: volRect.maxY - volRadius))
-            p.addArc(center: CGPoint(x: cx, y: volRect.maxY - volRadius), radius: volRadius,
+            p.move(to: CGPoint(x: r.minX, y: splitY))
+            p.addLine(to: CGPoint(x: r.minX, y: r.maxY - radius))
+            p.addArc(center: CGPoint(x: cx, y: r.maxY - radius), radius: radius,
                      startAngle: .degrees(180), endAngle: .degrees(0), clockwise: true)
-            p.addLine(to: CGPoint(x: volRect.maxX, y: volSplitY))
+            p.addLine(to: CGPoint(x: r.maxX, y: splitY))
         }
         p.closeSubpath()
         return p
+    }
+
+    /// 音量胶囊按设备像素对齐（示意图坐标）。37.2 宽在 0.7–1.0 缩放下两侧边缘落在不同的亚像素相位，
+    /// 左缘整像素覆盖、右缘被抗锯齿摊薄，直边段左侧就显出一条「毛边」。把左右边缘都吸附到像素格，
+    /// 两侧相位一致、外沿描边与填充严丝合缝。
+    static func pixelSnappedVolRect(scale: CGFloat, displayScale: CGFloat) -> CGRect {
+        let px = 1 / max(scale * max(displayScale, 1), 0.01)
+        func snap(_ v: CGFloat) -> CGFloat { (v / px).rounded() * px }
+        let minX = snap(volRect.minX), maxX = snap(volRect.maxX)
+        let minY = snap(volRect.minY), maxY = snap(volRect.maxY)
+        return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
+    }
+
+    static func volSnapSelfCheck() -> Bool {
+        for ds in [1.0, 2.0] as [CGFloat] {
+            for sc in stride(from: 0.7 as CGFloat, through: 1.0, by: 0.01) {
+                let r = pixelSnappedVolRect(scale: sc, displayScale: ds)
+                let k = sc * ds
+                let onGrid = { (v: CGFloat) in abs((v * k).rounded() - v * k) < 0.001 }
+                guard onGrid(r.minX), onGrid(r.maxX), onGrid(r.minY), onGrid(r.maxY) else { return false }
+                guard abs(r.width - volRect.width) * k <= 1.001, abs(r.midX - volRect.midX) * k <= 1.001 else { return false }
+            }
+        }
+        return true
     }
 
     static func selfCheck() -> Bool {
@@ -235,6 +260,7 @@ struct RC2ProCanvas: View {
     private typealias G = RC2ProGeometry
     private typealias P = RC2ProPalette
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.displayScale) private var displayScale
 
     /// 喷砂颗粒：固定种子点阵，重绘不变化（避免闪烁）。
     private static let grain: [(CGPoint, CGFloat, Bool)] = {
@@ -497,18 +523,20 @@ struct RC2ProCanvas: View {
                 break
             }
         }
-        // 音量竖胶囊
-        let vol = Path(roundedRect: G.volRect, cornerRadius: G.volRadius, style: .circular)
-        ctx.fill(Path(roundedRect: G.volRect.offsetBy(dx: 0, dy: 0.9), cornerRadius: G.volRadius, style: .circular),
+        // 音量竖胶囊（原型：ksh 阴影 dy .9 → #141517 底座 inset .4 → 两半 keyface+kg → krim .7 → 分缝 .6）
+        let vr = G.pixelSnappedVolRect(scale: scale, displayScale: displayScale)
+        let vRadius = vr.width / 2
+        let vol = Path(roundedRect: vr, cornerRadius: vRadius, style: .circular)
+        ctx.fill(Path(roundedRect: vr.offsetBy(dx: 0, dy: 0.9), cornerRadius: vRadius, style: .circular),
                  with: .color(.black.opacity(0.3)))
-        ctx.fill(Path(roundedRect: G.volRect.insetBy(dx: 0.4, dy: 0.4), cornerRadius: G.volRadius - 0.4, style: .circular),
+        ctx.fill(Path(roundedRect: vr.insetBy(dx: 0.4, dy: 0.4), cornerRadius: vRadius - 0.4, style: .circular),
                  with: .color(P.volumeBase))
-        // 两半的填充/光泽裁进胶囊外形，保证与底座、外沿描边严丝合缝（左右边缘一致，无毛边）
+        // 两半的填充/光泽裁进胶囊外形，保证与底座、外沿描边严丝合缝
         var volCtx = ctx
         volCtx.clip(to: vol)
         for key in [RemoteKey.volUp, .volDown] {
             let s = keyState(key)
-            let half = G.volumeHalf(key)
+            let half = G.volumeHalf(key, in: vr)
             volCtx.fill(half, with: .color(s.pressed ? P.keyPressed
                                          : (key == .volUp ? RC2ProPalette.fixed(0x292929) : RC2ProPalette.fixed(0x262626))))
             let b = half.boundingRect
@@ -518,11 +546,11 @@ struct RC2ProCanvas: View {
         }
         ctx.stroke(vol, with: .color(P.keyRim), lineWidth: 0.7)
         var split = Path()
-        split.move(to: CGPoint(x: 94.8, y: G.volSplitY))
-        split.addLine(to: CGPoint(x: 130.4, y: G.volSplitY))
+        split.move(to: CGPoint(x: vr.minX + 0.8, y: G.volSplitY))
+        split.addLine(to: CGPoint(x: vr.maxX - 0.8, y: G.volSplitY))
         ctx.stroke(split, with: .color(P.volumeSplit), lineWidth: 0.6)
         for key in [RemoteKey.volUp, .volDown] {
-            strokeState(&ctx, G.volumeHalf(key), keyState(key), base: nil)
+            strokeState(&ctx, G.volumeHalf(key, in: vr), keyState(key), base: nil)
         }
         var plus = Path()
         plus.move(to: CGPoint(x: 112.6, y: 175.3)); plus.addLine(to: CGPoint(x: 112.6, y: 183.9))

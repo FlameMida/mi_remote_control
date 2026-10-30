@@ -1346,6 +1346,7 @@ enum SelfTest {
                "窗口选择器：副标题取窗口标题，不重复 App 名")
         expect(StatusIssue.selfCheck(), "ui-redesign: 问题优先级与横幅过滤")
         expect(RC2ProGeometry.selfCheck(), "ui-redesign: RC 2 Pro 示意图几何与 13 键命中")
+        expect(RC2ProGeometry.volSnapSelfCheck(), "RC 2 Pro 音量键：两侧边缘像素对齐（0.7–1.0 × 1x/2x）")
         expect(RemoteAnnotationLayout.selfCheck(), "ui-redesign: 遥控器标注布局与键盘顺序")
         expect(FeelDefaults.selfCheck(), "ui-redesign: 按键手感恢复默认")
     // ===== UI 重设计 end =====
