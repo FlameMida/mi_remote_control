@@ -81,8 +81,6 @@ struct MappingPage: View {
 
     private func content(contentWidth: CGFloat) -> some View {
         let pl = RemoteAnnotationLayout.panelLayout(contentWidth: contentWidth)
-        let pad: CGFloat = pl.annotated ? 0 : (Spacing.page - 16) * 2
-        let inspectorWidth = contentWidth + pad - RemoteAnnotationLayout.columnGap - pl.panelWidth
         return ScrollView {
             VStack(alignment: .leading, spacing: Spacing.section) {
                 header
@@ -99,7 +97,6 @@ struct MappingPage: View {
                     remotePanel(pl)
                     keyEditor
                         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-                        .environment(\.compactSlotRows, inspectorWidth < RemoteAnnotationLayout.inspectorMinWidth)
                 }
             }
             // 原型 .win.narrow .main padding 16（宽态 24）
@@ -299,7 +296,15 @@ private struct SlotRow: View {
     let subtitle: String?
     let note: String?
     let onChange: (Action?) -> Void
-    @Environment(\.compactSlotRows) private var compact
+
+    /// 原型 slot(nm, hint, sl, w) 的 w
+    private var titleWidth: CGFloat? {
+        switch slot {
+        case .tap, .hold, .gesture: return 104
+        case .double: return 150
+        default: return nil
+        }
+    }
 
     init(key: RemoteKey, slot: MappingSlot, icon: String, iconColor: Color, title: String,
          subtitle: String?, note: String?, onChange: @escaping (Action?) -> Void) {
@@ -328,13 +333,16 @@ private struct SlotRow: View {
                             .padding(.top, 2)
                     }
                 }
-                // 窄检查器里标题不让位给动作选择器（否则「短按」被挤没）；副标题可换行。
-                // 原型 .slot .nm 有固定列宽；窄态检查器用 64 列宽，选择器可截断而不是挤出卡片
-                .frame(minWidth: compact ? 64 : 96, maxWidth: compact ? 64 : nil, alignment: .leading)
+                // 原型 .slot .nm 定宽：短按 / 长按 / 手势 104、双击 150（副标题在列内换行）；
+                // 模式行无定宽，按标题自然宽度，不让位给选择器
+                .frame(minWidth: titleWidth ?? 96, maxWidth: titleWidth, alignment: .leading)
                 .layoutPriority(1)
                 Spacer(minLength: 4)
                 HStack(spacing: 8) {
-                    ActionPicker(action: r.action, compact: compact, onChange: onChange)
+                    // 原型 .slot .act .picker：flex 0 1 auto、靠右，放不下时截断（…）
+                    ShrinkToFitLayout {
+                        ActionPicker(action: r.action, compact: true, onChange: onChange)
+                    }
                         .foregroundStyle(r.source == .inherited ? .secondary : .primary)
                     if r.source == .appOverride && model.currentProfile != "global" {
                         Button("↺ 恢复") { model.restoreInherited(key, slot: slot) }
@@ -465,14 +473,17 @@ struct KeyLearnSheet: View {
     }
 }
 
-private struct CompactSlotRowsKey: EnvironmentKey {
-    static let defaultValue = false
-}
+/// 单个子视图：取理想宽，提议更窄时按提议宽排（配合 lineLimit(1) 截断），对应 CSS flex: 0 1 auto。
+struct ShrinkToFitLayout: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let v = subviews.first else { return .zero }
+        let ideal = v.sizeThatFits(.unspecified)
+        let w = min(ideal.width, proposal.width ?? ideal.width)
+        let h = v.sizeThatFits(ProposedViewSize(width: w, height: proposal.height)).height
+        return CGSize(width: w, height: h)
+    }
 
-extension EnvironmentValues {
-    /// 窄态检查器（窄于 inspectorMinWidth）：槽位标题列固定 64，动作选择器可截断
-    var compactSlotRows: Bool {
-        get { self[CompactSlotRowsKey.self] }
-        set { self[CompactSlotRowsKey.self] = newValue }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, proposal: ProposedViewSize(width: bounds.width, height: bounds.height))
     }
 }

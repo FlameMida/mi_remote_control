@@ -207,6 +207,8 @@ struct PageStatusBanner: View {
 struct SidebarIssueRow: View {
     @Environment(\.statusIssue) private var statusIssue
     @Environment(\.statusFix) private var statusFix
+    /// 原型 .win.narrow .issue：11 号字，不显示前置图标
+    var narrow: Bool = false
 
     var body: some View {
         if let issue = StatusIssue.sidebarRow(statusIssue) {
@@ -214,15 +216,17 @@ struct SidebarIssueRow: View {
                 statusFix(issue)
             } label: {
                 HStack(spacing: 6) {
-                    Image(systemName: issue.rowSymbol)
-                        .foregroundStyle(issue.rowTint)
-                        .accessibilityHidden(true)
+                    if !narrow {
+                        Image(systemName: issue.rowSymbol)
+                            .foregroundStyle(issue.rowTint)
+                            .accessibilityHidden(true)
+                    }
                     Text(issue.rowText)
-                        .font(.system(size: 11.5))
+                        .font(.system(size: narrow ? 11 : 11.5))
                         .noWrap()
                     Spacer(minLength: 4)
                     Text(issue.rowAction)
-                        .font(.system(size: 11.5, weight: .semibold))
+                        .font(.system(size: narrow ? 11 : 11.5, weight: .semibold))
                         .foregroundStyle(Color.accentColor)
                         .noWrap()
                 }

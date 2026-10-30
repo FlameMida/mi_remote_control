@@ -16,15 +16,31 @@ final class SettingsNav: ObservableObject {
     @Published var showHealthCheck = false
     @Published var showReauth = false
     @Published var onboardingStep = 0
+    /// 原型 .win.narrow（窗宽不足标准 1120）：侧栏 176、问题行 11 号字且不显示前置图标
+    @Published var narrowWindow = false
 }
 
-/// 设置窗尺寸常量（定稿原型：窗 1120×700；侧栏 216 + 浮动玻璃左右各 8 的外边距）。
+/// 设置窗尺寸常量（定稿原型：窗 1120×700；侧栏 216 / 窄窗 176，玻璃开启时另加左右各 8 的外边距）。
 enum SettingsWindowLayout {
     static let defaultSize = CGSize(width: 1120, height: 700)
     static let minSize = CGSize(width: 760, height: 560)
-    /// 侧栏分栏厚度（含浮动玻璃外边距）
-    static let sidebarThickness: CGFloat = 232
-    static let sidebarMinThickness: CGFloat = 208
+    /// 原型 .side 宽 216，.win.narrow .side 176
+    static let sidebarWidth: CGFloat = 216
+    static let narrowSidebarWidth: CGFloat = 176
+    /// 浮动玻璃卡片外边距（原型 glass-on .side margin 0 8px 8px）
+    static let sidebarGlassMargin: CGFloat = 8
+    /// 侧栏分栏厚度（含浮动玻璃外边距）：标准 232、窄窗 192
+    static let sidebarThickness: CGFloat = sidebarWidth + sidebarGlassMargin * 2
+    static let narrowSidebarThickness: CGFloat = narrowSidebarWidth + sidebarGlassMargin * 2
+    static let sidebarMinThickness: CGFloat = narrowSidebarThickness
+
+    /// 原型 isNarrow：放不下 1120 标准窗即窄态 —— 这里按窗宽是否小于标准宽判定
+    static func isNarrow(windowWidth: CGFloat) -> Bool { windowWidth < defaultSize.width - 0.5 }
+
+    static func sidebarThicknessFor(windowWidth: CGFloat, glass: Bool) -> CGFloat {
+        (isNarrow(windowWidth: windowWidth) ? narrowSidebarWidth : sidebarWidth)
+            + (glass ? sidebarGlassMargin * 2 : 0)
+    }
     static let sidebarMaxThickness: CGFloat = 300
     static let detailMinThickness: CGFloat = 540
     static let mainTitle = "MiRemote 设置"
@@ -40,6 +56,10 @@ enum SettingsWindowLayout {
             && title(sidebarHidden: true, page: .mapping) == "按键映射"
             && sidebarMinThickness <= sidebarThickness && sidebarThickness <= sidebarMaxThickness
             && sidebarThickness + detailMinThickness <= minSize.width + 20
+            && sidebarThicknessFor(windowWidth: 1120, glass: true) == 232
+            && sidebarThicknessFor(windowWidth: 780, glass: true) == 192
+            && sidebarThicknessFor(windowWidth: 780, glass: false) == 176
+            && !isNarrow(windowWidth: 1120) && isNarrow(windowWidth: 1024)
             && defaultSize == CGSize(width: 1120, height: 700)
     }
 }
@@ -136,16 +156,41 @@ final class SettingsSplitViewController: NSSplitViewController {
         super.viewDidAppear()
         guard !didApplyInitialWidth else { return }
         didApplyInitialWidth = true
+        applySidebarWidth(force: true)
+    }
+
+    override func viewDidLayout() {
+        super.viewDidLayout()
+        // 跨过 1120 断点时切换侧栏 216 / 176（不跨断点时保留用户拖拽的宽度）
+        let narrow = SettingsWindowLayout.isNarrow(windowWidth: view.bounds.width)
+        if narrow != appliedNarrow, didApplyInitialWidth {
+            DispatchQueue.main.async { [weak self] in self?.applySidebarWidth(force: false) }
+        }
+    }
+
+    private var appliedNarrow: Bool?
+
+    private var glassOn: Bool {
+        GlassSurface.appearance(kind: .panel, glassAvailable: GlassSurface.glassAvailable,
+                                reduceTransparency: NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency)
+            == .liquidGlass
+    }
+
+    private func applySidebarWidth(force: Bool) {
+        let width = view.bounds.width
+        let narrow = SettingsWindowLayout.isNarrow(windowWidth: width)
+        guard force || narrow != appliedNarrow else { return }
+        appliedNarrow = narrow
+        if nav.narrowWindow != narrow { nav.narrowWindow = narrow }
         if sidebarItem?.isCollapsed == false {
-            splitView.setPosition(SettingsWindowLayout.sidebarThickness, ofDividerAt: 0)
+            splitView.setPosition(SettingsWindowLayout.sidebarThicknessFor(windowWidth: width, glass: glassOn),
+                                  ofDividerAt: 0)
         }
     }
 
     /// 快照模式：恢复默认侧栏宽度（不受 autosave 影响）。
     func resetSidebarWidth() {
-        if sidebarItem?.isCollapsed == false {
-            splitView.setPosition(SettingsWindowLayout.sidebarThickness, ofDividerAt: 0)
-        }
+        applySidebarWidth(force: true)
     }
 }
 
@@ -302,7 +347,7 @@ struct SettingsSidebar: View {
                 .padding(.top, 4)
                 .padding(.horizontal, 6)
                 .padding(.bottom, 12)
-            SidebarIssueRow()
+            SidebarIssueRow(narrow: nav.narrowWindow)
                 .padding(.horizontal, 4)
                 .padding(.bottom, 8)
             ForEach(SidebarItem.allCases) { item in
