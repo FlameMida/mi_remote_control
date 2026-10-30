@@ -107,6 +107,7 @@ Status 取值：pass（已有自动证据且该行无人工部分）/ auto-pass 
 - T12：骨架无图标槽，App 图标置于内容顶部（计划允许的回退）；未设置的槽位不再显示「继承全局」。
 - T15：原无关闭按钮的 sheet 保持 `onClose: nil`。
 - T01–T06 合并推送后首个 CI 失败（拆分提交时重复插入），以 1b2dede 前向修复；T08 actor 隔离错误以 7d7fe7b 前向修复。未改写已推送历史。
+- 菜单栏健康点（D8，2026-10-30 用户决定，偏离原型 `prototype-v2.html:873`）：暂停遥控时健康点为灰色而非绿色。红 = 按键通道异常；灰 = 已暂停或未连接；绿 = 已连接且未暂停。证据：快照 `menubar-paused-glass-light` / `menubar-paused-fallback-light`。
 
 ## Requirement Reconciliation
 

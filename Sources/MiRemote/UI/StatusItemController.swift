@@ -443,11 +443,13 @@ struct StatusPanelView: View {
             if let pct = model.batteryPercent {
                 BatteryRingView(percent: pct)
             }
-            // 原型 .hdot：degraded=红「按键通道异常」/ 已连接=绿「运行正常」/ 其他=灰「未连接」
+            // 原型 .hdot：degraded=红「按键通道异常」/ 已连接且未暂停=绿「运行正常」/ 暂停或未连接=灰
+            let dot = StatusDotKind(degraded: model.degraded, connected: model.connected,
+                                    suspended: model.remoteSuspended)
             Circle()
-                .fill(StatusDotKind(degraded: model.degraded, connected: model.connected).color)
+                .fill(dot.color)
                 .frame(width: 8, height: 8)
-                .help(StatusDotKind(degraded: model.degraded, connected: model.connected).help)
+                .help(dot.help)
         }
     }
 
@@ -512,22 +514,28 @@ private struct PanelButtonShape: ViewModifier {
 
 /// 等宽三段选择（原型 .seg.full）：段宽均分整行，不随文字撑宽面板；玻璃时为胶囊。
 /// 菜单栏面板健康点（原型 `.hdot green/red/grey`）。
+/// 用户决定（偏离原型 prototype-v2.html:873）：暂停遥控时为灰点，不再保持绿点。
+/// 红 = 按键通道异常；灰 = 已暂停或未连接；绿 = 已连接且未暂停。
 enum StatusDotKind: Equatable {
-    case ok, fault, off
-    init(degraded: Bool, connected: Bool) {
-        self = degraded ? .fault : (connected ? .ok : .off)
+    case ok, fault, paused, off
+    init(degraded: Bool, connected: Bool, suspended: Bool) {
+        if degraded { self = .fault }
+        else if !connected { self = .off }
+        else if suspended { self = .paused }
+        else { self = .ok }
     }
     var color: Color {
         switch self {
         case .ok: return .green
         case .fault: return .red
-        case .off: return Color.secondary.opacity(0.4)
+        case .paused, .off: return Color.secondary.opacity(0.4)
         }
     }
     var help: String {
         switch self {
         case .ok: return "运行正常"
         case .fault: return "按键通道异常"
+        case .paused: return "遥控已暂停"
         case .off: return "未连接"
         }
     }
