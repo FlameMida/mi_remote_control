@@ -340,7 +340,14 @@ struct RC2ProCanvas: View {
             drawPrint(&ctx)
             drawStatus(&ctx)
         }
-        .onGeometryChange(for: CGPoint.self) { $0.frame(in: .global).origin } action: { canvasOrigin = $0 }
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { f in
+            canvasOrigin = f.origin
+            if CommandLine.arguments.contains("--snapshot") { // TEMP diag
+                let line = "frame=\(f) scale=\(scale) ds=\(displayScale) vr=\(G.pixelSnappedVolRect(scale: scale, displayScale: displayScale, origin: f.origin))\n"
+                if let h = FileHandle(forWritingAtPath: "snapshots/rc2pro-diag.txt") { h.seekToEndOfFile(); h.write(line.data(using: .utf8)!); h.closeFile() }
+                else { FileManager.default.createFile(atPath: "snapshots/rc2pro-diag.txt", contents: line.data(using: .utf8)) }
+            }
+        }
         .onContinuousHover { phase in
             guard interactive else { hoveredKey = nil; return }
             switch phase {
