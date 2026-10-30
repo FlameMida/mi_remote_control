@@ -19,13 +19,25 @@ BUNDLE_ID="com.miremote.controller"   # 固定不变——DR 的一半，改了�
 DIST="dist"
 APP="$DIST/MiRemote.app"
 
-# --unsigned：CI/预览通道——ad-hoc 签名、产物名带 -unsigned、跳过 DR 闸门。
-# 仅用于无证书环境（GitHub Actions）；接收方授权体验同 README「每版重授」说明。
+# --unsigned：预览通道——ad-hoc 签名、产物名带 -unsigned、跳过 DR 闸门。
+# 仅用于无证书环境（如未配置签名 secret 的 fork CI）；ad-hoc 产物每版都要重新授权。
 UNSIGNED=0
 [ "${1:-}" = "--unsigned" ] && UNSIGNED=1
 
+# MIREMOTE_SIGNING_KEYCHAIN：CI（release.yml）把固定证书导入的临时钥匙串路径。
+# 设了它就只在该钥匙串里找身份并用它签名；临时钥匙串里的自签证书在无人值守
+# 环境里未必能设成「始终信任」，find-identity -v 会把它当无效身份过滤掉，
+# 故此时接受未经信任校验的身份——TCC 认的是 DR，下方「DR 锚定 certificate leaf」闸门照常把关。
+SIGN_KEYCHAIN="${MIREMOTE_SIGNING_KEYCHAIN:-}"
+identity_available() {
+    if security find-identity -v -p codesigning ${SIGN_KEYCHAIN:+"$SIGN_KEYCHAIN"} 2>/dev/null | grep -q "$CERT_CN"; then
+        return 0
+    fi
+    [ -n "$SIGN_KEYCHAIN" ] && security find-identity -p codesigning "$SIGN_KEYCHAIN" 2>/dev/null | grep -q "$CERT_CN"
+}
+
 # ---- 0. 证书检查：缺证书硬失败，绝不静默 ad-hoc 回退 ----
-if [ "$UNSIGNED" = "0" ] && ! security find-identity -v -p codesigning 2>/dev/null | grep -q "$CERT_CN"; then
+if [ "$UNSIGNED" = "0" ] && ! identity_available; then
     echo "❌ 错误：找不到可用的代码签名证书 \"$CERT_CN\"。" >&2
     echo "" >&2
     echo "   MiRemote 必须用固定证书签名，否则 TCC 权限（辅助功能/输入监控）" >&2
@@ -83,6 +95,7 @@ else
     codesign --force \
         --identifier "$BUNDLE_ID" \
         --sign "$CERT_CN" \
+        ${SIGN_KEYCHAIN:+--keychain "$SIGN_KEYCHAIN"} \
         "$APP"
 
     # 自检：DR 必须锚定 certificate leaf（而非 cdhash），否则 TCC 跨重编译存活失效

@@ -1,8 +1,12 @@
 name: Release
 
 # 打 tag（v*）自动构建并发布 Release，附 DMG 与 zip。
-# CI 无本机证书，产物为 ad-hoc 签名（-unsigned 后缀）：接收方首次打开需
-# 右键→打开，且每个新版本需重新授权辅助功能/输入监控（README 已说明）。
+# 签名：仓库 secrets 配了固定自签证书 "MiRemote Dev"（MIREMOTE_SIGNING_P12 / _PASSWORD）
+# 时，用它签名——DR = identifier com.miremote.controller + certificate leaf，跨版本不变，
+# 用户的辅助功能/输入监控授权升级后保留。证书不能换：换了所有用户都要重新授权一次。
+# secret 缺失（如 fork）才回退 ad-hoc（产物带 -unsigned 后缀，每版需重新授权）。
+# 未做 Apple 公证：首次打开仍需右键→打开。
+# dry_run=true：只构建、签两次并比对 DR，不发布（用于验证签名链路）。
 
 on:
   push:
@@ -13,6 +17,10 @@ on:
       tag:
         description: "要发布的已存在 tag，如 v0.3.0"
         required: true
+      dry_run:
+        description: "只构建并校验签名，不发布（检出所选分支而非 tag）"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -20,20 +28,84 @@ permissions:
 jobs:
   release:
     runs-on: xcode-27
+    env:
+      HAS_SIGNING: ${{ secrets.MIREMOTE_SIGNING_P12 != '' }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag || github.ref }}
+          ref: ${{ inputs.dry_run && github.sha || inputs.tag || github.ref }}
           fetch-depth: 0   # git describe 需要完整历史与 tag
       - name: 构建 + 自检
         run: |
           ./build.sh
           .build/miremote --self-test
-      - name: 组装 .app（ad-hoc）
-        run: scripts/package.sh --unsigned
+      - name: 导入固定签名证书（临时钥匙串）
+        if: env.HAS_SIGNING == 'true'
+        env:
+          P12_B64: ${{ secrets.MIREMOTE_SIGNING_P12 }}
+          P12_PASSWORD: ${{ secrets.MIREMOTE_SIGNING_P12_PASSWORD }}
+        run: |
+          set -euo pipefail
+          KC="$RUNNER_TEMP/miremote-signing.keychain-db"
+          KC_PW="$(openssl rand -hex 24)"
+          echo "::add-mask::$KC_PW"
+          P12="$RUNNER_TEMP/miremote-dev.p12"
+          printf '%s' "$P12_B64" | base64 --decode > "$P12"
+          security create-keychain -p "$KC_PW" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KC_PW" "$KC"
+          security import "$P12" -k "$KC" -P "$P12_PASSWORD" -f pkcs12 -T /usr/bin/codesign
+          rm -f "$P12"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KC_PW" "$KC" >/dev/null
+          # 加入用户钥匙串搜索列表（codesign 校验证书链、make-dmg 比对叶证书都要能查到）
+          security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
+          # 尽量设为代码签名信任；无人值守拿不到授权也不要紧，package.sh 的 DR 闸门照常把关
+          security find-certificate -c "MiRemote Dev" -p "$KC" > "$RUNNER_TEMP/miremote-dev.pem"
+          if sudo -n security add-trusted-cert -d -r trustRoot -p codeSign \
+               -k /Library/Keychains/System.keychain "$RUNNER_TEMP/miremote-dev.pem" 2>/dev/null; then
+            echo "证书已设为代码签名信任"
+          else
+            echo "::notice::无法非交互设置证书信任，改用临时钥匙串内的未信任身份签名（DR 闸门仍生效）"
+          fi
+          echo "叶证书 SHA-256: $(openssl x509 -in "$RUNNER_TEMP/miremote-dev.pem" -outform DER | shasum -a 256 | awk '{print $1}')"
+          security find-identity -p codesigning "$KC"
+          echo "MIREMOTE_SIGNING_KEYCHAIN=$KC" >> "$GITHUB_ENV"
+      - name: 组装 .app（固定证书签名；无 secret 回退 ad-hoc）
+        run: |
+          set -euo pipefail
+          if [ "$HAS_SIGNING" = "true" ]; then
+            scripts/package.sh
+          else
+            echo "::warning::未配置 MIREMOTE_SIGNING_P12，回退 ad-hoc（每版需重新授权）"
+            scripts/package.sh --unsigned
+          fi
+          echo "== codesign -d -r- =="
+          codesign -d -r- dist/MiRemote.app 2>&1 | tee "$RUNNER_TEMP/dr1.txt"
+          codesign -dvvv dist/MiRemote.app 2>&1 | grep -E '^(Identifier|Authority|CDHash|TeamIdentifier)='
+      - name: 二次签名比对 DR（仅 dry_run）
+        if: inputs.dry_run && env.HAS_SIGNING == 'true'
+        run: |
+          set -euo pipefail
+          codesign -dvvv dist/MiRemote.app 2>&1 | grep '^CDHash=' > "$RUNNER_TEMP/cd1.txt"
+          # 第二次构建模拟「新版本」：改动工作区让版本号带 -dirty，Info.plist 与 cdhash 随之变化
+          echo "// dry-run rebuild" >> Sources/MiRemote/App/main.swift
+          scripts/package.sh
+          codesign -d -r- dist/MiRemote.app 2>&1 | tee "$RUNNER_TEMP/dr2.txt"
+          codesign -dvvv dist/MiRemote.app 2>&1 | grep '^CDHash=' > "$RUNNER_TEMP/cd2.txt"
+          git checkout -- Sources/MiRemote/App/main.swift
+          echo "build1 $(cat "$RUNNER_TEMP/cd1.txt")"; echo "build2 $(cat "$RUNNER_TEMP/cd2.txt")"
+          if cmp -s "$RUNNER_TEMP/cd1.txt" "$RUNNER_TEMP/cd2.txt"; then echo "::warning::两次 cdhash 相同，未模拟出新版本"; fi
+          if diff <(grep '^designated' "$RUNNER_TEMP/dr1.txt") <(grep '^designated' "$RUNNER_TEMP/dr2.txt"); then
+            echo "DR 两次构建一致"
+          else
+            echo "::error::两次构建 DR 不一致"; exit 1
+          fi
       - name: 打 DMG
-        run: scripts/make-dmg.sh --unsigned
+        run: |
+          if [ "$HAS_SIGNING" = "true" ]; then scripts/make-dmg.sh; else scripts/make-dmg.sh --unsigned; fi
+          ls -l dist/
       - name: 发布 Release
+        if: ${{ !inputs.dry_run }}
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag || github.ref_name }}
@@ -42,3 +114,6 @@ jobs:
             --title "MiRemote ${TAG}" \
             --generate-notes \
             dist/*.dmg dist/*.zip
+      - name: 清理临时钥匙串
+        if: always() && env.MIREMOTE_SIGNING_KEYCHAIN != ''
+        run: security delete-keychain "$MIREMOTE_SIGNING_KEYCHAIN" || true

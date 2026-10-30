@@ -9,6 +9,11 @@
 
 ### 修复
 
+- **每次更新/换包都要重新授权**：Release 包此前是 ad-hoc 签名，macOS 按 cdhash 认身份，
+  每个新包都被当成新 App。现在 Release 用固定自签证书 `MiRemote Dev` 签名
+  （DR = identifier `com.miremote.controller` + certificate leaf），升级后权限保留；
+  产物名去掉 `-unsigned`。从旧 ad-hoc 包换过来需最后再授权一次；首次打开仍需右键→打开（未公证）。
+
 - **per-app 设的 OK 组合键被引擎静默丢弃**：基础态（层 0）的 OK 短按此前被硬编码成
   纯 Return，`fireTap` 根本不读 profile 的 `ok.tap`——GUI 允许你设、`config.json` 也存得下，
   运行时却整条忽略，用户只看到「设了没用」。典型场景：飞书把发送设成 ⌘+Enter，遥控 OK

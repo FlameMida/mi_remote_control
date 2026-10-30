@@ -62,7 +62,7 @@ check_dr() {
         return 1
     fi
     app_cert_sha="$(shasum -a 256 "$cert_tmp/app-cert0" | awk '{print $1}')"
-    if ! security find-certificate -c "MiRemote Dev" -p 2>/dev/null \
+    if ! security find-certificate -c "MiRemote Dev" -p ${MIREMOTE_SIGNING_KEYCHAIN:+"$MIREMOTE_SIGNING_KEYCHAIN"} 2>/dev/null \
         | openssl x509 -outform DER > "$cert_tmp/keychain-cert.der" 2>/dev/null; then
         echo "❌ 错误：钥匙串中找不到固定 MiRemote Dev 证书。" >&2
         rm -rf "$cert_tmp"
