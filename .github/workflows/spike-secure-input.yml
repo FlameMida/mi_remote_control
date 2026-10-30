@@ -1,0 +1,25 @@
+name: Spike Secure Input probe
+
+# Throwaway feasibility spike. Lives only on spike/secure-input-macro; never merged to main.
+on:
+  push:
+    branches: ['spike/secure-input-macro']
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: xcode-27
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: sw_vers && swiftc --version
+      - name: Probe
+        run: ./spike/run.sh spike-out 2>&1 | tee spike-out-console.txt
+        shell: bash
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: spike-secure-input
+          path: |
+            spike-out/
+            spike-out-console.txt
