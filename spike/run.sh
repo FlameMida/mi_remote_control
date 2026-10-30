@@ -64,10 +64,10 @@ cmd "shot P1"
 phase P2-helper-EnableSecureEventInput-plainfocused
 cmd focusPlain
 cmd clear
-"$B" secure-helper 12 > "$D/helper.log" 2>&1 & sleep 2
+"$B" secure-helper 12 > "$D/helper.log" 2>&1 & HPID=$!; sleep 2
 "$B" status
 inject_all
-wait %4 2>/dev/null; sleep 11; cat "$D/helper.log"
+wait $HPID 2>/dev/null; cat "$D/helper.log"; "$B" status
 
 phase P3-after-helper-plain
 cmd focusPlain
