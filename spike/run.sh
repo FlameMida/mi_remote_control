@@ -31,7 +31,7 @@ csrutil status || true
 "$B" status
 sudo "$B" status
 
-phase() { echo "$1" > "$D/phase"; echo; echo "===== PHASE $1 ====="; }
+phase() { echo "$1" > "$D/phase"; echo; echo "===== PHASE $1 ($(date +%T)) ====="; }
 cmd() { echo "$1 #$RANDOM" > "$D/cmd"; sleep 1.2; echo "target-state: $(cat $D/target-state)"; }
 xy() { sed -n "s/.*$1XY=\([0-9-]*\),\([0-9-]*\).*/\1 \2/p" "$D/target-state"; }
 inject_all() {
@@ -44,6 +44,10 @@ inject_all() {
   ioreg -l -w 0 | grep -o '"kCGSSessionSecureInputPID"=[0-9]*' | head -2 || true
 }
 
+# Kernel-side evidence for IOHIDManager listen mode: IOHIDLibUserClient logs setValid true->false and
+# "<proc> is not entitled for IOHIDLibUserClient keyboard access" when Secure Input invalidates a keyboard client.
+sudo log stream --level debug --style compact --predicate 'eventMessage CONTAINS[c] "IOHIDLibUserClient" OR eventMessage CONTAINS "setValid" OR eventMessage CONTAINS[c] "keyboard access"' > "$D/hidlib-kernel.log" 2>&1 &
+sleep 2
 phase SETUP
 "$B" target > "$D/target.log" 2>&1 & TPID=$!
 sleep 3
@@ -95,6 +99,9 @@ echo "delivery readback: $(cat $D/target-state)"
 cmd "shot P4"
 
 phase DONE
+echo "== IOHIDLibUserClient kernel log (setValid / keyboard access), $(wc -l < "$D/hidlib-kernel.log") lines"
+grep -i "setValid\|keyboard access\|not entitled" "$D/hidlib-kernel.log" | cut -c1-260 | head -80
+sudo log show --last 3m --info --debug --style compact --predicate 'eventMessage CONTAINS "setValid" OR eventMessage CONTAINS[c] "keyboard access"' 2>&1 | cut -c1-260 | tail -60
 sleep 1
 kill $TPID 2>/dev/null; sudo pkill -f "$B" 2>/dev/null; pkill -f "$B" 2>/dev/null
 sleep 1
