@@ -253,6 +253,28 @@ final class HealthMonitor: @unchecked Sendable {
         return .healthy
     }
 
+    /// 「按键通道异常」（菜单栏红点 / 侧栏与横幅的故障态）只看按键通道本身：
+    /// 按键模式启用、未暂停，且 tap 失效或映射不在位。蓝牙未连接（灰点）、用户主动暂停、
+    /// 输入监控未授予（权限横幅单独提示）、hidutil 查询失败都不算按键通道故障——
+    /// 此前 UI 用 `overall != .healthy` 判红点，导致已连接空闲时也亮红点。
+    static func isKeyChannelFault(_ s: HealthSources) -> Bool {
+        s.keysEnabled && !s.suspended && (!s.tapAlive || !s.mappingInstalled)
+    }
+
+    static func keyChannelFaultSelfCheck() -> Bool {
+        var ok = HealthSources(keysEnabled: true, bleConnected: true, tapAlive: true, mappingInstalled: true)
+        var cases: [(HealthSources, Bool)] = [(ok, false)]
+        var s = ok; s.bleConnected = false; cases.append((s, false))            // 未连接 → 灰点，不是红点
+        s = ok; s.suspended = true; s.mappingInstalled = false; cases.append((s, false)) // 暂停有意卸载映射
+        s = ok; s.inputMonitoringGranted = false; cases.append((s, false))      // 权限横幅负责
+        s = ok; s.mappingQueryFailed = true; cases.append((s, false))
+        s = ok; s.tapAlive = false; cases.append((s, true))
+        s = ok; s.mappingInstalled = false; cases.append((s, true))
+        s = ok; s.keysEnabled = false; s.tapAlive = false; cases.append((s, false))
+        ok.suspended = false
+        return cases.allSatisfy { isKeyChannelFault($0.0) == $0.1 }
+    }
+
     static func describe(_ st: HealthState) -> String {
         switch st {
         case .healthy:              return "健康"

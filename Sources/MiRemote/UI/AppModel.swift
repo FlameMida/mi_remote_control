@@ -468,15 +468,28 @@ final class AppModel: ObservableObject {
         services?.keyMapper?.lastExternalApplication?.bundleIdentifier
     }
 
-    /// 暂停/恢复遥控（引擎侧幂等）；读回真实状态防止 UI 与引擎漂移。
+    /// 暂停/恢复遥控（引擎侧幂等）。
+    /// 引擎的 setSuspended 是异步投递到引擎 queue 的，此前这里紧接着同步读回
+    /// isSuspended 拿到的是旧值，把刚拨动的开关立刻拨回（开关动画后弹回 = 用户看到的「抖动、状态不变」）。
+    /// 现在先按用户意图更新，真实结果由引擎 onSuspendChanged 回推（noteRemoteSuspended）。
     func setRemoteSuspended(_ on: Bool) {
+        guard canSuspendRemote else { return }
+        remoteSuspended = on
         services?.setRemoteSuspended(on)
-        remoteSuspended = services?.isRemoteSuspended ?? on
     }
+
+    /// 引擎回推的真实暂停态（主线程）。
+    func noteRemoteSuspended(_ on: Bool) {
+        if remoteSuspended != on { remoteSuspended = on }
+    }
+
+    /// 按键服务未运行时暂停开关置灰（快照模式无 services，按可用处理）。
+    var canSuspendRemote: Bool { services.map { $0.canSuspendRemote } ?? true }
 
     /// 面板出现时同步一次真实暂停态。
     func syncRemoteSuspended() {
-        remoteSuspended = services?.isRemoteSuspended ?? false
+        guard let services else { return }   // 快照模式由 SnapshotRunner 直接摆状态
+        noteRemoteSuspended(services.isRemoteSuspended)
     }
 
     func runHealthRepair() -> String {

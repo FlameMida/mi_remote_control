@@ -330,7 +330,7 @@ struct RC2ProCanvas: View {
 
     // 1. 机身
     private func drawBody(_ ctx: inout GraphicsContext) {
-        let body = Path(roundedRect: G.body, cornerRadius: G.bodyCorner)
+        let body = Path(roundedRect: G.body, cornerRadius: G.bodyCorner, style: .circular)
         var shadowed = ctx
         shadowed.addFilter(.shadow(color: .black.opacity(0.22), radius: 2.4, x: 0, y: 2))
         shadowed.fill(body, with: .linearGradient(gradient(P.shell),
@@ -355,7 +355,7 @@ struct RC2ProCanvas: View {
         clipped.fill(Path(right), with: .linearGradient(gradient(P.chamferRight),
             startPoint: CGPoint(x: right.minX, y: 0), endPoint: CGPoint(x: right.maxX, y: 0)))
         let dark = colorScheme == .dark
-        let inner = Path(roundedRect: G.body.insetBy(dx: 0.6, dy: 0.6), cornerRadius: G.bodyCorner - 0.6)
+        let inner = Path(roundedRect: G.body.insetBy(dx: 0.6, dy: 0.6), cornerRadius: G.bodyCorner - 0.6, style: .circular)
         ctx.stroke(inner, with: .color(P.edgeInner.opacity(dark ? 0.25 : 0.35)), lineWidth: 0.8)
         ctx.stroke(body, with: .color(P.edge.opacity(dark ? P.edgeOpacityDark : 1)), lineWidth: 0.8)
     }
@@ -498,18 +498,21 @@ struct RC2ProCanvas: View {
             }
         }
         // 音量竖胶囊
-        let vol = Path(roundedRect: G.volRect, cornerRadius: G.volRadius)
-        ctx.fill(Path(roundedRect: G.volRect.offsetBy(dx: 0, dy: 0.9), cornerRadius: G.volRadius),
+        let vol = Path(roundedRect: G.volRect, cornerRadius: G.volRadius, style: .circular)
+        ctx.fill(Path(roundedRect: G.volRect.offsetBy(dx: 0, dy: 0.9), cornerRadius: G.volRadius, style: .circular),
                  with: .color(.black.opacity(0.3)))
-        ctx.fill(Path(roundedRect: G.volRect.insetBy(dx: 0.4, dy: 0.4), cornerRadius: G.volRadius - 0.4),
+        ctx.fill(Path(roundedRect: G.volRect.insetBy(dx: 0.4, dy: 0.4), cornerRadius: G.volRadius - 0.4, style: .circular),
                  with: .color(P.volumeBase))
+        // 两半的填充/光泽裁进胶囊外形，保证与底座、外沿描边严丝合缝（左右边缘一致，无毛边）
+        var volCtx = ctx
+        volCtx.clip(to: vol)
         for key in [RemoteKey.volUp, .volDown] {
             let s = keyState(key)
             let half = G.volumeHalf(key)
-            ctx.fill(half, with: .color(s.pressed ? P.keyPressed
+            volCtx.fill(half, with: .color(s.pressed ? P.keyPressed
                                          : (key == .volUp ? RC2ProPalette.fixed(0x292929) : RC2ProPalette.fixed(0x262626))))
             let b = half.boundingRect
-            ctx.fill(half, with: .linearGradient(gradient(P.keyGloss),
+            volCtx.fill(half, with: .linearGradient(gradient(P.keyGloss),
                 startPoint: CGPoint(x: b.minX + 0.3 * b.width, y: b.minY),
                 endPoint: CGPoint(x: b.minX + 0.7 * b.width, y: b.maxY)))
         }
@@ -533,7 +536,7 @@ struct RC2ProCanvas: View {
         ctx.stroke(line([CGPoint(x: 86.6, y: 347.4), CGPoint(x: 86.6, y: 340.2),
                          CGPoint(x: 93.4, y: 347.4), CGPoint(x: 93.4, y: 340.2)]),
                    with: .color(P.print), style: StrokeStyle(lineWidth: 1.1, lineJoin: .round))
-        ctx.stroke(Path(roundedRect: CGRect(x: 84.5, y: 338.3, width: 11, height: 11), cornerRadius: 2.4),
+        ctx.stroke(Path(roundedRect: CGRect(x: 84.5, y: 338.3, width: 11, height: 11), cornerRadius: 2.4, style: .circular),
                    with: .color(P.print), lineWidth: 0.8)
         ctx.draw(Text("xiaomi").font(.system(size: 8.6, weight: .semibold)).tracking(1.1)
                     .foregroundStyle(P.print),

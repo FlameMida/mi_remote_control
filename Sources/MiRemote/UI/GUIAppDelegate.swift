@@ -234,10 +234,15 @@ final class GUIAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         levelSink.onLevel = { [weak self] rms in
             DispatchQueue.main.async { self?.model.noteLevel(rms) }
         }
-        services.health.onChange = { [weak self] state in
+        services.health.onChange = { [weak self, weak services] _ in
+            // 红点/故障横幅只表示「按键通道异常」，不是任意健康降级（见 isKeyChannelFault）
+            let fault = services.map { HealthMonitor.isKeyChannelFault($0.health.sourcesSnapshot) } ?? false
             DispatchQueue.main.async {
-                self?.model.degraded = state != .healthy
+                self?.model.degraded = fault
             }
+        }
+        services.onRemoteSuspendChanged = { [weak self] suspended in
+            DispatchQueue.main.async { self?.model.noteRemoteSuspended(suspended) }
         }
         // show_ui 事件（第二实例经 events.sock 请求弹设置窗口）：start() 里会重设 onEvent，
         // 延后一拍再包一层，拦截 show_ui、其余事件照旧走通知。

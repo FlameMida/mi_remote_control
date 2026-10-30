@@ -377,6 +377,8 @@ struct StatusPanelView: View {
                     .toggleStyle(.switch).tint(.green)
                     .controlSize(.mini)
                     .labelsHidden()
+                    .disabled(!model.canSuspendRemote)
+                    .help(model.canSuspendRemote ? "" : "按键服务未运行")
             }
             PanelSeparator()
             Text("语音输入")
@@ -441,10 +443,11 @@ struct StatusPanelView: View {
             if let pct = model.batteryPercent {
                 BatteryRingView(percent: pct)
             }
+            // 原型 .hdot：degraded=红「按键通道异常」/ 已连接=绿「运行正常」/ 其他=灰「未连接」
             Circle()
-                .fill(model.degraded ? Color.red : (model.connected ? Color.green : Color.secondary.opacity(0.4)))
+                .fill(StatusDotKind(degraded: model.degraded, connected: model.connected).color)
                 .frame(width: 8, height: 8)
-                .help(model.degraded ? "按键通道异常" : (model.connected ? "运行正常" : "未连接"))
+                .help(StatusDotKind(degraded: model.degraded, connected: model.connected).help)
         }
     }
 
@@ -508,6 +511,28 @@ private struct PanelButtonShape: ViewModifier {
 }
 
 /// 等宽三段选择（原型 .seg.full）：段宽均分整行，不随文字撑宽面板；玻璃时为胶囊。
+/// 菜单栏面板健康点（原型 `.hdot green/red/grey`）。
+enum StatusDotKind: Equatable {
+    case ok, fault, off
+    init(degraded: Bool, connected: Bool) {
+        self = degraded ? .fault : (connected ? .ok : .off)
+    }
+    var color: Color {
+        switch self {
+        case .ok: return .green
+        case .fault: return .red
+        case .off: return Color.secondary.opacity(0.4)
+        }
+    }
+    var help: String {
+        switch self {
+        case .ok: return "运行正常"
+        case .fault: return "按键通道异常"
+        case .off: return "未连接"
+        }
+    }
+}
+
 struct PanelSegmented<Value: Hashable>: View {
     @Binding var selection: Value
     let glass: Bool

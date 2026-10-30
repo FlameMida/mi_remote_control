@@ -1333,6 +1333,11 @@ enum SelfTest {
         expect(SettingsWindowLayout.selfCheck(), "ui-redesign: 设置窗尺寸与标题")
         expect(StatusItemController.selfCheck(), "ui-redesign: 菜单栏玻璃面板定位")
         expect(HintFlowLayout.selfCheck(), "ui-redesign: 提示条按内容加宽、超宽换行")
+        expect(HealthMonitor.keyChannelFaultSelfCheck(), "菜单栏健康点：只有按键通道故障才红，暂停/未连接/权限/查询失败不红")
+        expect(StatusDotKind(degraded: false, connected: true) == .ok
+               && StatusDotKind(degraded: true, connected: true) == .fault
+               && StatusDotKind(degraded: false, connected: false) == .off,
+               "菜单栏健康点：绿/红/灰 与原型 .hdot 一致")
         expect(WindowSwitcher.filterSelfCheck(), "窗口选择器：只列标准窗口、按 ID 去重、保留其他桌面与最小化")
         expect(WindowSwitcher.subtitle(for: .init(pid: 1, windowID: 1, title: ""), appName: "magpie") == "无标题窗口"
                && WindowSwitcher.subtitle(for: .init(pid: 1, windowID: 1, title: "magpie"), appName: "magpie") == "无标题窗口"

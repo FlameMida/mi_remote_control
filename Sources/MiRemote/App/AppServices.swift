@@ -796,9 +796,11 @@ final class AppServices {
             }
             // 暂停遥控：引擎是唯一事实源，联动 TapEngine（卸/装 hidutil 映射）
             // 与 HealthMonitor（暂停位让健康判定/自动重装豁免）。
-            km.engine.onSuspendChanged = { [weak tap, weak health] suspended in
+            km.engine.onSuspendChanged = { [weak self, weak tap, weak health] suspended in
                 health?.setSuspended(suspended)
                 tap?.setSuspended(suspended)
+                // 引擎是唯一事实源：变化后推给 UI（菜单栏开关等所有暂停入口同步）
+                self?.onRemoteSuspendChanged?(suspended)
             }
             // 映射生命周期：蓝牙重连后设备服务重建，hidutil 映射可能失效 → 幂等重装；
             // 设备移除 / 系统睡眠可能丢 keyUp → 复位引擎与 tap 的按压状态。
@@ -867,6 +869,12 @@ final class AppServices {
     func setRemoteSuspended(_ suspended: Bool) {
         keyMapper?.engine.setSuspended(suspended)
     }
+
+    /// 暂停态变化通知（引擎执行上下文回调，接线方自行切主线程）。接线期设置，之后只读。
+    var onRemoteSuspendChanged: ((Bool) -> Void)?
+
+    /// 按键服务是否在跑（未启动时暂停开关无意义，UI 置灰）。
+    var canSuspendRemote: Bool { keyMapper != nil }
 
     /// 只读：遥控是否处于暂停态（按键服务未启动时视为未暂停）。
     var isRemoteSuspended: Bool { keyMapper?.engine.isSuspended ?? false }
