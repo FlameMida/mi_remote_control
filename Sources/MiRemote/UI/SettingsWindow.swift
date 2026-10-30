@@ -18,6 +18,10 @@ final class SettingsNav: ObservableObject {
     @Published var onboardingStep = 0
     /// 原型 .win.narrow（窗宽不足标准 1120）：侧栏 176、问题行 11 号字且不显示前置图标
     @Published var narrowWindow = false
+    /// 展开组状态放在导航层：切换按键 / 页面时保持，检查器高度不因重建而跳变
+    @Published var mappingLayerExpanded = false
+    @Published var generalAdvancedExpanded = false
+    @Published var generalUninstallExpanded = false
 }
 
 /// 设置窗尺寸常量（定稿原型：窗 1120×700；侧栏 216 / 窄窗 176，玻璃开启时另加左右各 8 的外边距）。
@@ -431,7 +435,7 @@ struct SidebarNavRow: View {
                     .lineLimit(1)
                 Spacer(minLength: 0)
             }
-            .foregroundStyle(selected ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.primary))
+            .foregroundStyle(selected ? AnyShapeStyle(Palette.accent(colorScheme)) : AnyShapeStyle(.primary))
             .padding(.vertical, 7)
             .padding(.horizontal, 10)
             .background(RoundedRectangle(cornerRadius: 7).fill(selected ? selectedFill : Color.clear))

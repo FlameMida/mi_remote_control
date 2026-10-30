@@ -42,6 +42,10 @@ struct RootView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        // 原型 .win：标题栏是独立一行，.main 在其下方滚动。fullSizeContentView 下 ScrollView
+        // 内容会画进标题栏安全区（滚动后正文从「MiRemote 设置」背后透出）；按安全区内边界裁剪，
+        // 所有详情页（映射 / 场景 / 语音 / 通用）一致。
+        .clipped()
         .sheet(isPresented: $nav.showOnboarding) { OnboardingWizard(initialStep: nav.onboardingStep) }
         .sheet(isPresented: $nav.showHealthCheck) { HealthCheckSheet() }
         .sheet(isPresented: $nav.showReauth) { ReauthSheet() }

@@ -362,17 +362,27 @@ struct VoicePage: View {
     }
 
     @ViewBuilder
+    /// 原型 radio(on,t,sub)：.row（gap 10、padding 9×12）+ 前置 .rdo 单选圈 + 标题/说明。
     private func modeRow(_ mode: VoiceMode, title: String, subtitle: String) -> some View {
-        Button {
+        let on = model.voiceMode == mode
+        return Button {
             model.voiceMode = mode
         } label: {
-            SettingsRow(icon: model.voiceMode == mode ? "largecircle.fill.circle" : "circle",
-                        iconColor: model.voiceMode == mode ? .accentColor : .secondary,
-                        title: title, subtitle: subtitle) {
-                EmptyView()
+            HStack(spacing: 10) {
+                RadioDot(on: on)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title).font(.body)
+                    Text(subtitle).font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 0)
             }
+            .padding(.horizontal, Spacing.rowH)
+            .padding(.vertical, Spacing.rowV)
+            .frame(minHeight: Spacing.rowMinHeight)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(on ? [.isSelected] : [])
     }
 }
 

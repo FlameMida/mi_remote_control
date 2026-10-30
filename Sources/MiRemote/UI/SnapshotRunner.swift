@@ -179,6 +179,31 @@ final class SnapshotRunner: NSObject, NSApplicationDelegate {
         win("general-sheet-closed-dark", delay: 1.4) { [self] in
             closeSheets(); setTheme(dark: true); setConnected(); nav.page = .general
         }
+        // 展开组：折叠 / 展开两态同尺寸，核对上方布局不动（检查器头部 y 一致）
+        for expanded in [false, true] {
+            win("mapping-layer-\(expanded ? "expanded" : "collapsed")-dark", delay: 1.4) { [self] in
+                closeSheets(); setTheme(dark: true); setConnected()
+                nav.mappingLayerExpanded = expanded
+                openSettings(size: CGSize(width: 1120, height: 700), page: .mapping)
+            }
+            win("general-advanced-\(expanded ? "expanded" : "collapsed")-dark", delay: 1.4) { [self] in
+                closeSheets(); setTheme(dark: true); setConnected()
+                nav.generalAdvancedExpanded = expanded
+                openSettings(page: .general)
+            }
+        }
+        // 滚动后的详情页：标题栏下不得透出正文（原型 .win 标题栏独立一行）
+        for page in SidebarItem.allCases {
+            win("\(page.rawValue)-scrolled-dark", delay: 1.6) { [self] in
+                closeSheets(); setTheme(dark: true); setConnected()
+                nav.mappingLayerExpanded = true; nav.generalAdvancedExpanded = true
+                openSettings(page: page)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { self.scrollDetail(by: 260) }
+            }
+        }
+        steps.append(Step(name: "reset-expanded", delay: 0.2, setup: { [self] in
+            nav.mappingLayerExpanded = false; nav.generalAdvancedExpanded = false
+        }, capture: { nil }))
         // 菜单栏面板：玻璃 / 回退两种外观 × 状态
         let panelStates: [(String, () -> Void)] = [
             ("connected", { [self] in setConnected() }),
@@ -224,7 +249,44 @@ final class SnapshotRunner: NSObject, NSApplicationDelegate {
                 }))
             }
         }
+        // 功能层屏底提示条（全文不省略、按内容加宽）+ 层 2 角落 HUD
+        for layer in [1, 2, 3] {
+            for dark in [false, true] where dark || layer == 2 {
+                steps.append(Step(name: "hint-layer\(layer)-\(dark ? "dark" : "light")", delay: 1.2, setup: { [self] in
+                    closeSheets(); setTheme(dark: dark); setConnected()
+                    assembly?.window.orderOut(nil)
+                    model.activeLayer = layer
+                    overlayCenter?.noteLayer(layer)
+                }, capture: {
+                    NSScreen.main?.frame
+                }, teardown: { [self] in
+                    model.activeLayer = 0
+                    overlayCenter?.noteLayer(0)
+                }))
+            }
+        }
         return steps
+    }
+
+    /// 把设置窗详情区最大的滚动视图向下滚 dy 点（SwiftUI ScrollView 底层为 NSScrollView）。
+    private func scrollDetail(by dy: CGFloat) {
+        guard let root = assembly?.window.contentView else { return }
+        var found: [NSScrollView] = []
+        func walk(_ v: NSView) {
+            if let sv = v as? NSScrollView { found.append(sv) }
+            v.subviews.forEach(walk)
+        }
+        walk(root)
+        guard let sv = found.max(by: { $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height }),
+              let doc = sv.documentView else {
+            note("scrollDetail: 未找到滚动视图"); return
+        }
+        let clip = sv.contentView
+        let maxY = max(0, doc.frame.height - clip.bounds.height)
+        let y = doc.isFlipped ? min(clip.bounds.origin.y + dy, maxY) : max(clip.bounds.origin.y - dy, 0)
+        clip.scroll(to: NSPoint(x: clip.bounds.origin.x, y: y))
+        sv.reflectScrolledClipView(clip)
+        note("scrollDetail: \(Int(dy)) → y=\(Int(y)) doc=\(Int(doc.frame.height)) clip=\(Int(clip.bounds.height))")
     }
 
     /// 状态栏图标位置（有真实图标用真实位置，否则取屏幕右上角假定位置）。

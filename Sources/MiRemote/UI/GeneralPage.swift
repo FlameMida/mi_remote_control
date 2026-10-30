@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor
 struct GeneralPage: View {
     @EnvironmentObject var model: AppModel
+    @EnvironmentObject var nav: SettingsNav
     var onShowOnboarding: () -> Void
     var onShowHealthCheck: () -> Void
 
@@ -72,7 +73,7 @@ struct GeneralPage: View {
                 }
 
                 SettingsGroup(title: "高级") {
-                    DisclosureGroup {
+                    PrototypeDisclosure(isExpanded: $nav.generalAdvancedExpanded) {
                         VStack(spacing: 8) {
                             HStack {
                                 Text("长按阈值").font(.body)
@@ -151,7 +152,7 @@ struct GeneralPage: View {
                         Button("退出", role: .destructive) { NSApp.terminate(nil) }.controlSize(.small)
                     }
                     RowDivider()
-                    DisclosureGroup {
+                    PrototypeDisclosure(isExpanded: $nav.generalUninstallExpanded) {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("1. 先从菜单栏「退出 MiRemote」——退出时会清空按键中转、恢复真实键盘。直接删 App 可能残留中转污染键盘。")
                             Text("2. 把 MiRemote.app 拖到废纸篓。")

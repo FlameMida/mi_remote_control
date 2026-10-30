@@ -201,13 +201,28 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         return CGRect(x: x.rounded(), y: (top - size.height).rounded(), width: size.width, height: size.height)
     }
 
+    /// 玻璃面板窗 = 可见面板 + 自绘阴影边距（GlassPanelShadow.insets）。按可见面板尺寸定位后向外扩。
+    nonisolated static func glassPanelWindowFrame(size windowSize: CGSize, anchor: CGRect, visible: CGRect) -> CGRect {
+        let i = GlassPanelShadow.insets
+        let inner = CGSize(width: windowSize.width - i.leading - i.trailing,
+                           height: windowSize.height - i.top - i.bottom)
+        let f = glassPanelFrame(size: inner, anchor: anchor, visible: visible)
+        return CGRect(x: f.minX - i.leading, y: f.minY - i.bottom, width: windowSize.width, height: windowSize.height)
+    }
+
     nonisolated static func selfCheck() -> Bool {
         let visible = CGRect(x: 0, y: 0, width: 1440, height: 875)
         let mid = glassPanelFrame(size: CGSize(width: 300, height: 200),
                                   anchor: CGRect(x: 1000, y: 875, width: 30, height: 25), visible: visible)
         let edge = glassPanelFrame(size: CGSize(width: 300, height: 200),
                                    anchor: CGRect(x: 1420, y: 875, width: 20, height: 25), visible: visible)
-        return mid.midX == 1015 && mid.maxY == 867 && edge.maxX == 1432 && edge.width == 300
+        // 玻璃面板窗含自绘阴影边距：可见面板仍在状态栏图标下方 8pt、水平居中
+        let i = GlassPanelShadow.insets
+        let win = CGSize(width: 300 + i.leading + i.trailing, height: 200 + i.top + i.bottom)
+        let padded = glassPanelWindowFrame(size: win, anchor: CGRect(x: 1000, y: 875, width: 30, height: 25),
+                                           visible: visible)
+        let paddedOK = padded.minX + i.leading == 865 && padded.maxY - i.top == 867 && padded.size == win
+        return paddedOK && mid.midX == 1015 && mid.maxY == 867 && edge.maxX == 1432 && edge.width == 300
     }
 
     private func showGlassPanel(below button: NSStatusBarButton) {
@@ -215,7 +230,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         let anchor = buttonWindow.convertToScreen(button.convert(button.bounds, to: nil))
         let screen = buttonWindow.screen ?? NSScreen.main
         let visible = screen?.visibleFrame ?? anchor
-        let host = NSHostingView(rootView: makePanelView(glass: true))
+        let host = NSHostingView(rootView: makePanelView(glass: true).modifier(GlassPanelShadow()))
         host.appearance = NSApp.appearance ?? NSApp.effectiveAppearance
         let size = host.fittingSize
         host.frame = NSRect(origin: .zero, size: size)
@@ -225,18 +240,19 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         panel.level = .popUpMenu
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = true
+        // 不用窗口服务器阴影：它在无边框透明窗外圈再描一道 1px 深色轮廓（深色外观下即「黑描边」）。
+        // 阴影改由 GlassPanelShadow 在窗内透明边距里自绘（原型 glass-on .pop：0 24px 70px 25% 黑）。
+        panel.hasShadow = false
         panel.isReleasedWhenClosed = false
         panel.collectionBehavior = [.transient, .ignoresCycle, .moveToActiveSpace]
         panel.contentView = host
         panel.onCancel = { [weak self] in self?.closeGlassPanel() }
-        panel.setFrame(Self.glassPanelFrame(size: size, anchor: anchor, visible: visible), display: true)
+        panel.setFrame(Self.glassPanelWindowFrame(size: size, anchor: anchor, visible: visible), display: true)
         glassPanel = panel
 
         let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         panel.alphaValue = reduceMotion ? 1 : 0
         panel.makeKeyAndOrderFront(nil)
-        panel.invalidateShadow()
         if !reduceMotion {
             NSAnimationContext.runAnimationGroup { ctx in
                 ctx.duration = 0.12
@@ -276,7 +292,12 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
     // MARK: 快照模式（隐藏 --snapshot）用：在指定锚点下方摆出面板，返回窗口
     func snapshotPanel(anchor: CGRect, glass: Bool) -> NSWindow {
-        let host = NSHostingView(rootView: makePanelView(glass: glass))
+        let host: NSView
+        if glass {
+            host = NSHostingView(rootView: makePanelView(glass: true).modifier(GlassPanelShadow()))
+        } else {
+            host = NSHostingView(rootView: makePanelView(glass: false))
+        }
         let size = host.fittingSize
         host.frame = NSRect(origin: .zero, size: size)
         let panel = StatusGlassPanel(contentRect: NSRect(origin: .zero, size: size),
@@ -285,10 +306,11 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         panel.level = .popUpMenu
         panel.isOpaque = false
         panel.backgroundColor = glass ? .clear : .windowBackgroundColor
-        panel.hasShadow = true
+        panel.hasShadow = !glass
         panel.contentView = host
         let visible = NSScreen.main?.visibleFrame ?? anchor
-        panel.setFrame(Self.glassPanelFrame(size: size, anchor: anchor, visible: visible), display: true)
+        panel.setFrame(glass ? Self.glassPanelWindowFrame(size: size, anchor: anchor, visible: visible)
+                             : Self.glassPanelFrame(size: size, anchor: anchor, visible: visible), display: true)
         panel.orderFrontRegardless()
         return panel
     }
@@ -544,6 +566,29 @@ struct PanelSegmented<Value: Hashable>: View {
     }
 }
 
+/// 玻璃面板的自绘阴影（原型 glass-on .pop：box-shadow 0 24px 70px rgba(0,0,0,.25)）。
+/// 只画在面板形状之外：阴影层用反向形状遮罩挖空，透过半透明玻璃看不到阴影本体。
+struct GlassPanelShadow: ViewModifier {
+    nonisolated static let insets = EdgeInsets(top: 16, leading: 40, bottom: 56, trailing: 40)
+
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: StatusPanelView.cornerRadius, style: .continuous)
+        content
+            .background {
+                shape.fill(Color.black)
+                    .shadow(color: .black.opacity(0.25), radius: 24, x: 0, y: 14)
+                    .mask {
+                        Rectangle()
+                            .padding(-80)
+                            .overlay(shape.fill(Color.black).blendMode(.destinationOut))
+                            .compositingGroup()
+                    }
+                    .allowsHitTesting(false)
+            }
+            .padding(Self.insets)
+    }
+}
+
 /// 自绘玻璃面板窗：可成为 key（接收 Esc 与控件键盘操作），不激活 App。
 final class StatusGlassPanel: NSPanel {
     var onCancel: (() -> Void)?
@@ -551,7 +596,7 @@ final class StatusGlassPanel: NSPanel {
     override func cancelOperation(_ sender: Any?) { onCancel?() }
 }
 
-/// 小电量环：accent 弧线 + 百分比数字，低电量转红。
+/// 小电量环：弧线按电量分档着色（与侧栏电量图标同档：≥60 绿、常规 accent、≤30 橙、≤15 红）+ 百分比数字。
 struct BatteryRingView: View {
     let percent: Int
 
@@ -560,7 +605,7 @@ struct BatteryRingView: View {
             Circle().stroke(Color.secondary.opacity(0.25), lineWidth: 3)
             Circle()
                 .trim(from: 0, to: CGFloat(max(0, min(100, percent))) / 100)
-                .stroke(percent <= 15 ? Color.red : Color.accentColor,
+                .stroke(SidebarHeaderLayout.tierColor(percent: percent) ?? Color.accentColor,
                         style: StrokeStyle(lineWidth: 3, lineCap: .round))
                 .rotationEffect(.degrees(-90))
             Text("\(percent)")

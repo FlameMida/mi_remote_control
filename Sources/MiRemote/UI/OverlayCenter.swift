@@ -637,7 +637,9 @@ final class OverlayCenter {
             hideHintBar()
             return
         }
-        let host = NSHostingView(rootView: HintBarView(items: items))
+        // 最大宽 = 屏幕可见宽减两侧各 24；内容更宽时 HintBarView 换到下一行，不省略
+        let maxWidth = max(320, (NSScreen.main?.visibleFrame.width ?? 1024) - 48)
+        let host = NSHostingView(rootView: HintBarView(items: items, maxWidth: maxWidth))
         host.frame.size = host.fittingSize
         if hintPanel == nil {
             let p = NSPanel(contentRect: .zero,
@@ -732,9 +734,8 @@ enum HintBarCatalog {
             guard result.count < 5,
                   let binding = MappingDetailResolver.binding(in: config, profile: profile, key: key),
                   let action = binding.layers?["\(layer)"] else { continue }
-            var text = ActionSummary.describe(action)
-            if text.count > 10 { text = String(text.prefix(10)) + "…" }
-            result.append(Hint(keys: [key], text: text))
+            // 全文显示，不截断：提示条按内容自动加宽，超出屏宽时换行（HintBarView）
+            result.append(Hint(keys: [key], text: ActionSummary.describe(action)))
         }
         if layer == 2 {
             result.append(Hint(keys: [.tv], text: "退出"))
@@ -775,21 +776,90 @@ struct KeyCapView: View {
 /// 屏底提示条：键帽字形 + 短词，随模式/浮层自动换文案。
 struct HintBarView: View {
     let items: [HintBarCatalog.Hint]
+    /// 整条（含左右内边距）最大宽；单行放不下时整项换到下一行，项内文字永不省略
+    var maxWidth: CGFloat = .infinity
+
+    static let hPadding: CGFloat = 18
+    static let vPadding: CGFloat = 9
+    /// 单行高 24 + 上下 9 = 42 → 圆角 21 即胶囊；换成多行时保持同样圆角
+    static let cornerRadius: CGFloat = 21
 
     var body: some View {
-        HStack(spacing: Spacing.rowH) {
+        let shape = RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
+        HintFlowLayout(spacing: Spacing.rowH, lineSpacing: 6,
+                       maxWidth: maxWidth - Self.hPadding * 2) {
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                 HStack(spacing: 5) {
                     ForEach(item.keys, id: \.self) { key in KeyCapView(key: key) }
                     Text(item.text).font(.callout).noWrap()
                 }
+                .fixedSize()
             }
         }
+        .padding(.horizontal, Self.hPadding)
+        .padding(.vertical, Self.vPadding)
         .fixedSize()
-        .padding(.horizontal, 18)
-        .padding(.vertical, 9)
-        .glassSurface(.overlay, in: Capsule())
-        .overlay(Capsule().stroke(Color(nsColor: .separatorColor), lineWidth: 1))
+        .glassSurface(.overlay, in: shape)
+        .overlay(shape.stroke(Color(nsColor: .separatorColor), lineWidth: 1))
+    }
+}
+
+/// 提示条排布：按理想宽从左到右排，超过 maxWidth 换行；每行在整条内居中。
+struct HintFlowLayout: Layout {
+    var spacing: CGFloat
+    var lineSpacing: CGFloat
+    var maxWidth: CGFloat
+
+    /// 纯函数：给定各项尺寸，返回各项原点与整体尺寸（selfCheck 可测）。
+    nonisolated static func arrange(sizes: [CGSize], spacing: CGFloat, lineSpacing: CGFloat,
+                                    maxWidth: CGFloat) -> (origins: [CGPoint], size: CGSize) {
+        var rows: [[Int]] = [[]]
+        var rowWidth: CGFloat = 0
+        for (i, s) in sizes.enumerated() {
+            let add = rows[rows.count - 1].isEmpty ? s.width : rowWidth + spacing + s.width
+            if !rows[rows.count - 1].isEmpty, add > maxWidth {
+                rows.append([i]); rowWidth = s.width
+            } else {
+                rows[rows.count - 1].append(i); rowWidth = add
+            }
+        }
+        let widths = rows.map { r in r.map { sizes[$0].width }.reduce(0, +) + spacing * CGFloat(max(0, r.count - 1)) }
+        let total = widths.max() ?? 0
+        var origins = Array(repeating: CGPoint.zero, count: sizes.count)
+        var y: CGFloat = 0
+        for (ri, r) in rows.enumerated() {
+            let h = r.map { sizes[$0].height }.max() ?? 0
+            var x = (total - widths[ri]) / 2
+            for i in r {
+                origins[i] = CGPoint(x: x, y: y + (h - sizes[i].height) / 2)
+                x += sizes[i].width + spacing
+            }
+            y += h + (ri == rows.count - 1 ? 0 : lineSpacing)
+        }
+        return (origins, CGSize(width: total, height: y))
+    }
+
+    nonisolated static func selfCheck() -> Bool {
+        let s = CGSize(width: 100, height: 24)
+        let one = arrange(sizes: [s, s, s], spacing: 10, lineSpacing: 6, maxWidth: 1000)
+        let two = arrange(sizes: [s, s, s], spacing: 10, lineSpacing: 6, maxWidth: 215)
+        return one.size == CGSize(width: 320, height: 24)
+            && two.size == CGSize(width: 210, height: 54)
+            && two.origins[2] == CGPoint(x: 55, y: 30)
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        return Self.arrange(sizes: sizes, spacing: spacing, lineSpacing: lineSpacing, maxWidth: maxWidth).size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        let r = Self.arrange(sizes: sizes, spacing: spacing, lineSpacing: lineSpacing, maxWidth: maxWidth)
+        for (i, sv) in subviews.enumerated() {
+            sv.place(at: CGPoint(x: bounds.minX + r.origins[i].x, y: bounds.minY + r.origins[i].y),
+                     proposal: ProposedViewSize(sizes[i]))
+        }
     }
 }
 
@@ -1144,12 +1214,14 @@ private struct ControlModeHUDView: View {
                         .frame(width: 38, height: 18)
                         .background(Color.accentColor.opacity(0.15),
                                     in: RoundedRectangle(cornerRadius: Radius.small))
-                    Text(row.1).font(.caption).lineLimit(1)
+                    // 全文显示：HUD 按最长一行自动加宽（最窄 240），不省略
+                    Text(row.1).font(.caption).noWrap().fixedSize()
                 }
             }
         }
         .padding(12)
-        .frame(width: 240, alignment: .leading)
+        .frame(minWidth: 240, alignment: .leading)
+        .fixedSize()
         .glassSurface(.overlay, in: RoundedRectangle(cornerRadius: Radius.hud))
         .overlay(RoundedRectangle(cornerRadius: Radius.hud)
             .stroke(Color(nsColor: .separatorColor), lineWidth: 1))

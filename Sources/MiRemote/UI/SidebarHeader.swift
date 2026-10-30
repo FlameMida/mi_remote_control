@@ -19,6 +19,27 @@ enum SidebarHeaderLayout {
         return percent <= 15
     }
 
+    /// 电量分档（原型只定义 ≤15% 红色；高电量绿色为验收补充）：
+    /// ≤15 低（红）、16–30 偏低（橙）、31–59 常规（中性）、≥60 高（绿）。
+    enum Tier: Equatable { case low, caution, normal, high }
+
+    static func tier(percent: Int) -> Tier {
+        if percent <= 15 { return .low }
+        if percent <= 30 { return .caution }
+        if percent < 60 { return .normal }
+        return .high
+    }
+
+    /// 分档色；常规档返回 nil，由调用方用各自的中性色（图标内芯 secondary、电量环 accent）。
+    static func tierColor(percent: Int) -> Color? {
+        switch tier(percent: percent) {
+        case .low: return .red
+        case .caution: return .orange
+        case .normal: return nil
+        case .high: return .green
+        }
+    }
+
     static func batteryText(percent: Int?, connected: Bool) -> String {
         if let percent { return "\(percent)%" }
         return connected ? "正在读取电量…" : "电量待连接"
@@ -44,6 +65,9 @@ enum SidebarHeaderLayout {
         check(!isLow(percent: 16), "16 not low")
         check(isLow(percent: 12), "12 low")
         check(!isLow(percent: nil), "nil not low")
+        check(tier(percent: 15) == .low && tier(percent: 16) == .caution, "tier low/caution")
+        check(tier(percent: 30) == .caution && tier(percent: 31) == .normal, "tier caution/normal")
+        check(tier(percent: 59) == .normal && tier(percent: 60) == .high && tier(percent: 98) == .high, "tier high")
         check(batteryText(percent: 82, connected: true) == "82%", "text 82")
         check(batteryText(percent: nil, connected: true) == "正在读取电量…", "text reading")
         check(batteryText(percent: nil, connected: false) == "电量待连接", "text waiting")
@@ -67,7 +91,7 @@ struct BatteryGlyph: View {
         let bodyWidth = width - capWidth - 0.5
         let inset: CGFloat = 1.5
         let fraction = SidebarHeaderLayout.fillFraction(percent: percent)
-        let tint: Color = SidebarHeaderLayout.isLow(percent: percent) ? .red : .secondary
+        let tint: Color = percent.flatMap { SidebarHeaderLayout.tierColor(percent: $0) } ?? .secondary
         HStack(spacing: 0.5) {
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 2.5)

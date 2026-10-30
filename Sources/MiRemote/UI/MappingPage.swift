@@ -57,6 +57,7 @@ struct RowDivider: View {
 @MainActor
 struct MappingPage: View {
     @EnvironmentObject var model: AppModel
+    @EnvironmentObject var nav: SettingsNav
     @State private var showKeyLearn = false
     @State private var showSaved = false
     @State private var annotationLayer: AnnotationLayer = .base
@@ -95,8 +96,9 @@ struct MappingPage: View {
                 }
                 HStack(alignment: .top, spacing: RemoteAnnotationLayout.columnGap) {
                     remotePanel(pl)
+                    // 检查器顶对齐、只向下增长；遥控器面板宽高与检查器高度无关
                     keyEditor
-                        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+                        .frame(minWidth: 0, maxWidth: .infinity, alignment: .topLeading)
                 }
             }
             // 原型 .win.narrow .main padding 16（宽态 24）
@@ -250,7 +252,7 @@ struct MappingPage: View {
             }
 
             // 分组 C：第二功能模式（底层仍沿用 layer 配置格式，UI 不暴露术语）
-            DisclosureGroup {
+            PrototypeDisclosure(isExpanded: $nav.mappingLayerExpanded) {
                 Text("功能模式类似遥控器的 Fn：按住 OK 使用快捷控制（切 App、桌面空间等）；单击 TV 进出 App 控制模式（批准、拒绝、切换 agent，屏幕角落有键位提示）。")
                     .font(.caption).foregroundStyle(.secondary).padding(.bottom, 4)
                 SettingsGroup(title: "模式开启时，这个键执行") {

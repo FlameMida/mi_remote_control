@@ -87,9 +87,11 @@ final class ATVVBridge: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     private var batteryChar: CBCharacteristic?
     private var batteryRefreshWork: DispatchWorkItem?
 
-    /// Battery Level 是一个无符号百分比；坏值钳到 100，空包忽略。
+    /// Battery Level（0x2A19）是 0–100 的无符号百分比；>100 为无效值（部分固件用 0xFF 表示未知），
+    /// 忽略而不是钳成 100%，避免把未知电量显示成满电；空包忽略。
     static func parseBatteryLevel(_ data: Data) -> Int? {
-        data.first.map { Int(min($0, 100)) }
+        guard let b = data.first, b <= 100 else { return nil }
+        return Int(b)
     }
 
     // MARK: - 命令字节

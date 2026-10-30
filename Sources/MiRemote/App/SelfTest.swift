@@ -856,7 +856,9 @@ enum SelfTest {
 
         // 电量特征解析：实机 GATT 0x2A19 当前上报 0x61（97%）。
         expect(ATVVBridge.parseBatteryLevel(Data([0x61])) == 97, "Battery Level 0x61 → 97%")
-        expect(ATVVBridge.parseBatteryLevel(Data([0xFF])) == 100, "Battery Level 坏值钳到 100%")
+        expect(ATVVBridge.parseBatteryLevel(Data([0xFF])) == nil, "Battery Level 无效值 0xFF 忽略（不显示成满电）")
+        expect(ATVVBridge.parseBatteryLevel(Data([0x64])) == 100, "Battery Level 0x64 → 100%")
+        expect(ATVVBridge.parseBatteryLevel(Data([0x00])) == 0, "Battery Level 0x00 → 0%")
         expect(ATVVBridge.parseBatteryLevel(Data()) == nil, "Battery Level 空包忽略")
 
         // ===== M5 v2：浮层体系 / uiCapture 路由 / 默认配置 v2 =====
@@ -1330,6 +1332,7 @@ enum SelfTest {
         expect(SidebarToggle.selfCheck(), "ui-redesign: 侧栏收起状态映射")
         expect(SettingsWindowLayout.selfCheck(), "ui-redesign: 设置窗尺寸与标题")
         expect(StatusItemController.selfCheck(), "ui-redesign: 菜单栏玻璃面板定位")
+        expect(HintFlowLayout.selfCheck(), "ui-redesign: 提示条按内容加宽、超宽换行")
         expect(StatusIssue.selfCheck(), "ui-redesign: 问题优先级与横幅过滤")
         expect(RC2ProGeometry.selfCheck(), "ui-redesign: RC 2 Pro 示意图几何与 13 键命中")
         expect(RemoteAnnotationLayout.selfCheck(), "ui-redesign: 遥控器标注布局与键盘顺序")

@@ -23,6 +23,86 @@ enum Spacing {
 }
 
 /// 圆角体系：小微章 6 / 控件徽标 7 / 卡片 10 / HUD 12 / 浮层 16。
+/// 原型色板（index.html :root / [data-theme=dark]）中需要固定取值的颜色。
+/// 选中态文字与单选圈用原型 --accent：浅 #0a66ff、深 #3d8bff。系统强调色在深色玻璃侧栏上
+/// 解析为偏暗的蓝（实测约 #0a60ff），在 14% 白选中底上几乎看不清。
+/// 原型 .disc 展开组：三角 .15s 旋转，内容直接显隐（CSS display 切换，无高度动画）。
+/// 替代系统 DisclosureGroup：后者在 macOS 上展开时做高度 + 透明度过渡，带动外层重排
+/// （通用页「触发阈值」抖动闪烁、映射页检查器整体上移）。这里结构固定、只向下增长，
+/// 内容插入不参与任何动画；标签行高度两态一致，上方布局不动。
+struct PrototypeDisclosure<Label: View, Content: View>: View {
+    @Binding var isExpanded: Bool
+    @ViewBuilder var content: () -> Content
+    @ViewBuilder var label: () -> Label
+
+    init(isExpanded: Binding<Bool>, @ViewBuilder content: @escaping () -> Content,
+         @ViewBuilder label: @escaping () -> Label) {
+        self._isExpanded = isExpanded
+        self.content = content
+        self.label = label
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                var t = Transaction()
+                t.disablesAnimations = true
+                withTransaction(t) { isExpanded.toggle() }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                        .animation(.easeOut(duration: 0.15), value: isExpanded)
+                        .frame(width: 12, height: 12)
+                    label()
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityValue(isExpanded ? "已展开" : "已收起")
+            if isExpanded {
+                content()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .transition(.identity)
+                    .transaction { $0.animation = nil }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+    }
+}
+
+enum Palette {
+    /// 按当前 colorScheme 直接取值（不依赖系统强调色 / 动态色在玻璃容器里的解析）。
+    static func accent(_ scheme: ColorScheme) -> Color {
+        scheme == .dark
+            ? Color(.sRGB, red: 0x3d / 255.0, green: 0x8b / 255.0, blue: 1, opacity: 1)
+            : Color(.sRGB, red: 0x0a / 255.0, green: 0x66 / 255.0, blue: 1, opacity: 1)
+    }
+    /// 原型 --line2（单选圈未选中描边）：浅 #d2d2d8、深 #48484e
+    static func line2(_ scheme: ColorScheme) -> Color {
+        scheme == .dark
+            ? Color(.sRGB, red: 0x48 / 255.0, green: 0x48 / 255.0, blue: 0x4e / 255.0, opacity: 1)
+            : Color(.sRGB, red: 0xd2 / 255.0, green: 0xd2 / 255.0, blue: 0xd8 / 255.0, opacity: 1)
+    }
+}
+
+/// 原型 .rdo：14×14 圆，未选 1.5 描边 --line2；选中 4.5 粗 --accent 环（内留 5 的空心）。
+struct RadioDot: View {
+    let on: Bool
+    @Environment(\.colorScheme) private var colorScheme
+    var body: some View {
+        Circle()
+            .strokeBorder(on ? Palette.accent(colorScheme) : Palette.line2(colorScheme),
+                          lineWidth: on ? 4.5 : 1.5)
+            .frame(width: 14, height: 14)
+            .accessibilityHidden(true)
+    }
+}
+
 enum Radius {
     static let small: CGFloat = 6
     static let badge: CGFloat = 7
