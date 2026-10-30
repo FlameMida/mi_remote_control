@@ -577,6 +577,56 @@ enum SelfTest {
                    "映射在位：同源冲突重复条目 → false")
         }
 
+        // D11. Secure Input 映射形态：期间 tap 收不到按键，映射切到不依赖 tap 的安全形态。
+        do {
+            typealias KR = KeyRemapper
+            expect(KR.mappingMode(secureInput: false, suspended: false) == .relay
+                   && KR.mappingMode(secureInput: false, suspended: true) == .relay
+                   && KR.mappingMode(secureInput: true, suspended: false) == .secureInput
+                   && KR.mappingMode(secureInput: true, suspended: true) == .secureInputPaused,
+                   "Secure Input 形态判据：非安全输入=中转；安全输入=安全形态；安全输入+暂停=全静默")
+            let relay = KR.pairs(for: .relay)
+            let secure = KR.pairs(for: .secureInput)
+            let paused = KR.pairs(for: .secureInputPaused)
+            let srcOf: (RemoteKey) -> UInt32 = { k in KR.table.first { $0.key == k }!.src }
+            let nativeSrcs = Set(KR.nativeInSecureInput.map(srcOf))
+            expect(secure.allSatisfy { !nativeSrcs.contains($0.src) }
+                   && Set(secure.map(\.src)) == Set(relay.map(\.src)).subtracting(nativeSrcs),
+                   "Secure Input：方向/OK/音量不映射（回原生），其余本程序源键仍被接管")
+            expect(secure.filter { $0.src != 0x3E }.allSatisfy { $0.dst == KR.inertUsage }
+                   && secure.contains { $0.src == 0x3E && $0.dst == 0x70 },
+                   "Secure Input：Home/菜单/TV/电源 → F21 静默；语音 F5 仍静默")
+            expect([RemoteKey.home, .menu, .tv, .power].allSatisfy { k in secure.contains { $0.src == srcOf(k) } },
+                   "Secure Input：有副作用的原生键（Home/Application/`/电源）不放行")
+            expect(Set(paused.map(\.src)) == Set(relay.map(\.src)) && paused.allSatisfy { $0.dst == KR.inertUsage },
+                   "Secure Input + 暂停：遥控键全部静默（D9 暂停语义不破）")
+            // 真键盘不受影响：所有形态只触碰本程序源键（与正常中转表同一源集合的子集）
+            let ours = Set(relay.map(\.src))
+            expect([secure, paused].allSatisfy { Set($0.map(\.src)).isSubset(of: ours) },
+                   "Secure Input 形态不引入新源键（真键盘与残留清理口径不变）")
+            let wide: ([(src: UInt32, dst: UInt32)]) -> [(src: UInt64, dst: UInt64)] = { ps in
+                ps.map { (0x700000000 + UInt64($0.src), 0x700000000 + UInt64($0.dst)) }
+            }
+            expect(KR.mappingSatisfied(wide(secure), mode: .secureInput)
+                   && !KR.mappingSatisfied(wide(relay), mode: .secureInput)
+                   && !KR.mappingSatisfied(wide(secure), mode: .relay)
+                   && KR.mappingSatisfied(wide(paused), mode: .secureInputPaused)
+                   && !KR.mappingSatisfied(wide(secure), mode: .secureInputPaused),
+                   "在位判据按形态校验：Secure Input 期间中转表算不在位（健康检查不会修回中转表），反之亦然")
+            // 状态迁移（无 tap：只切形态不写 hidutil）
+            let saved = KR.mode
+            let eng = TapEngine(delegate: nil)
+            eng.applySecureInput(true)
+            let m1 = KR.mode
+            eng.applySecureInput(true)
+            let m2 = KR.mode
+            eng.applySecureInput(false)
+            let m3 = KR.mode
+            expect(m1 == .secureInput && m2 == .secureInput && m3 == .relay && !eng.isSecureInputActive,
+                   "Secure Input 迁移：进入切安全形态、重复进入幂等、退出恢复中转表", "\(m1) \(m2) \(m3)")
+            KR.setMode(saved)
+        }
+
         // 终审-2. 单实例锁 owner 信息解析（GUI/CLI 分流提示的判定依据）。
         do {
             let owner = HealthMonitor.parseLockOwner(Data(#"{"pid":1234,"mode":"cli"}"#.utf8))

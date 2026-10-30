@@ -146,9 +146,10 @@ bundle id 重编译不掉权限；ad-hoc 签名则每次都掉，所以 `package
 **退出后遥控器/键盘按键异常？** MiRemote 退出时会自动清空 `hidutil` 中转映射；若异常退出
 没清干净，终端执行 `hidutil property --set '{"UserKeyMapping":[]}'` 即可恢复。
 
-**Secure Input 期间方向键会漏字符？** 已知限制：密码输入（Secure Event Input）期间系统旁路
-`CGEventTap` 但 `hidutil` 映射仍生效，遥控器方向键可能以中转键泄漏进前台（真键盘不受影响）。
-v1 接受此限制。
+**在密码框里遥控器怎么表现？** 密码输入（Secure Event Input）期间系统不把按键交给
+`CGEventTap`，MiRemote 检测到后会临时切换遥控器的 `hidutil` 映射：方向键、OK、音量回到系统原生
+（移动光标、回车提交、调音量），Home / 菜单 / TV / 电源在此期间静默不起作用，暂停遥控时则全部静默；
+离开密码框后自动恢复。真键盘不受影响。
 
 ## 自定义
 
@@ -232,7 +233,7 @@ brew install --cask godarrenw/tap/miremote
 - **Apple 公证** — 拿到开发者账号后对分发包做公证，消除首次打开需右键→打开的摩擦。
 - **按键自学习** — UI 里「按一下识别按键」，让 usage 表按实测 report 动态适配不同固件。
 - **更多内置预设** — 扩充视频 / 会议 / 阅读等场景 profile，社区可 PR 贡献。
-- **鲁棒性打磨** — 收窄 Secure Input 期间方向键泄漏等已知限制，完善故障注入覆盖。
+- **鲁棒性打磨** — 完善故障注入覆盖。
 
 完整里程碑与设计取舍见 [DESIGN.md §9](DESIGN.md) 与 [TESTPLAN.md](TESTPLAN.md)。
 

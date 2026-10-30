@@ -9,6 +9,12 @@
 
 ### 修复
 
+- **密码框里遥控器方向键乱跳 / 打出 `/` `*`**：Secure Input（密码输入）期间系统不把按键交给
+  事件过滤器，而中转映射仍在，遥控键以中转键（F13-F20、小键盘 Clear / 除 / 乘）直通前台：
+  方向键不能移光标，音量键可能打出 `/` `*`。现在检测到 Secure Input 时临时切换遥控器映射：
+  方向键、OK、音量回到系统原生，Home / 菜单 / TV / 电源静默；暂停遥控时全部静默；
+  离开密码框自动恢复。真键盘不受影响。
+
 - **每次更新/换包都要重新授权**：Release 包此前是 ad-hoc 签名，macOS 按 cdhash 认身份，
   每个新包都被当成新 App。现在 Release 用固定自签证书 `MiRemote Dev` 签名
   （DR = identifier `com.miremote.controller` + certificate leaf），升级后权限保留；

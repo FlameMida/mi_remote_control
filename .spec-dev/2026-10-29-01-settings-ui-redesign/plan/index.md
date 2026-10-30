@@ -190,6 +190,7 @@ JS
 - D8（T17 菜单栏健康点，2026-10-30 用户决定，偏离原型）：原型 `prototype-v2.html:873` 在「已暂停遥控」时仍为绿点。用户决定暂停时改为灰点。规则：红仅表示按键通道异常；已暂停或未连接为灰；已连接且未暂停为绿。实现于 `StatusDotKind(degraded:connected:suspended:)`，自测同步更新。菜单栏图标、侧栏问题行、页内横幅不使用该健康点颜色，不受影响。
 - D9（暂停遥控语义修正，2026-10-30，t54u）：上游 de75ab3 暂停时卸载 hidutil 映射，遥控键回到系统原生（方向/回车/Home/菜单/电源/音量/F5 直达系统），语音链路也未受暂停约束。改为：暂停期间映射保持在位，TapEngine 吞弃全部遥控中转键，语音新会话被忽略；真键盘不受影响，恢复后一切照旧。已在进行中的语音会话允许自然结束。
 - D10（按键提示条出现时机，2026-10-30，t55u）：上游 c2c9289 在前台 App 切换时，若该 App 显式声明 `ok.tap` 就闪现 2.5 秒提示条（如「OK 发送按键 · Return」）。原型 `prototype-v2.html:710` 定义提示条「模式或浮层激活时」出现，用户也反馈切 App 时莫名出现，故移除切 App 闪现，提示条只在功能层/浮层激活时出现（`HintBarCatalog.visible`）。
+- D11（Secure Input 期间遥控键泄漏，2026-10-30，pt58u）：Secure Input 期间 CGEventTap 收不到按键而 hidutil 中转映射仍在，遥控键以中转键直通前台（方向键失效、音量中转小键盘除/乘可能打出 `/` `*`）。TapEngine 每 250ms 轮询 `IsSecureEventInputEnabled()`（会话字典 `kCGSSessionSecureInputPID` 兜底），期间映射切 `MappingMode.secureInput`：方向/OK/音量不映射（原生光标/回车/音量，即基础态本来语义），Home/菜单/TV/电源映到 F21（无系统行为）静默；暂停（D9）时 `.secureInputPaused` 全部静默。退出后切回中转表。在位校验 `mappingSatisfied(_:mode:)` 按当前形态判定，健康检查不会把安全形态"修"回中转表；源键集合不变，退出/崩溃残留清理口径不变。不新增 UI。
 
 ## 与 fix/code-audit 的衔接
 

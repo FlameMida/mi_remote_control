@@ -1,5 +1,6 @@
 import Foundation
 import CoreGraphics
+import Carbon.HIToolbox
 import os
 
 /// M2 按键接管的最终架构（实机验证 2026-07-19）：
@@ -11,11 +12,12 @@ import os
 /// 纯原生场景就地改写回方向键 keycode 放行（保住系统 autorepeat 与零延迟），
 /// 层/手势场景吞掉喂引擎。
 ///
-/// 已知限制（v1 接受）：Secure Input（密码框等安全输入）期间 CGEventTap 被系统
-/// 旁路，而 hidutil 映射仍然生效——遥控器方向键会以中转键（F13/F19/F20/小键盘
-/// Clear）泄漏进前台应用，破坏原生光标导航。只有遥控器受影响，真键盘不经过
-/// hidutil 重映射、不受影响。未来可轮询 IsSecureEventInputEnabled()，进入
-/// Secure Input 时临时卸载方向键映射、退出后重装。
+/// Secure Input（密码框等安全输入）：期间 CGEventTap 收不到按键，若中转映射仍在，
+/// 遥控器按键会以中转键（F13-F20/小键盘 Clear/除/乘）直通前台应用。TapEngine 轮询
+/// IsSecureEventInputEnabled()，期间把映射切到 MappingMode.secureInput：
+/// 方向/OK/音量撤掉中转、回到原生（光标导航、回车提交、系统音量照常），
+/// Home/菜单/TV/电源改映到无系统行为的 F21（静默丢弃）；暂停遥控时全部静默。
+/// 退出 Secure Input 后切回中转表。只有遥控器受影响，真键盘不经过 hidutil 重映射。
 
 enum KeyRemapper {
 
@@ -54,6 +56,58 @@ enum KeyRemapper {
 
     private static var mappingTable: [(src: UInt32, dst: UInt32)] {
         table.map { ($0.src, $0.dst) } + silentTable
+    }
+
+    /// hidutil 映射形态。relay = 正常中转表（tap 接管）；Secure Input 期间 tap 收不到事件，
+    /// 改用不依赖 tap 的形态，杜绝中转键直通前台。
+    enum MappingMode: Equatable {
+        case relay              // 正常：全部中转，tap 吞键喂引擎
+        case secureInput        // Secure Input：方向/OK/音量回原生，其余键静默
+        case secureInputPaused  // Secure Input + 暂停遥控：遥控键全部静默（保持 D9 暂停语义）
+    }
+
+    /// 无系统行为的静默目标：F21（macOS 无虚拟键码，系统不产键盘事件，见 silentTable）。
+    static let inertUsage: UInt32 = 0x70
+
+    /// Secure Input 期间回到原生的键：基础态本来就是原生语义（光标/回车/系统音量），
+    /// 不依赖 tap 也不会出错。其余键（Home/菜单/TV/电源）的原生 usage 有副作用
+    /// （Home 键、Application 键、` 字符、电源键），只能静默。
+    static let nativeInSecureInput: Set<RemoteKey> = [.up, .down, .left, .right, .ok, .volUp, .volDown]
+
+    /// 由 Secure Input 与暂停状态决定映射形态（纯函数，self-test 直接测）。
+    static func mappingMode(secureInput: Bool, suspended: Bool) -> MappingMode {
+        guard secureInput else { return .relay }
+        return suspended ? .secureInputPaused : .secureInput
+    }
+
+    /// 某形态下本程序应写入的 (src,dst) 对（usage 低 16 位）。未列出的本程序源键 = 不映射（原生）。
+    static func pairs(for mode: MappingMode) -> [(src: UInt32, dst: UInt32)] {
+        switch mode {
+        case .relay:
+            return mappingTable
+        case .secureInput:
+            return table.compactMap { nativeInSecureInput.contains($0.key) ? nil : ($0.src, inertUsage) }
+                + silentTable
+        case .secureInputPaused:
+            return table.map { ($0.src, inertUsage) } + silentTable
+        }
+    }
+
+    /// 当前映射形态（hidutilLock 保护；install / mappingPresent 按它写入与校验）。
+    nonisolated(unsafe) private static var currentMode: MappingMode = .relay
+
+    /// 切换映射形态（只改目标，不写 hidutil；调用方随后按需 install）。返回是否有变化。
+    @discardableResult
+    static func setMode(_ mode: MappingMode) -> Bool {
+        hidutilLock.lock(); defer { hidutilLock.unlock() }
+        guard currentMode != mode else { return false }
+        currentMode = mode
+        return true
+    }
+
+    static var mode: MappingMode {
+        hidutilLock.lock(); defer { hidutilLock.unlock() }
+        return currentMode
     }
 
     /// 方向键 → 原生方向键 keycode（就地改写放行用）。
@@ -181,7 +235,7 @@ enum KeyRemapper {
             log?("hidutil 映射安装跳过：无法确认设备现有映射（健康检查会重试）")
             return false
         }
-        var entries = mappingTable.map {
+        var entries = pairs(for: currentMode).map {
             entryJSON(src: 0x700000000 + UInt64($0.src), dst: 0x700000000 + UInt64($0.dst))
         }
         entries += foreign.map { entryJSON(src: $0.src, dst: $0.dst) }
@@ -223,12 +277,19 @@ enum KeyRemapper {
 
     /// 在位判据（纯函数，供 self-test）：本程序每条 (src,dst) 必须唯一在位且目标正确。
     /// 同源重复条目或被第三方改到错误目标 → 不算在位（健康检查触发重装修复）。
-    static func mappingSatisfied(_ pairs: [(src: UInt64, dst: UInt64)]) -> Bool {
-        for entry in mappingTable {
+    /// 按形态校验：该形态应映射的每条唯一在位且目标正确；该形态应回原生的本程序源键不得有条目。
+    static func mappingSatisfied(_ pairs: [(src: UInt64, dst: UInt64)], mode: MappingMode = .relay) -> Bool {
+        let expected = Self.pairs(for: mode)
+        for entry in expected {
             let src = 0x700000000 + UInt64(entry.src)
             let dst = 0x700000000 + UInt64(entry.dst)
             let matches = pairs.filter { $0.src == src }
             guard matches.count == 1, matches[0].dst == dst else { return false }
+        }
+        let expectedSrcs = Set(expected.map(\.src))
+        for entry in mappingTable where !expectedSrcs.contains(entry.src) {
+            let src = 0x700000000 + UInt64(entry.src)
+            if pairs.contains(where: { $0.src == src }) { return false }
         }
         return true
     }
@@ -239,7 +300,7 @@ enum KeyRemapper {
         hidutilLock.lock(); defer { hidutilLock.unlock() }
         let r = runHidutil(["property", "--matching", matching, "--get", "UserKeyMapping"], capture: true)
         guard r.ok, let pairs = parseUserKeyMapping(r.output) else { return nil }
-        return mappingSatisfied(pairs)
+        return mappingSatisfied(pairs, mode: currentMode)
     }
 
     /// 恢复设备原有映射。持有快照 → 写回快照，成功后清除（防服务重启恢复过期状态）；
@@ -300,12 +361,31 @@ final class TapEngine: @unchecked Sendable {
         var mappingInstalled = false
         /// 暂停遥控位：true 期间 hidutil 映射保持在位，tap 吞掉全部中转键（遥控器完全惰性）。
         var suspended = false
+        /// Secure Input 是否生效（轮询结果；期间 tap 收不到按键，映射切 secureInput 形态）。
+        var secureInput = false
     }
     private let stateLock = OSAllocatedUnfairLock(initialState: PressState())
 
     /// 低频健康检查：tap 可能被系统静默禁用（辅助功能撤权等），每 30s 校验一次。
     private var healthTimer: DispatchSourceTimer?
     private let healthQueue = DispatchQueue(label: "com.miremote.taphealth")
+    /// Secure Input 轮询（250ms，healthQueue 上执行）。系统没有进入/退出通知，只能轮询；
+    /// IsSecureEventInputEnabled 是本地查询，开销可忽略。
+    private var secureTimer: DispatchSourceTimer?
+    static let secureInputPollMs = 250
+    /// 可注入的探针（self-test 用；默认读系统全局 Secure Input 状态）。
+    var secureInputProbe: () -> Bool = { TapEngine.systemSecureInputActive() }
+
+    /// 系统全局 Secure Input 是否开启：IsSecureEventInputEnabled()（全局状态），
+    /// 另读会话字典的 kCGSSessionSecureInputPID 兜底（任一为真即视为开启）。
+    static func systemSecureInputActive() -> Bool {
+        if IsSecureEventInputEnabled() { return true }
+        if let dict = CGSessionCopyCurrentDictionary() as? [String: Any],
+           let pid = dict["kCGSSessionSecureInputPID"] as? Int, pid != 0 {
+            return true
+        }
+        return false
+    }
 
     init(delegate: HIDEngineDelegate?) {
         self.delegate = delegate
@@ -350,9 +430,14 @@ final class TapEngine: @unchecked Sendable {
         let installed: Bool = healthQueue.sync {
             self.tap = tap
             self.runLoopSource = rls
+            // 启动时就处于 Secure Input（如锁屏/密码框聚焦中启动）：直接装安全形态，不留中转窗口
+            let secure = secureInputProbe()
+            let suspended = stateLock.withLock { st -> Bool in st.secureInput = secure; return st.suspended }
+            KeyRemapper.setMode(KeyRemapper.mappingMode(secureInput: secure, suspended: suspended))
             let ok = KeyRemapper.install()
             stateLock.withLock { $0.mappingInstalled = ok }
             startHealthTimerOnce()
+            startSecureTimerOnce()
             return ok
         }
         onMappingState?(installed)
@@ -365,6 +450,8 @@ final class TapEngine: @unchecked Sendable {
         healthQueue.sync {
             healthTimer?.cancel()
             healthTimer = nil
+            secureTimer?.cancel()
+            secureTimer = nil
             if let tap {
                 CGEvent.tapEnable(tap: tap, enable: false)
                 CFMachPortInvalidate(tap)
@@ -375,6 +462,7 @@ final class TapEngine: @unchecked Sendable {
             tap = nil
             runLoopSource = nil
             KeyRemapper.uninstall()
+            KeyRemapper.setMode(.relay)
             releaseNativeHeld()
             stateLock.withLock { $0 = PressState() }
         }
@@ -411,8 +499,11 @@ final class TapEngine: @unchecked Sendable {
                 self.releaseNativeHeld()
                 self.stateLock.withLock { $0.okDown = false }
             }
+            // Secure Input 期间暂停/恢复要换映射形态（方向/OK/音量原生 ↔ 全部静默）
+            let secure = self.stateLock.withLock { $0.secureInput }
+            let modeChanged = KeyRemapper.setMode(KeyRemapper.mappingMode(secureInput: secure, suspended: suspended))
             var ok = self.stateLock.withLock { $0.mappingInstalled }
-            if self.tap != nil, !ok {
+            if self.tap != nil, !ok || modeChanged {
                 ok = KeyRemapper.install()
                 self.stateLock.withLock { $0.mappingInstalled = ok }
                 self.onMappingState?(ok)
@@ -475,6 +566,57 @@ final class TapEngine: @unchecked Sendable {
         }
         delegate?.hidLog("已为按住中的原生方向键补发 keyUp：\(held.map(\.rawValue).joined(separator: ","))")
     }
+
+    // MARK: - Secure Input
+
+    private func startSecureTimerOnce() {
+        guard secureTimer == nil else { return }
+        let t = DispatchSource.makeTimerSource(queue: healthQueue)
+        let ms = Self.secureInputPollMs
+        t.schedule(deadline: .now() + .milliseconds(ms), repeating: .milliseconds(ms), leeway: .milliseconds(50))
+        t.setEventHandler { [weak self] in self?.pollSecureInput() }
+        t.resume()
+        secureTimer = t
+    }
+
+    /// 轮询一次 Secure Input（healthQueue 上）。变化时切换映射形态并重装。
+    private func pollSecureInput() {
+        applySecureInput(secureInputProbe())
+    }
+
+    /// Secure Input 状态迁移（healthQueue 上执行，与暂停/健康检查/stop 串行）。
+    /// 进入：映射切安全形态；已原生放行仍按住的方向键补 keyUp，引擎输入态复位（tap 看不到之后的 keyUp）。
+    /// 退出：切回中转表，引擎输入态复位（期间的按压引擎全没见过）。
+    /// 映射未在位（tap 死亡已卸载 / 安装失败）时只记录形态，等健康检查按新形态重装。
+    func applySecureInput(_ secure: Bool) {
+        let suspended: Bool? = stateLock.withLock { st in
+            guard st.secureInput != secure else { return nil }
+            st.secureInput = secure
+            return st.suspended
+        }
+        guard let suspended else { return }
+        resetPressState()
+        router?.resetInputState(reason: secure ? "进入 Secure Input" : "退出 Secure Input")
+        KeyRemapper.setMode(KeyRemapper.mappingMode(secureInput: secure, suspended: suspended))
+        guard tap != nil, stateLock.withLock({ $0.mappingInstalled }) else {
+            delegate?.hidLog(secure ? "Secure Input 开启（映射未在位，健康检查按安全形态重装）"
+                                    : "Secure Input 结束（映射未在位，健康检查按中转表重装）")
+            return
+        }
+        let ok = KeyRemapper.install()
+        stateLock.withLock { $0.mappingInstalled = ok }
+        onMappingState?(ok)
+        if secure {
+            delegate?.hidLog(ok ? (suspended ? "Secure Input 开启：遥控键全部静默（已暂停）"
+                                             : "Secure Input 开启：方向/OK/音量回原生，Home/菜单/TV/电源静默")
+                                : "Secure Input 开启，但切换安全映射失败")
+        } else {
+            delegate?.hidLog(ok ? "Secure Input 结束：已恢复中转映射" : "Secure Input 结束，但恢复中转映射失败")
+        }
+    }
+
+    /// self-test 钩子：读当前 Secure Input 锁存值。
+    var isSecureInputActive: Bool { stateLock.withLock { $0.secureInput } }
 
     // MARK: - 失效安全
 

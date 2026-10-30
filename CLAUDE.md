@@ -136,9 +136,10 @@ CI（`.github/workflows/ci.yml`，macos-26）= `./build.sh` + `--self-test`，FA
 
 ## 已知限制
 
-- **Secure Input**：密码输入期间 CGEventTap 被系统旁路而 hidutil 映射仍生效，遥控器方向键会
-  以中转键泄漏进前台（真键盘不受影响）。v1 接受；未来可轮询 `IsSecureEventInputEnabled()`
-  在此期间临时卸载方向键映射。
-- 未做 Apple 公证：每次升级需重新授予输入监控 / 辅助功能（配置不丢失）。
+- **Secure Input**：密码输入期间 CGEventTap 收不到按键。TapEngine 每 250ms 轮询
+  `IsSecureEventInputEnabled()`，期间把 hidutil 映射切到 `KeyRemapper.MappingMode.secureInput`
+  （方向/OK/音量回原生，Home/菜单/TV/电源映到 F21 静默；暂停时 `.secureInputPaused` 全静默），
+  退出后切回中转表；HealthMonitor 在位校验按当前形态判定（D11）。进入后约 250ms 内的按键仍可能走旧映射。
+- 未做 Apple 公证：首次打开需右键 → 打开；Release 用固定自签证书签名，升级后权限保留。
 - 官方「小米遥控器助手」与本程序不能同时运行（抢 ATVV / HID）。
 - BlackHole / 豆包输入法 / 具体 App 缺失时对应功能自动降级，按键映射不受影响。

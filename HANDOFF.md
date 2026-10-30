@@ -59,7 +59,7 @@ MappingEngine 支持 tap/hold/double/层/手势状态机（selfCheck 全过）�
 
 ## 遗留问题 ⚠️
 
-**Secure Input 限制（v1 接受）**：密码输入（Secure Event Input）期间 CGEventTap 被系统旁路而 hidutil 映射仍生效，遥控器方向键会以中转键（F13/F19/F20/小键盘 Clear）泄漏进前台应用（仅遥控器受影响，真键盘不经过重映射不受影响）；未来可轮询 `IsSecureEventInputEnabled()` 在 Secure Input 期间临时卸载方向键映射。
+**Secure Input**（已处理，D11，待实机验证）：密码输入（Secure Event Input）期间 CGEventTap 收不到按键，原先 hidutil 中转映射仍生效会让遥控键以中转键泄漏进前台。现由 TapEngine 轮询 `IsSecureEventInputEnabled()`（250ms），期间映射切到安全形态：方向/OK/音量回原生，Home/菜单/TV/电源映到 F21 静默，暂停时全部静默；退出后恢复中转表。真键盘不受影响。
 
 **返回键（0xF1）完全收不到**——已修复，**实机验证通过**（2026-07-19，全键位+语音并行均正常）。
 - 根因（代码对照 hidprobe 得出）：HIDEngine 先试 `IOHIDManagerOpen(seize)`（蓝牙键盘必失败 0xE00002C1）→ `IOHIDManagerClose` → 再以 None 重开。同一 IOHIDManager 失败 open 后 close 再 open，重开返回 success 但已枚举设备不会真正重新打开——InputValue 回调永远零事件。hidprobe 从不走这个流程，所以能读到 0xF1。
