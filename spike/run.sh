@@ -7,6 +7,16 @@ OUT="${1:-spike-out}"; mkdir -p "$OUT"
 
 swiftc -swift-version 5 -O spike/SecureProbe.swift -o "$B" 2>&1 | grep -v "warning:" ; codesign -s - -f "$B" || true
 [ -x "$B" ] || { echo "BUILD FAILED"; exit 1; }
+# Second copy for the virtual HID device, ad-hoc signed with the HID virtual-device entitlement (run 1 got nil without it).
+cat > /tmp/spikebin/vhid.entitlements <<'PL'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict><key>com.apple.developer.hid.virtual.device</key><true/></dict></plist>
+PL
+cp "$B" /tmp/spikebin/secureprobe-vhid
+codesign -s - -f --entitlements /tmp/spikebin/vhid.entitlements /tmp/spikebin/secureprobe-vhid 2>&1 || true
+codesign -d --entitlements - /tmp/spikebin/secureprobe-vhid 2>&1 | tail -3
+echo "boot-args: $(nvram boot-args 2>&1)"
 
 echo "== TCC grants (attempt; throwaway CI VM)"
 NOW=$(date +%s)
@@ -39,7 +49,9 @@ phase SETUP
 sleep 3
 "$B" listener user > "$D/listener-user.log" 2>&1 &
 sudo "$B" listener root --no-ns > "$D/listener-root.log" 2>&1 &
-sudo "$B" vhid 400 > "$D/vhid.log" 2>&1 &
+sudo /tmp/spikebin/secureprobe-vhid vhid 400 > "$D/vhid.log" 2>&1 &
+sleep 2; cat "$D/vhid.log"
+grep -q FAILED "$D/vhid.log" && { echo "vhid entitled failed; log show:"; log show --last 30s --style compact --predicate 'eventMessage CONTAINS[c] "IOHIDUserDevice" OR eventMessage CONTAINS[c] "secureprobe" OR eventMessage CONTAINS[c] "virtual.device"' 2>&1 | tail -25; }
 sleep 4
 
 phase P0-plain-nosecure
