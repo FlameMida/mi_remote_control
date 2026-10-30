@@ -975,15 +975,18 @@ private struct WindowPickerView: View {
         VStack(spacing: 8) {
             appIcon(entry.bundleID)
                 .frame(width: 60, height: 60)
-            Text(entry.window.title.isEmpty ? entry.appName : entry.window.title)
+            Text(entry.appName)
                 .font(.callout)
+                .lineLimit(1)
+                .multilineTextAlignment(.center)
+                .frame(width: 156)
+            // 副标题 = 真实窗口标题（无标题时给状态说明），不再重复 App 名
+            Text(WindowSwitcher.subtitle(for: entry.window, appName: entry.appName))
+                .font(.caption)
+                .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
                 .frame(width: 156)
-            Text(entry.appName)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
         }
         .padding(10)
         .cardBackground(in: RoundedRectangle(cornerRadius: Radius.hud))

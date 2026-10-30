@@ -1333,6 +1333,12 @@ enum SelfTest {
         expect(SettingsWindowLayout.selfCheck(), "ui-redesign: 设置窗尺寸与标题")
         expect(StatusItemController.selfCheck(), "ui-redesign: 菜单栏玻璃面板定位")
         expect(HintFlowLayout.selfCheck(), "ui-redesign: 提示条按内容加宽、超宽换行")
+        expect(WindowSwitcher.filterSelfCheck(), "窗口选择器：只列标准窗口、按 ID 去重、保留其他桌面与最小化")
+        expect(WindowSwitcher.subtitle(for: .init(pid: 1, windowID: 1, title: ""), appName: "magpie") == "无标题窗口"
+               && WindowSwitcher.subtitle(for: .init(pid: 1, windowID: 1, title: "magpie"), appName: "magpie") == "无标题窗口"
+               && WindowSwitcher.subtitle(for: .init(pid: 1, windowID: 1, title: "收件箱"), appName: "magpie") == "收件箱"
+               && WindowSwitcher.subtitle(for: .init(pid: 1, windowID: 1, title: "", onOtherSpace: true), appName: "x") == "其他桌面",
+               "窗口选择器：副标题取窗口标题，不重复 App 名")
         expect(StatusIssue.selfCheck(), "ui-redesign: 问题优先级与横幅过滤")
         expect(RC2ProGeometry.selfCheck(), "ui-redesign: RC 2 Pro 示意图几何与 13 键命中")
         expect(RemoteAnnotationLayout.selfCheck(), "ui-redesign: 遥控器标注布局与键盘顺序")
