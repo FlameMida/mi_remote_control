@@ -120,25 +120,33 @@ enum RC2ProGeometry {
         return p
     }
 
-    /// 音量胶囊按设备像素对齐（示意图坐标）。37.2 宽在 0.7–1.0 缩放下两侧边缘落在不同的亚像素相位，
-    /// 左缘整像素覆盖、右缘被抗锯齿摊薄，直边段左侧就显出一条「毛边」。把左右边缘都吸附到像素格，
-    /// 两侧相位一致、外沿描边与填充严丝合缝。
-    static func pixelSnappedVolRect(scale: CGFloat, displayScale: CGFloat) -> CGRect {
-        let px = 1 / max(scale * max(displayScale, 1), 0.01)
-        func snap(_ v: CGFloat) -> CGFloat { (v / px).rounded() * px }
-        let minX = snap(volRect.minX), maxX = snap(volRect.maxX)
-        let minY = snap(volRect.minY), maxY = snap(volRect.maxY)
+    /// 音量胶囊按设备像素对齐（返回示意图坐标）。37.2 宽的胶囊在 0.7–1.0 缩放、且画布原点落在亚像素位置时，
+    /// 左右边缘处于不同的亚像素相位：一侧外沿描边被摊成一列浅灰半透明像素（「毛边」），另一侧却是实边。
+    /// 把四条边吸附到窗口的设备像素格（考虑画布在窗口中的原点），两侧相位一致、渲染完全对称。
+    static func pixelSnappedVolRect(scale: CGFloat, displayScale: CGFloat,
+                                    origin: CGPoint = .zero) -> CGRect {
+        let s = max(scale, 0.01), ds = max(displayScale, 1)
+        func snap(_ v: CGFloat, _ o: CGFloat) -> CGFloat { (((o + v * s) * ds).rounded() / ds - o) / s }
+        let minX = snap(volRect.minX, origin.x), maxX = snap(volRect.maxX, origin.x)
+        let minY = snap(volRect.minY, origin.y), maxY = snap(volRect.maxY, origin.y)
         return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
     }
 
     static func volSnapSelfCheck() -> Bool {
         for ds in [1.0, 2.0] as [CGFloat] {
-            for sc in stride(from: 0.7 as CGFloat, through: 1.0, by: 0.01) {
-                let r = pixelSnappedVolRect(scale: sc, displayScale: ds)
-                let k = sc * ds
-                let onGrid = { (v: CGFloat) in abs((v * k).rounded() - v * k) < 0.001 }
-                guard onGrid(r.minX), onGrid(r.maxX), onGrid(r.minY), onGrid(r.maxY) else { return false }
-                guard abs(r.width - volRect.width) * k <= 1.001, abs(r.midX - volRect.midX) * k <= 1.001 else { return false }
+            for o in [CGPoint.zero, CGPoint(x: 481.6, y: 113.25), CGPoint(x: 300.5, y: 77.75)] {
+                for sc in stride(from: 0.7 as CGFloat, through: 1.0, by: 0.01) {
+                    let r = pixelSnappedVolRect(scale: sc, displayScale: ds, origin: o)
+                    let onGrid = { (v: CGFloat, oo: CGFloat) -> Bool in
+                        let d = (oo + v * sc) * ds
+                        return abs(d.rounded() - d) < 0.001
+                    }
+                    guard onGrid(r.minX, o.x), onGrid(r.maxX, o.x), onGrid(r.minY, o.y), onGrid(r.maxY, o.y)
+                    else { return false }
+                    let k = sc * ds
+                    guard abs(r.width - volRect.width) * k <= 1.001, abs(r.midX - volRect.midX) * k <= 1.001
+                    else { return false }
+                }
             }
         }
         return true
@@ -248,6 +256,8 @@ struct RC2ProCanvas: View {
     var connected: Bool
     var interactive: Bool
     @State private var hoveredKey: RemoteKey?
+    /// 画布在窗口中的原点（点），用于音量胶囊的设备像素对齐
+    @State private var canvasOrigin: CGPoint = .zero
 
     init(scale: CGFloat, connected: Bool, interactive: Bool,
          state: @escaping (RemoteKey) -> RC2ProKeyState) {
@@ -330,6 +340,7 @@ struct RC2ProCanvas: View {
             drawPrint(&ctx)
             drawStatus(&ctx)
         }
+        .onGeometryChange(for: CGPoint.self) { $0.frame(in: .global).origin } action: { canvasOrigin = $0 }
         .onContinuousHover { phase in
             guard interactive else { hoveredKey = nil; return }
             switch phase {
@@ -524,7 +535,7 @@ struct RC2ProCanvas: View {
             }
         }
         // 音量竖胶囊（原型：ksh 阴影 dy .9 → #141517 底座 inset .4 → 两半 keyface+kg → krim .7 → 分缝 .6）
-        let vr = G.pixelSnappedVolRect(scale: scale, displayScale: displayScale)
+        let vr = G.pixelSnappedVolRect(scale: scale, displayScale: displayScale, origin: canvasOrigin)
         let vRadius = vr.width / 2
         let vol = Path(roundedRect: vr, cornerRadius: vRadius, style: .circular)
         ctx.fill(Path(roundedRect: vr.offsetBy(dx: 0, dy: 0.9), cornerRadius: vRadius, style: .circular),
