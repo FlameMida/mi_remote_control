@@ -504,9 +504,10 @@ final class TapEngine: @unchecked Sendable {
             let modeChanged = KeyRemapper.setMode(KeyRemapper.mappingMode(secureInput: secure, suspended: suspended))
             var ok = self.stateLock.withLock { $0.mappingInstalled }
             if self.tap != nil, !ok || modeChanged {
-                ok = KeyRemapper.install()
-                self.stateLock.withLock { $0.mappingInstalled = ok }
-                self.onMappingState?(ok)
+                let installed = KeyRemapper.install()
+                self.stateLock.withLock { $0.mappingInstalled = installed }
+                self.onMappingState?(installed)
+                ok = installed
             }
             self.delegate?.hidLog(suspended
                 ? "遥控已暂停：遥控按键全部吞弃（hidutil 映射\(ok ? "在位" : "未在位")）"
