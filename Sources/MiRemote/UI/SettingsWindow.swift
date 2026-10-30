@@ -34,8 +34,10 @@ enum SettingsWindowLayout {
     static let narrowSidebarThickness: CGFloat = narrowSidebarWidth + sidebarGlassMargin * 2
     static let sidebarMinThickness: CGFloat = narrowSidebarThickness
 
-    /// 原型 isNarrow：放不下 1120 标准窗即窄态 —— 这里按窗宽是否小于标准宽判定
-    static func isNarrow(windowWidth: CGFloat) -> Bool { windowWidth < defaultSize.width - 0.5 }
+    /// 窄态断点：原型宽版窗 1120、窄版窗 780/860；窗宽低于 960 才切窄版，
+    /// 默认窗（含小屏按可见区收缩后的 1024 等）始终是宽版布局。
+    static let narrowBreakpoint: CGFloat = 960
+    static func isNarrow(windowWidth: CGFloat) -> Bool { windowWidth < narrowBreakpoint }
 
     static func sidebarThicknessFor(windowWidth: CGFloat, glass: Bool) -> CGFloat {
         (isNarrow(windowWidth: windowWidth) ? narrowSidebarWidth : sidebarWidth)
@@ -59,7 +61,8 @@ enum SettingsWindowLayout {
             && sidebarThicknessFor(windowWidth: 1120, glass: true) == 232
             && sidebarThicknessFor(windowWidth: 780, glass: true) == 192
             && sidebarThicknessFor(windowWidth: 780, glass: false) == 176
-            && !isNarrow(windowWidth: 1120) && isNarrow(windowWidth: 1024)
+            && !isNarrow(windowWidth: 1120) && !isNarrow(windowWidth: 1024)
+            && !isNarrow(windowWidth: 960) && isNarrow(windowWidth: 959) && isNarrow(windowWidth: 780)
             && defaultSize == CGSize(width: 1120, height: 700)
     }
 }

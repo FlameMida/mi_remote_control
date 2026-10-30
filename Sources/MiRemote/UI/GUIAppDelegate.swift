@@ -180,12 +180,13 @@ final class GUIAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
 
-    /// 原型尺寸 1120×700，屏幕放不下时按可见区收缩（不小于最小尺寸）。
+    /// 默认采用宽版布局：原型宽版窗 1120×700；屏幕放不下时宽度贴满可见区（不再额外留边，
+    /// 以免掉到窄版断点以下），高度留 40 边距；均不小于最小尺寸。
     static func initialWindowSize() -> CGSize {
         let target = SettingsWindowLayout.defaultSize
         guard let visible = NSScreen.main?.visibleFrame.size else { return target }
         let minS = SettingsWindowLayout.minSize
-        return CGSize(width: max(minS.width, min(target.width, visible.width - 40)),
+        return CGSize(width: max(minS.width, min(target.width, visible.width)),
                       height: max(minS.height, min(target.height, visible.height - 40)))
     }
 
