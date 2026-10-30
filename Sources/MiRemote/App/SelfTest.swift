@@ -663,11 +663,24 @@ enum SelfTest {
             if case .broken = HealthMonitor.computeOverall(s) {} else {
                 expect(false, "健康态：恢复后 tap 失效重新按故障判定")
             }
-            expect(!TapEngine.shouldAutoReinstall(suspended: true, tapEnabled: true, mappingInstalled: false)
-                   && TapEngine.shouldAutoReinstall(suspended: false, tapEnabled: true, mappingInstalled: false)
-                   && !TapEngine.shouldAutoReinstall(suspended: false, tapEnabled: true, mappingInstalled: true)
-                   && !TapEngine.shouldAutoReinstall(suspended: false, tapEnabled: false, mappingInstalled: false),
-                   "TapEngine 自动重装判据：暂停/在位/无 tap 一律豁免")
+            expect(TapEngine.shouldAutoReinstall(tapEnabled: true, mappingInstalled: false)
+                   && !TapEngine.shouldAutoReinstall(tapEnabled: true, mappingInstalled: true)
+                   && !TapEngine.shouldAutoReinstall(tapEnabled: false, mappingInstalled: false),
+                   "TapEngine 自动重装判据：在位/无 tap 豁免（暂停期间照常重装，映射是吞键前提）")
+            // 暂停遥控：遥控器完全惰性，真键盘不受影响
+            let relayCodes = KeyRemapper.table.map(\.keycode)
+            let realKeyboard: [Int64] = [0, 36, 49, 51, 53, 123, 124, 125, 126, 96, 122]  // a/Return/Space/Delete/Esc/方向/F5/F1
+            expect(relayCodes.allSatisfy { TapEngine.swallowWhileSuspended(keycode: $0, suspended: true) }
+                   && !relayCodes.contains { TapEngine.swallowWhileSuspended(keycode: $0, suspended: false) }
+                   && !realKeyboard.contains { TapEngine.swallowWhileSuspended(keycode: $0, suspended: true) },
+                   "暂停遥控：全部遥控中转键（方向/OK/Home/菜单/TV/电源/音量）吞弃，真键盘放行，恢复后不吞")
+            let ignored = VoiceBridgeApp.sessionPlan(switchInput: true, doubao: true, suspended: true)
+            let live = VoiceBridgeApp.sessionPlan(switchInput: true, doubao: true, suspended: false)
+            let mac = VoiceBridgeApp.sessionPlan(switchInput: false, doubao: true, suspended: false)
+            expect(!ignored.switchMic && !ignored.trigger && !ignored.forwardAudio
+                   && live.switchMic && live.trigger && live.forwardAudio
+                   && !mac.switchMic && mac.trigger && mac.forwardAudio,
+                   "暂停遥控：语音键会话被忽略（不切麦克风、不触发豆包、不转发音频）")
         }
 
         // M6-1. EnvironmentCheck API 健全性：只断言可调用不崩、返回结构完整，

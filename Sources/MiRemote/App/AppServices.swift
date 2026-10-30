@@ -337,6 +337,21 @@ final class VoiceBridgeApp: ATVVBridgeDelegate {
     private let cfgLock = NSLock()
     private var _switchInput: Bool
     private var _doubao: Bool
+    private var _suspended = false
+    /// 暂停遥控（引擎 onSuspendChanged 接线）：暂停期间新语音会话被忽略——
+    /// 不切麦克风、不触发豆包、不转发音频、不报「语音中」。
+    var suspended: Bool {
+        get { cfgLock.lock(); defer { cfgLock.unlock() }; return _suspended }
+        set { cfgLock.lock(); _suspended = newValue; cfgLock.unlock() }
+    }
+    /// 本会话是否因暂停被忽略（ATVV 队列读写）。
+    private var sessionIgnored = false
+
+    /// 语音会话计划（纯函数，供 self-test）：暂停时什么都不做。
+    static func sessionPlan(switchInput: Bool, doubao: Bool, suspended: Bool)
+        -> (switchMic: Bool, trigger: Bool, forwardAudio: Bool) {
+        suspended ? (false, false, false) : (switchInput, doubao, true)
+    }
     /// GUI 语音页可切换（模式 A=true / 模式 B=false）。
     var switchInput: Bool {
         get { cfgLock.lock(); defer { cfgLock.unlock() }; return _switchInput }
@@ -395,6 +410,12 @@ final class VoiceBridgeApp: ATVVBridgeDelegate {
     }
 
     func atvvVoiceStarted() {
+        sessionIgnored = !Self.sessionPlan(switchInput: switchInput, doubao: doubao,
+                                           suspended: suspended).forwardAudio
+        if sessionIgnored {
+            log("语音开始（遥控已暂停，忽略本次会话）")
+            return
+        }
         log("语音开始")
         onVoiceActive?(true)
         // 上一会话的延迟还原尚未执行就被新会话取消：还原责任必须转交本会话，
@@ -429,6 +450,11 @@ final class VoiceBridgeApp: ATVVBridgeDelegate {
     private var triggered = false
 
     func atvvVoiceStopped() {
+        if sessionIgnored {
+            sessionIgnored = false
+            log("语音结束（已忽略）")
+            return
+        }
         log("语音结束")
         onVoiceActive?(false)
         pendingMicSwitch = false
@@ -457,6 +483,7 @@ final class VoiceBridgeApp: ATVVBridgeDelegate {
     /// 服务停止兜底：语音会话仍在进行时按锁存状态强制收尾
     ///（松开触发键、还原默认麦克风），防止 stop 后修饰键粘住/麦克风停在 BlackHole。
     func forceEndSessionIfActive() {
+        sessionIgnored = false
         let hadPendingMicRestore = restoreWork != nil
         restoreWork?.cancel()
         restoreWork = nil
@@ -484,6 +511,7 @@ final class VoiceBridgeApp: ATVVBridgeDelegate {
     }
 
     func atvvAudioFrame(_ frame: Data, sync: (predictor: Int16, stepIndex: Int)?) {
+        if sessionIgnored { return }
         if pendingMicSwitch {
             pendingMicSwitch = false
             let engaged = DefaultInput.engage(deviceName: micDeviceName)
@@ -794,11 +822,12 @@ final class AppServices {
             health.reinstallMapping = { [weak tap] in
                 tap?.reinstallMapping(reason: "周期健康检查发现映射缺失")
             }
-            // 暂停遥控：引擎是唯一事实源，联动 TapEngine（卸/装 hidutil 映射）
-            // 与 HealthMonitor（暂停位让健康判定/自动重装豁免）。
+            // 暂停遥控：引擎是唯一事实源，联动 TapEngine（映射保持在位、吞掉全部中转键）、
+            // 语音链路（忽略新会话）与 HealthMonitor（暂停不算故障）。
             km.engine.onSuspendChanged = { [weak self, weak tap, weak health] suspended in
                 health?.setSuspended(suspended)
                 tap?.setSuspended(suspended)
+                self?.voiceApp.suspended = suspended
                 // 引擎是唯一事实源：变化后推给 UI（菜单栏开关等所有暂停入口同步）
                 self?.onRemoteSuspendChanged?(suspended)
             }

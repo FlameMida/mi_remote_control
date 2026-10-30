@@ -128,8 +128,8 @@ final class MappingEngine: @unchecked Sendable {
     /// 只读：遥控是否处于暂停态（UI toggle 显示用，任意线程可读）。
     var isSuspended: Bool { suspendedLock.withLock { $0 } }
     /// 暂停态变化钩子（引擎执行上下文回调；AppServices 接线：
-    /// true → TapEngine 卸载 hidutil 映射（遥控键回系统原生）+ 健康检查豁免重装，
-    /// false → 重装映射。接线期设置，之后只读。
+    /// true → TapEngine 保留 hidutil 映射并吞掉全部遥控中转键、语音链路忽略新会话，
+    /// false → 恢复正常分发。接线期设置，之后只读。
     var onSuspendChanged: ((Bool) -> Void)?
 
     /// 暂停/恢复遥控。暂停期间所有按键事件（含 IOHID 通道的返回键）在引擎入口丢弃，

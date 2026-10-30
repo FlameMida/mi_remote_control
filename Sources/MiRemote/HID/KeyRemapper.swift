@@ -298,7 +298,7 @@ final class TapEngine: @unchecked Sendable {
         var okDown = false
         /// hidutil 映射当前是否已安装（失效安全的恢复判据）。
         var mappingInstalled = false
-        /// 暂停遥控位：true 期间映射保持卸载，健康检查/重装一律豁免。
+        /// 暂停遥控位：true 期间 hidutil 映射保持在位，tap 吞掉全部中转键（遥控器完全惰性）。
         var suspended = false
     }
     private let stateLock = OSAllocatedUnfairLock(initialState: PressState())
@@ -382,14 +382,21 @@ final class TapEngine: @unchecked Sendable {
     }
 
     /// 「tap 恢复后是否允许自动重装映射」的纯判据（healthCheck 用，self-test 直接测）：
-    /// 暂停期间一律不装；tap 不在或映射已在位也不装。
-    static func shouldAutoReinstall(suspended: Bool, tapEnabled: Bool, mappingInstalled: Bool) -> Bool {
-        !suspended && tapEnabled && !mappingInstalled
+    /// tap 不在或映射已在位不装。暂停期间同样要装：映射是吞掉遥控键的前提。
+    static func shouldAutoReinstall(tapEnabled: Bool, mappingInstalled: Bool) -> Bool {
+        tapEnabled && !mappingInstalled
+    }
+
+    /// 暂停态 tap 判据（纯函数，self-test 直接测）：暂停期间所有中转键（= 只可能来自遥控器，
+    /// 真键盘不经 hidutil 重映射）一律吞弃，不改写放行、不上报引擎；非中转键（真键盘）照常放行。
+    static func swallowWhileSuspended(keycode: Int64, suspended: Bool) -> Bool {
+        suspended && KeyRemapper.keycodeMap[keycode] != nil
     }
 
     /// 暂停/恢复遥控（MappingEngine.onSuspendChanged 接线）：
-    /// 暂停=卸载 hidutil 映射（遥控键回系统原生，方向/音量天然可用）；
-    /// 恢复=tap 在运行则幂等重装。串行在 healthQueue 上执行，与健康检查天然互斥。
+    /// 暂停=hidutil 映射保持在位（若不在位则补装），tap 吞掉全部中转键——遥控器完全惰性。
+    /// 不能卸载映射：卸载后遥控键以原生 HID 键（方向/回车/Home/音量/F5…）直通系统，暂停形同虚设。
+    /// 恢复=映射在位即直接生效。串行在 healthQueue 上执行，与健康检查天然互斥。
     func setSuspended(_ suspended: Bool) {
         healthQueue.async { [weak self] in
             guard let self else { return }
@@ -400,33 +407,29 @@ final class TapEngine: @unchecked Sendable {
             }
             guard changed else { return }
             if suspended {
-                KeyRemapper.uninstall()
-                self.stateLock.withLock { $0.mappingInstalled = false }
+                // 已原生放行、仍按住的方向键补发 keyUp，防止系统卡键
                 self.releaseNativeHeld()
                 self.stateLock.withLock { $0.okDown = false }
-                self.onMappingState?(false)
-                self.delegate?.hidLog("遥控已暂停：hidutil 映射已卸载（按键回系统原生）")
-            } else if self.tap != nil {
-                let ok = KeyRemapper.install()
+            }
+            var ok = self.stateLock.withLock { $0.mappingInstalled }
+            if self.tap != nil, !ok {
+                ok = KeyRemapper.install()
                 self.stateLock.withLock { $0.mappingInstalled = ok }
                 self.onMappingState?(ok)
-                self.delegate?.hidLog(ok ? "遥控已恢复：hidutil 映射已重装"
-                                         : "遥控恢复：hidutil 映射重装失败（健康检查会重试）")
             }
+            self.delegate?.hidLog(suspended
+                ? "遥控已暂停：遥控按键全部吞弃（hidutil 映射\(ok ? "在位" : "未在位")）"
+                : "遥控已恢复")
         }
     }
 
     /// 幂等重装 hidutil 映射（蓝牙重连 / 系统唤醒后调用：设备服务重建后映射可能失效）。
-    /// 暂停期间豁免。tap 已经死掉（创建失败/被系统摧毁且未恢复）时，先尝试重建 tap
+    /// 暂停期间同样重装（映射在位才能吞掉遥控键）。tap 已经死掉（创建失败/被系统摧毁且未恢复）时，先尝试重建 tap
     /// 本身——否则「事件注入通道」整条链路死透，光重装 hidutil 映射毫无意义，
     /// 体检页的「重建通道」按钮会变成按了没反应。
     func reinstallMapping(reason: String) {
         healthQueue.async { [weak self] in
             guard let self else { return }
-            if self.stateLock.withLock({ $0.suspended }) {
-                self.delegate?.hidLog("遥控已暂停，跳过映射重装（\(reason)）")
-                return
-            }
             if self.tap == nil {
                 guard let (tap, rls) = self.makeTap() else {
                     self.delegate?.hidLog("映射重装失败：TAP 重建失败（\(reason)），请检查辅助功能权限或重新打开 App")
@@ -487,8 +490,6 @@ final class TapEngine: @unchecked Sendable {
     }
 
     private func healthCheck() {
-        let suspended = stateLock.withLock { $0.suspended }
-        if suspended { return }
         guard let tap else {
             // tap 从未建成或已彻底死亡（不是「被禁用」，是 CFMachPort 都不在）：
             // 每 30s 重试重建，否则「事件注入通道」死透后只能靠用户手动重启 App。
@@ -511,8 +512,7 @@ final class TapEngine: @unchecked Sendable {
         let installed = stateLock.withLock { $0.mappingInstalled }
         if CGEvent.tapIsEnabled(tap: tap) {
             // tap 健康。若此前因失效卸载过映射，恢复后自动重装。
-            if Self.shouldAutoReinstall(suspended: suspended, tapEnabled: true,
-                                        mappingInstalled: installed),
+            if Self.shouldAutoReinstall(tapEnabled: true, mappingInstalled: installed),
                KeyRemapper.install() {
                 stateLock.withLock { $0.mappingInstalled = true }
                 onMappingState?(true)
@@ -571,6 +571,10 @@ final class TapEngine: @unchecked Sendable {
         let keycode = event.getIntegerValueField(.keyboardEventKeycode)
         guard let key = KeyRemapper.keycodeMap[keycode] else {
             return Unmanaged.passUnretained(event) // 非中转键，放行
+        }
+        // 暂停遥控：遥控器完全惰性——中转键一律吞弃，不放行、不上报（真键盘不受影响）。
+        if Self.swallowWhileSuspended(keycode: keycode, suspended: stateLock.withLock({ $0.suspended })) {
+            return nil
         }
         let isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
 

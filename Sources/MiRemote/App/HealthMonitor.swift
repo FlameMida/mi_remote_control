@@ -25,7 +25,7 @@ struct HealthSources: Equatable {
     var accessibilityGranted = true
     /// 输入监控权限（denied 才算撤销；unknown 不降级——系统可能从未记录过请求）。
     var inputMonitoringGranted = true
-    /// 暂停遥控位：暂停期间映射被有意卸载，tap/映射两项不按故障判定、不自动重装。
+    /// 暂停遥控位：暂停期间遥控按键全部吞弃，tap/映射两项不按故障判定（映射仍校验并自动重装）。
     var suspended = false
     /// hidutil 映射在位查询失败（遥控器不在场/hidutil 异常）：查询失败≠映射缺失，
     /// mappingInstalled 保留旧值，此位单独标记 degraded 提示。
@@ -229,7 +229,7 @@ final class HealthMonitor: @unchecked Sendable {
             broken.append("辅助功能权限被撤销（按键映射与豆包触发不可用）")
         }
         if s.keysEnabled && s.suspended {
-            // 用户主动暂停：映射有意卸载，不算故障，仅提示。
+            // 用户主动暂停：遥控按键全部吞弃，不算故障，仅提示。
             degraded.append("遥控已暂停（按键映射临时停用，恢复开关在菜单栏面板）")
         } else {
             if s.keysEnabled && !s.tapAlive {
@@ -265,7 +265,7 @@ final class HealthMonitor: @unchecked Sendable {
         var ok = HealthSources(keysEnabled: true, bleConnected: true, tapAlive: true, mappingInstalled: true)
         var cases: [(HealthSources, Bool)] = [(ok, false)]
         var s = ok; s.bleConnected = false; cases.append((s, false))            // 未连接 → 灰点，不是红点
-        s = ok; s.suspended = true; s.mappingInstalled = false; cases.append((s, false)) // 暂停有意卸载映射
+        s = ok; s.suspended = true; s.mappingInstalled = false; cases.append((s, false)) // 暂停期间不按故障判定
         s = ok; s.inputMonitoringGranted = false; cases.append((s, false))      // 权限横幅负责
         s = ok; s.mappingQueryFailed = true; cases.append((s, false))
         s = ok; s.tapAlive = false; cases.append((s, true))
@@ -326,13 +326,13 @@ final class HealthMonitor: @unchecked Sendable {
         let im = EnvironmentCheck.inputMonitoring().state != .denied
         var mappingMissing = false
         var queryFailed = false
-        let (keys, tapAlive, suspended) = state.withLock {
-            ($0.sources.keysEnabled, $0.sources.tapAlive, $0.sources.suspended)
+        let (keys, tapAlive) = state.withLock {
+            ($0.sources.keysEnabled, $0.sources.tapAlive)
         }
-        // 暂停期间映射被有意卸载，不查在位、不触发重装。
+        // 暂停期间映射同样保持在位（tap 靠它吞掉遥控键），照常校验与重装。
         // 三态处理：true=在位、false=缺失（触发重装）、nil=查询失败（≠缺失，
         // mappingInstalled 保留旧值，只标记 degraded，不盲目重装）。
-        if keys, tapAlive, !suspended {
+        if keys, tapAlive {
             switch KeyRemapper.mappingPresent() {
             case true?:  break
             case false?: mappingMissing = true
@@ -342,7 +342,7 @@ final class HealthMonitor: @unchecked Sendable {
         update { s in
             s.accessibilityGranted = ax
             s.inputMonitoringGranted = im
-            if keys, tapAlive, !suspended {
+            if keys, tapAlive {
                 s.mappingQueryFailed = queryFailed
                 if !queryFailed { s.mappingInstalled = !mappingMissing }
             } else {
@@ -404,12 +404,9 @@ final class HealthMonitor: @unchecked Sendable {
                          message: "未安装。仅语音出字功能需要（按键映射不受影响），请到官网下载 BlackHole 2ch 安装",
                          guideURL: bh.guideURL))
 
-        // hidutil 残留/在位：运行中且 tap 存活 → 映射在用，做「在位校验」（缺失触发重装）；
-        // 暂停中 → 映射有意卸载，既不是残留也不缺失，跳过；否则做「残留清理」。
-        if let rt = runtime, rt.suspended {
-            items.append(RepairItem(name: "hidutil 中转映射", status: .info,
-                                    message: "遥控已暂停，映射已有意卸载，跳过检查", guideURL: nil))
-        } else if let rt = runtime, rt.keysEnabled, rt.tapAlive {
+        // hidutil 残留/在位：运行中且 tap 存活 → 映射在用（暂停期间同样在用，靠它吞掉遥控键），
+        // 做「在位校验」（缺失触发重装）；否则做「残留清理」。
+        if let rt = runtime, rt.keysEnabled, rt.tapAlive {
             switch KeyRemapper.mappingPresent() {
             case true?:
                 items.append(RepairItem(name: "hidutil 中转映射", status: .ok, message: "在位", guideURL: nil))
