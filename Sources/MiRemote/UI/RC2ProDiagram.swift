@@ -120,13 +120,18 @@ enum RC2ProGeometry {
         return p
     }
 
-    /// 音量胶囊按设备像素对齐（返回示意图坐标）。37.2 宽的胶囊在 0.7–1.0 缩放、且画布原点落在亚像素位置时，
-    /// 左右边缘处于不同的亚像素相位：一侧外沿描边被摊成一列浅灰半透明像素（「毛边」），另一侧却是实边。
-    /// 把四条边吸附到窗口的设备像素格（考虑画布在窗口中的原点），两侧相位一致、渲染完全对称。
-    static func pixelSnappedVolRect(scale: CGFloat, displayScale: CGFloat,
+    /// 音量胶囊按设备像素对齐（返回示意图坐标）。
+    /// 胶囊外沿是 0.7 宽、跨在填充边界上的描边：边界恰落在像素格线时，描边被拆成「外侧一列半透明灰 + 内侧几乎无描边」，
+    /// 直边段整条显出一列浅灰毛边，而两端圆弧处描边仍落在单个像素里、是干净的深色实边；两侧亚像素相位不同时，
+    /// 毛边只出现在一侧。把四条边吸附到设备像素中心（画布在窗口中的原点 + 实际每单位点数），描边完整落进一个像素，
+    /// 左右两侧相位一致，直边与圆弧都是同样干净的一像素深色外沿。
+    static func pixelSnappedVolRect(pointsPerUnit: CGFloat, displayScale: CGFloat,
                                     origin: CGPoint = .zero) -> CGRect {
-        let s = max(scale, 0.01), ds = max(displayScale, 1)
-        func snap(_ v: CGFloat, _ o: CGFloat) -> CGFloat { (((o + v * s) * ds).rounded() / ds - o) / s }
+        let k = max(pointsPerUnit, 0.01), ds = max(displayScale, 1)
+        func snap(_ v: CGFloat, _ o: CGFloat) -> CGFloat {
+            let d = ((o + v * k) * ds).rounded(.down) + 0.5
+            return (d / ds - o) / k
+        }
         let minX = snap(volRect.minX, origin.x), maxX = snap(volRect.maxX, origin.x)
         let minY = snap(volRect.minY, origin.y), maxY = snap(volRect.maxY, origin.y)
         return CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
@@ -134,18 +139,20 @@ enum RC2ProGeometry {
 
     static func volSnapSelfCheck() -> Bool {
         for ds in [1.0, 2.0] as [CGFloat] {
-            for o in [CGPoint.zero, CGPoint(x: 481.6, y: 113.25), CGPoint(x: 300.5, y: 77.75)] {
-                for sc in stride(from: 0.7 as CGFloat, through: 1.0, by: 0.01) {
-                    let r = pixelSnappedVolRect(scale: sc, displayScale: ds, origin: o)
-                    let onGrid = { (v: CGFloat, oo: CGFloat) -> Bool in
-                        let d = (oo + v * sc) * ds
-                        return abs(d.rounded() - d) < 0.001
+            for o in [CGPoint.zero, CGPoint(x: 426, y: 222), CGPoint(x: 403.6, y: 239.1), CGPoint(x: 376.4, y: 77.75)] {
+                for k in stride(from: 0.7 as CGFloat, through: 1.0, by: 0.01) {
+                    let r = pixelSnappedVolRect(pointsPerUnit: k, displayScale: ds, origin: o)
+                    let atCenter = { (v: CGFloat, oo: CGFloat) -> Bool in
+                        let d = (oo + v * k) * ds
+                        return abs(d - d.rounded(.down) - 0.5) < 0.001
                     }
-                    guard onGrid(r.minX, o.x), onGrid(r.maxX, o.x), onGrid(r.minY, o.y), onGrid(r.maxY, o.y)
+                    guard atCenter(r.minX, o.x), atCenter(r.maxX, o.x), atCenter(r.minY, o.y), atCenter(r.maxY, o.y)
                     else { return false }
-                    let k = sc * ds
-                    guard abs(r.width - volRect.width) * k <= 1.001, abs(r.midX - volRect.midX) * k <= 1.001
-                    else { return false }
+                    // 两侧对称：宽度为整数设备像素，且与原型尺寸、中心偏差均不超过 1 像素
+                    let w = r.width * k * ds
+                    guard abs(w - w.rounded()) < 0.001,
+                          abs(r.width - volRect.width) * k * ds <= 1.001,
+                          abs(r.midX - volRect.midX) * k * ds <= 1.001 else { return false }
                 }
             }
         }
@@ -256,8 +263,8 @@ struct RC2ProCanvas: View {
     var connected: Bool
     var interactive: Bool
     @State private var hoveredKey: RemoteKey?
-    /// 画布在窗口中的原点（点），用于音量胶囊的设备像素对齐
-    @State private var canvasOrigin: CGPoint = .zero
+    /// 画布在窗口中的位置与实际尺寸（点），用于音量胶囊的设备像素对齐
+    @State private var canvasFrame: CGRect = .zero
 
     init(scale: CGFloat, connected: Bool, interactive: Bool,
          state: @escaping (RemoteKey) -> RC2ProKeyState) {
@@ -340,14 +347,7 @@ struct RC2ProCanvas: View {
             drawPrint(&ctx)
             drawStatus(&ctx)
         }
-        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { f in
-            canvasOrigin = f.origin
-            if CommandLine.arguments.contains("--snapshot") { // TEMP diag
-                let line = "frame=\(f) scale=\(scale) ds=\(displayScale) vr=\(G.pixelSnappedVolRect(scale: scale, displayScale: displayScale, origin: f.origin))\n"
-                if let h = FileHandle(forWritingAtPath: "snapshots/rc2pro-diag.txt") { h.seekToEndOfFile(); h.write(line.data(using: .utf8)!); h.closeFile() }
-                else { FileManager.default.createFile(atPath: "snapshots/rc2pro-diag.txt", contents: line.data(using: .utf8)) }
-            }
-        }
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { canvasFrame = $0 }
         .onContinuousHover { phase in
             guard interactive else { hoveredKey = nil; return }
             switch phase {
@@ -542,7 +542,8 @@ struct RC2ProCanvas: View {
             }
         }
         // 音量竖胶囊（原型：ksh 阴影 dy .9 → #141517 底座 inset .4 → 两半 keyface+kg → krim .7 → 分缝 .6）
-        let vr = G.pixelSnappedVolRect(scale: scale, displayScale: displayScale, origin: canvasOrigin)
+        let ppu = canvasFrame.width > 0 ? canvasFrame.width / G.canvas.width : scale
+        let vr = G.pixelSnappedVolRect(pointsPerUnit: ppu, displayScale: displayScale, origin: canvasFrame.origin)
         let vRadius = vr.width / 2
         let vol = Path(roundedRect: vr, cornerRadius: vRadius, style: .circular)
         ctx.fill(Path(roundedRect: vr.offsetBy(dx: 0, dy: 0.9), cornerRadius: vRadius, style: .circular),
