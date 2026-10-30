@@ -274,13 +274,8 @@ final class GUIAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             // 它汇总 tap/映射/权限/蓝牙四个健康源；km.onSeizeState 在 AppServices.start()
             // 里已接到 health.setTapAlive，这里不再叠加一层直接覆盖 degraded 的旁路，
             // 否则两个写者互相打架：tap 一恢复就把「映射仍缺失」的真实故障态错误地清成正常。
-            // per-app profile 切换提示（切到飞书闪「OK=⌘Return」这类）。
-            // 链式包裹：AppServices 已经把语音规则切换挂在这个钩子上，直接赋值会把它顶掉。
-            let previousActiveApp = km.onActiveApplication
-            km.onActiveApplication = { [weak self] bundleID in
-                previousActiveApp?(bundleID)
-                DispatchQueue.main.async { self?.overlayCenter?.noteProfileSwitch(bundleID) }
-            }
+            // 前台 App 切换不弹提示条（规格：提示条只在模式/浮层激活时出现，t55u）；
+            // km.onActiveApplication 只保留 AppServices 的语音规则切换。
             km.onButtonEvent = { [weak self] ev in
                 DispatchQueue.main.async { self?.model.noteButton(ev) }
             }

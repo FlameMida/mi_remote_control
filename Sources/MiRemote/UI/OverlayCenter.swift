@@ -176,8 +176,6 @@ final class OverlayCenter {
     private var hudPanel: NSPanel?
     // 按键提示条（gamepad-ux B1：模式/浮层激活时屏底常驻）
     private var hintPanel: NSPanel?
-    /// profile 切换提示的自增令牌（见 noteProfileSwitch）。
-    private var profileHintToken = 0
     // 列表导航按住加速（gamepad-ux D3）：400ms 起连发，1.5s 后提速
     private var repeatKey: RemoteKey?
     private var repeatTimer: Timer?
@@ -546,27 +544,8 @@ final class OverlayCenter {
     // MARK: per-app profile 切换提示（gamepad-ux ⑦：换布局要让用户知道）
 
     /// 提示条自动收起时长；令牌防止快速连切 App 时旧定时器收掉新提示。
-    private static let profileHintMs = 2500
-
-    /// 前台 App 切换：该 App 若显式改写了基础态键义（如飞书 OK=⌘Enter 发送），
-    /// 闪一条提示条。基础态平时不常驻提示条，故到点自动收起。
-    /// 浮层打开或已在功能层时不打扰——那两种状态的提示条另有主人。
-    func noteProfileSwitch(_ bundleID: String?) {
-        guard active == nil, model?.activeLayer == 0 else { return }
-        profileHintToken &+= 1
-        let token = profileHintToken
-        guard let model, let bundleID else { hideHintBar(); return }
-        let hints = HintBarCatalog.hints(forBaseProfile: bundleID, config: model.config)
-        guard !hints.isEmpty else {
-            hideHintBar()   // 切到无专属绑定的 App：上一条提示不许残留
-            return
-        }
-        showHintBar(hints)
-        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(Self.profileHintMs)) { [weak self] in
-            guard let self, self.profileHintToken == token, self.active == nil else { return }
-            self.hideHintBar()
-        }
-    }
+    // 不再有「前台 App 切换闪提示条」：原型/规格定义提示条只在模式或浮层激活时出现
+    // （prototype-v2「按键提示条：模式或浮层激活时…」），普通切 App 一律不出提示（t55u）。
 
     // MARK: App 控制模式 HUD（层 2；非捕获，仅提示）
 
@@ -575,7 +554,7 @@ final class OverlayCenter {
     func noteLayer(_ layer: Int) {
         // 按键提示条：层激活时显示该层键表（浮层打开期间由浮层键表接管，不在此覆盖）
         if active == nil {
-            if layer != 0, let model {
+            if HintBarCatalog.visible(overlayActive: false, layer: layer), let model {
                 showHintBar(HintBarCatalog.hints(forLayer: layer, config: model.config,
                                                  profile: frontApp?.bundleIdentifier ?? "global"))
             } else {
@@ -717,13 +696,10 @@ enum HintBarCatalog {
         }
     }
 
-    /// 基础态的 per-app 覆盖提示：切到该 App 时闪一下，告诉用户这颗键在这里变了。
-    /// 只列 profile **显式声明**且基础态确实生效的槽位——当前引擎只放行 OK 的短按
-    /// （方向/返回在基础态恒为光标/删除，见 MappingEngine.overlayDeclared），
-    /// 所以这里只看 ok.tap；将来放行更多键时在此同步扩充，别让提示条许诺引擎不认的绑定。
-    static func hints(forBaseProfile bundleID: String, config: MappingConfig) -> [Hint] {
-        guard let action = config.profiles[bundleID]?["ok"]?.tap else { return [] }
-        return [Hint(keys: [.ok], text: ActionSummary.describe(action))]
+    /// 提示条出现时机（规格：模式或浮层激活时）。基础态（层 0、无浮层）一律不显示，
+    /// 前台 App 切换不是出现理由。
+    static func visible(overlayActive: Bool, layer: Int) -> Bool {
+        overlayActive || layer != 0
     }
 
     /// 层键表：该层每个键的绑定摘要（最多 5 条 + 退出提示），数据与 HUD 同源。

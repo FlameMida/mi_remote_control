@@ -979,15 +979,14 @@ enum SelfTest {
                    && larkRows.contains { $0.1.contains("⌥") && $0.1.contains("⇧") },
                    "飞书 TV 仍进控制模式，且 HUD 列出飞书静音")
 
-            // profile 切换提示条：飞书列 OK，未覆盖基础态的 App 不打扰。
             // 端到端：默认配置下切到飞书，按一次 OK 必须真的发出 ⌘Return（用户实际场景）。
             expect(MappingEngine.baseOverrideSelfCheck(), "飞书 OK 短按端到端产出 ⌘Return")
 
-            let larkHints = HintBarCatalog.hints(forBaseProfile: "com.electron.lark", config: cfg)
-            expect(larkHints.count == 1 && larkHints[0].keys == [.ok]
-                   && larkHints[0].text.contains("⌘")
-                   && HintBarCatalog.hints(forBaseProfile: "us.zoom.xos", config: cfg).isEmpty,
-                   "profile 切换提示条：飞书提示 OK=⌘Return，Zoom 无基础覆盖不提示")
+            expect(!HintBarCatalog.visible(overlayActive: false, layer: 0)
+                   && HintBarCatalog.visible(overlayActive: false, layer: 1)
+                   && HintBarCatalog.visible(overlayActive: false, layer: 2)
+                   && HintBarCatalog.visible(overlayActive: true, layer: 0),
+                   "按键提示条只在模式/浮层激活时出现，基础态切 App 不弹（t55u）")
         }
 
         // v2-6. v3→当前版本迁移：心智模型 v2 + Home 单按调度中心。
